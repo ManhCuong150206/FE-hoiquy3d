@@ -1,0 +1,86 @@
+<section class="csv">
+  <h3>Nhập CSV</h3>
+
+  <label class="file">
+    <input type="file" accept=".csv,.tsv,.txt,text/csv" (change)="onFile($event)" />
+    <span>{{ table() ? fileName() : 'Chọn tệp CSV từ máy tính…' }}</span>
+  </label>
+
+  @if (message(); as m) {
+    <p class="msg" [class.error]="m.kind === 'error'" role="status">{{ m.text }}</p>
+  }
+
+  @if (table(); as t) {
+    <p class="info">
+      {{ t.rows.length }} dòng · {{ t.headers.length }} cột · phân tách bằng {{ delimiterName() }}
+    </p>
+
+    <div class="preview">
+      <table>
+        <thead>
+          <tr>
+            @for (h of t.headers; track $index) {
+              <th [class.y]="$index === yCol()" [class.x]="xCols().includes($index)">{{ h }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of preview(); track $index) {
+            <tr>
+              @for (c of r; track $index) {
+                <td>{{ c }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="legend"><i class="sw y"></i> Y &nbsp; <i class="sw x"></i> X</p>
+
+    <label class="lbl" for="csv-y">Biến mục tiêu (Y)</label>
+    <select id="csv-y" (change)="onY($event)">
+      @for (h of t.headers; track $index) {
+        @if (numeric()[$index]) {
+          <option [value]="$index" [selected]="$index === yCol()">{{ h }}</option>
+        }
+      }
+    </select>
+
+    <fieldset>
+      <legend class="lbl">Đặc trưng (X)</legend>
+      @for (h of t.headers; track $index) {
+        <label class="chk" [class.disabled]="!numeric()[$index] || $index === yCol()">
+          <input
+            type="checkbox"
+            [checked]="xCols().includes($index)"
+            [disabled]="!numeric()[$index] || $index === yCol()"
+            (change)="onX($index, $event)"
+          />
+          {{ h }}
+          @if (!numeric()[$index]) {
+            <em>(không phải số)</em>
+          }
+        </label>
+      }
+    </fieldset>
+
+    <label class="lbl" for="csv-missing">Ô trống / không hợp lệ</label>
+    <select id="csv-missing" (change)="onMissing($event)">
+      <option value="drop" [selected]="missing() === 'drop'">Bỏ các dòng đó</option>
+      <option value="mean" [selected]="missing() === 'mean'">Điền bằng trung bình cột</option>
+      <option value="zero" [selected]="missing() === 'zero'">Điền bằng 0</option>
+    </select>
+    <p class="hint">
+      {{ missingCount() }} ô trống trong các cột đã chọn. Dòng thiếu Y luôn bị bỏ.
+    </p>
+
+    <label class="chk">
+      <input type="checkbox" [checked]="standardize()" (change)="onStandardize($event)" />
+      Chuẩn hoá z-score (giúp gradient descent hội tụ)
+    </label>
+
+    <button class="primary" type="button" (click)="apply()" [disabled]="xCols().length === 0">
+      Dùng dữ liệu này
+    </button>
+  }
+</section>

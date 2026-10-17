@@ -1,0 +1,43 @@
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #fff;
+    padding: 12px 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.play {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    font-size: 16px;
+}
+
+.iter {
+    font-family: monospace;
+    min-width: 170px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+}
+
+.field label {
+    margin: 0 0 2px;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.warn {
+    flex-basis: 100%;
+    margin: 0;
+    color: #c0392b;
+    font-size: 13px;
+}

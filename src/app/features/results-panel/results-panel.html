@@ -1,0 +1,41 @@
+<section class="card">
+  <h3>KẾT QUẢ</h3>
+
+  <div class="losses">
+    <div class="box">
+      <span>Test loss</span>
+      <strong>{{ store.latest()?.testLoss?.toFixed(3) ?? '—' }}</strong>
+    </div>
+    <div class="box">
+      <span>Training loss</span>
+      <strong class="muted">{{ store.latest()?.trainLoss?.toFixed(3) ?? '—' }}</strong>
+    </div>
+  </div>
+
+  <h4>Loss theo iteration</h4>
+  <svg viewBox="0 0 300 100" preserveAspectRatio="none" class="chart">
+    @if (chart(); as c) {
+      <polyline [attr.points]="c.train" fill="none" stroke="#9aa5ae" stroke-width="1.5" />
+      <polyline [attr.points]="c.test" fill="none" stroke="#1f2d3a" stroke-width="1.5" />
+    }
+  </svg>
+  <div class="legend"><span class="train">― Train</span> <span>― Test</span></div>
+
+  @if (store.metrics(); as m) {
+    <h4>Metric</h4>
+    <table>
+      <tr><th></th><th>Train</th><th>Test</th></tr>
+      <tr><td>MSE</td><td>{{ m.train.mse.toFixed(3) }}</td><td>{{ m.test.mse.toFixed(3) }}</td></tr>
+      <tr><td>RMSE</td><td>{{ m.train.rmse.toFixed(3) }}</td><td>{{ m.test.rmse.toFixed(3) }}</td></tr>
+      <tr><td>MAE</td><td>{{ m.train.mae.toFixed(3) }}</td><td>{{ m.test.mae.toFixed(3) }}</td></tr>
+      <tr><td>R²</td><td>{{ m.train.r2.toFixed(3) }}</td><td>{{ m.test.r2.toFixed(3) }}</td></tr>
+    </table>
+  }
+
+  @if (store.latest(); as s) {
+    <h4>Tham số mô hình</h4>
+    <p class="mono">w = [{{ s.w.map(v => v.toFixed(2)).join(', ') }}]</p>
+    <p class="mono">b = {{ s.b.toFixed(2) }}</p>
+    <p class="mono">Mẫu train / test: {{ store.trainX().length }} / {{ store.testX().length }}</p>
+  }
+</section>

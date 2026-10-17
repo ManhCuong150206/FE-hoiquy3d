@@ -1,0 +1,29 @@
+<header class="bar">
+    <div class="brand">
+        <span class="logo" aria-hidden="true">◈</span>
+        <div class="titles">
+            <strong>Hồi quy 3D</strong>
+
+        </div>
+    </div>
+
+    <div class="status">
+        <span class="chip" [class.off]="!exp.online()" role="status">
+            <i class="dot"></i>{{ exp.online() ? 'Trực tuyến' : 'Ngoại tuyến' }}
+        </span>
+
+        @if (exp.pendingCount() > 0) {
+        <span class="pending">
+            {{ exp.pendingCount() }} thí nghiệm chờ đồng bộ
+            @if (!exp.online()) { <span>— sẽ tự gửi khi có mạng</span> }
+        </span>
+        <button type="button" (click)="exp.sync()" [disabled]="!exp.online() || exp.syncing()">
+            {{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ ngay' }}
+        </button>
+        }
+
+        @if (exp.syncError(); as err) {
+        <span class="error" role="alert">{{ err }}</span>
+        }
+    </div>
+</header>

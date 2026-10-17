@@ -1,0 +1,3 @@
+.sub { margin: 0; font-size: 13px; color: var(--muted); }
+.row { display: flex; gap: 8px; }
+.regen { width: 100%; margin-top: 16px; background: var(--teal); color: #fff; border: none; padding: 10px; font-weight: 600; }

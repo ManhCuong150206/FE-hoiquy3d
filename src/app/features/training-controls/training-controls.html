@@ -1,0 +1,49 @@
+<section class="controls">
+    <button (click)="store.reset()">⟲ Reset</button>
+    <button class="play" (click)="toggle()">{{ store.status() === 'running' ? '❚❚' : '▶' }}</button>
+    <button (click)="store.step()">Step</button>
+    <button (click)="store.stop()">Stop</button>
+
+    <div class="iter">Iteration {{ store.iteration() }} / {{ store.maxIterations() }}</div>
+
+    <div class="field">
+        <label>Thuật toán</label>
+        <select (change)="store.algorithm.set($any($event.target).value)">
+            <option value="linear" selected>Linear Regression</option>
+            <option value="polynomial" disabled>Polynomial (sắp có)</option>
+            <option value="ridge" disabled>Ridge (sắp có)</option>
+            <option value="lasso" disabled>Lasso (sắp có)</option>
+        </select>
+    </div>
+
+    <div class="field">
+        <label>Learning rate</label>
+        <select (change)="store.setLearningRate(+$any($event.target).value)">
+            @for (v of lrOptions; track v) {
+            <option [value]="v" [selected]="v === store.learningRate()">{{ v }}</option>
+            }
+        </select>
+    </div>
+
+    <div class="field">
+        <label>Max iterations</label>
+        <select (change)="store.setMaxIterations(+$any($event.target).value)">
+            @for (v of iterOptions; track v) {
+            <option [value]="v" [selected]="v === store.maxIterations()">{{ v }}</option>
+            }
+        </select>
+    </div>
+
+    <div class="field">
+        <label>Tốc độ phát</label>
+        <select (change)="store.setSpeed(+$any($event.target).value)">
+            @for (v of speedOptions; track v) {
+            <option [value]="v" [selected]="v === store.speed()">{{ v }}x</option>
+            }
+        </select>
+    </div>
+
+    @if (store.lrError() ?? store.errorMsg(); as msg) {
+    <p class="warn">⚠ {{ msg }}</p>
+    }
+</section>

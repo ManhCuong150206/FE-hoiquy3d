@@ -1,0 +1,7 @@
+.workspace {
+    display: grid;
+    grid-template-columns: 260px 260px minmax(0, 1fr) 340px;
+    gap: 16px;
+    padding: 24px 145px;
+    align-items: start;
+}

@@ -1,0 +1,101 @@
+:host {
+    display: block;
+}
+
+.bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 12px 24px;
+    background: #f5f7fa;
+    border-bottom: 1px solid #e5e9ee;
+    color: #1f2d3a;
+    font-size: 13px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    font-size: 26px;
+    line-height: 1;
+    color: #0877bd;
+}
+
+.titles {
+    display: flex;
+    flex-direction: column;
+}
+
+.titles strong {
+    font-size: 16px;
+    color: #17394f;
+}
+
+.titles small {
+    color: #5b6b7b;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: #e8f5ec;
+    color: #1e6b3a;
+    font-weight: 600;
+}
+
+.chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.chip.off {
+    background: #fdecec;
+    color: #a12727;
+}
+
+.pending {
+    color: #a85d00;
+}
+
+.error {
+    color: #a12727;
+}
+
+button {
+    height: 30px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #17394f;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+    background: #1f4d6a;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

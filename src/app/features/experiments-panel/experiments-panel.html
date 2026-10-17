@@ -1,0 +1,76 @@
+<section class="card">
+    <h2>Thí nghiệm</h2>
+
+    <div class="save">
+        <input type="text" placeholder="Tên lần chạy (tuỳ chọn)" aria-label="Tên lần chạy" [value]="name()"
+            (input)="onName($event)" (keydown.enter)="save()" />
+        <button type="button" class="primary" (click)="save()" [disabled]="!exp.canSave()">Lưu</button>
+    </div>
+    @if (!exp.canSave()) {
+    <p class="hint">Chạy ít nhất một bước huấn luyện để có kết quả cần lưu.</p>
+    }
+    @if (note(); as n) {
+    <p class="note" role="status">{{ n }}</p>
+    }
+
+    @if (exp.list().length === 0) {
+    <p class="empty">Chưa có thí nghiệm nào được lưu.</p>
+    } @else {
+    <ul class="list">
+        @for (e of exp.list(); track e.id) {
+        <li [class.on]="isSelected(e.id)">
+            <label class="pick" [title]="'So sánh ' + e.name">
+                <input type="checkbox" [checked]="isSelected(e.id)" (change)="toggle(e.id, $event)" />
+            </label>
+            <div class="body">
+                <div class="top">
+                    <strong class="name">{{ e.name }}</strong>
+                    <span class="sync" [class.pending]="!e.synced">{{ e.synced ? 'Đã đồng bộ' : 'Chờ đồng bộ' }}</span>
+                </div>
+                <div class="meta">{{ meta(e) }}</div>
+                <div class="meta">Test MSE {{ fmt(e.test.mse) }} · R² {{ fmt(e.test.r2) }} · {{ when(e) }}</div>
+                <div class="actions">
+                    <button type="button" (click)="apply(e)">Áp dụng</button>
+                    <button type="button" class="danger" (click)="remove(e.id)">Xoá</button>
+                </div>
+            </div>
+        </li>
+        }
+    </ul>
+
+    <div class="export">
+        <button type="button" (click)="exp.exportJson()">Xuất JSON</button>
+        <button type="button" (click)="exp.exportCsv()">Xuất CSV</button>
+    </div>
+    }
+
+    @if (compared().length === 1) {
+    <p class="hint">Chọn thêm ít nhất một lần chạy nữa để so sánh.</p>
+    }
+    @if (rows().length > 0) {
+    <h3>So sánh</h3>
+    <div class="cmp">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    @for (e of compared(); track e.id) {
+                    <th [title]="e.name">{{ e.name }}</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (r of rows(); track r.label) {
+                <tr>
+                    <th scope="row">{{ r.label }}</th>
+                    @for (c of r.cells; track $index) {
+                    <td [class.best]="c.best">{{ c.text }}</td>
+                    }
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="hint">Ô in đậm màu xanh là kết quả tốt nhất trên tập test.</p>
+    }
+</section>

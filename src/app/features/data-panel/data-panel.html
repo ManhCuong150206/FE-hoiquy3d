@@ -1,0 +1,31 @@
+<section class="card">
+  <h3>DỮ LIỆU</h3>
+  <p class="sub">Dữ liệu tổng hợp (sinh theo seed)</p>
+
+  <label>Số đặc trưng (≥ 3 chỉ hiện lát cắt 2 đặc trưng đầu)</label>
+  <select (change)="store.featureCount.set(num($event))">
+    @for (v of [1, 2, 3, 4, 5]; track v) {
+    <option [value]="v" [selected]="v === store.featureCount()">{{ v }}</option>
+    }
+  </select>
+
+  <label>Số mẫu</label>
+  <input type="number" min="50" max="10000" [value]="store.sampleCount()"
+    (change)="store.sampleCount.set(num($event))" />
+
+  <label>Noise: {{ store.noise() }}%</label>
+  <input type="range" min="0" max="50" step="1" [value]="store.noise()" (input)="store.noise.set(num($event))" />
+
+  <label>Tỉ lệ train/test: {{ (store.trainRatio() * 100).toFixed(0) }}%</label>
+  <input type="range" min="10" max="90" step="10" [value]="store.trainRatio() * 100"
+    (input)="store.trainRatio.set(num($event) / 100)" />
+
+  <label>Seed</label>
+  <div class="row">
+    <input type="number" [value]="store.seed()" (change)="store.seed.set(num($event))" />
+    <button (click)="shuffleSeed()">Xáo seed</button>
+  </div>
+
+  <button class="regen" (click)="store.generateData()">REGENERATE</button>
+  <app-csv-import />
+</section>

@@ -1,0 +1,28 @@
+<section class="notes">
+    <h2>Ghi chú thuật toán</h2>
+
+    @let n = note();
+    <div class="grid">
+        <div class="col">
+            <h3>{{ n.title }}</h3>
+            <p>{{ n.text }}</p>
+        </div>
+        <div class="col">
+            <h3>Công thức</h3>
+            <dl>
+                <dt>Mô hình</dt>
+                <dd><code>{{ n.model }}</code></dd>
+                <dt>Hàm mất mát</dt>
+                <dd><code>{{ n.loss }}</code></dd>
+            </dl>
+        </div>
+        <div class="col">
+            <h3>Lưu ý</h3>
+            <p>{{ n.tip }}</p>
+        </div>
+    </div>
+
+    @if (hint(); as h) {
+    <p class="hint" [class.warn]="h.kind === 'warn'" role="status">{{ h.text }}</p>
+    }
+</section>

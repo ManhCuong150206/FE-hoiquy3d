@@ -1,0 +1,20 @@
+<section class="card">
+    <div class="bar">
+        <h3>KHÔNG GIAN 3D</h3>
+        <div class="btns">
+            <button (click)="view('default')">Reset camera</button>
+            <button (click)="view('top')">Trên</button>
+            <button (click)="view('front')">Trước</button>
+            <button (click)="view('side')">Bên</button>
+        </div>
+    </div>
+
+    <div class="legend">
+        <span class="dot train"></span> Train
+        <span class="dot test"></span> Test
+        <span>· Mặt phẳng = mô hình hiện tại</span>
+    </div>
+
+    <div #host class="host"></div>
+    <p class="hint">Kéo để xoay · cuộn để zoom · chuột phải để pan</p>
+</section>

@@ -1,1 +1,62 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+    --teal: #1b3f52;
+    --orange: #f59322;
+    --blue: #0877bd;
+    --bg: #f7f7f7;
+    --text: #1f2d3a;
+    --muted: #6b7a86;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Roboto, 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.card h3 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--teal);
+}
+
+button {
+    cursor: pointer;
+    border: 1px solid #d5dbe0;
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font: inherit;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 10px 0 4px;
+}
+
+select,
+input[type='number'] {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #d5dbe0;
+    border-radius: 6px;
+    font: inherit;
+}
+
+input[type='range'] {
+    width: 100%;
+}
