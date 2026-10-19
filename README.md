@@ -40,7 +40,7 @@ cd Hoiquy3d
 npm install
 
 # 3. Chạy chế độ phát triển
-ng serve
+ng serve --open
 ```
 
 Mở trình duyệt tại http://localhost:4200. Ứng dụng tự tải lại khi bạn sửa code.
