@@ -33,7 +33,7 @@ npm install -g @angular/cli
 
 ```bash
 # 1. Lấy mã nguồn
-git clone <đường-dẫn-repo>
+git clone https://github.com/ManhCuong150206/FE-hoiquy3d
 cd Hoiquy3d
 
 # 2. Cài thư viện
