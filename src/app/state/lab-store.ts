@@ -24,6 +24,8 @@ export class LabStore {
     maxIterations = signal(1000);
     tolerance = signal(1e-6);
     speed = signal(1);
+    degree = signal(2);   // Polynomial
+    lambda = signal(0.1); // Ridge / Lasso
 
     // ----- cấu hình dữ liệu tổng hợp -----
     sampleCount = signal(500);
@@ -117,6 +119,8 @@ export class LabStore {
      */
     applyConfig(c: SavedExperiment) {
         this.algorithm.set(c.algorithm);
+        this.degree.set(c.degree ?? 2);
+        this.lambda.set(c.lambda ?? 0.1);
         this.learningRate.set(c.learningRate);
         this.maxIterations.set(c.maxIterations);
         if (c.dataSource === 'synthetic') {
@@ -137,6 +141,7 @@ export class LabStore {
         if (this.status() === 'done' || !this.initialized) this.initWorker();
         this.status.set('running');
         this.send({ type: 'play' });
+
     }
 
     pause() {
@@ -165,6 +170,9 @@ export class LabStore {
     setLearningRate(v: number) { this.learningRate.set(v); this.reset(); }
     setMaxIterations(v: number) { this.maxIterations.set(v); this.reset(); }
     setSpeed(v: number) { this.speed.set(v); this.send({ type: 'speed', speed: v }); }
+    setAlgorithm(a: Algorithm) { this.algorithm.set(a); this.reset(); }
+    setDegree(v: number) { this.degree.set(v); this.reset(); }
+    setLambda(v: number) { this.lambda.set(v); this.reset(); }
 
     // ===== nội bộ =====
     private send(msg: unknown) {
@@ -203,7 +211,11 @@ export class LabStore {
             Xtr: this.trainX(), ytr: this.trainY(), Xte: this.testX(), yte: this.testY(),
             lr: this.learningRate(), maxIter: this.maxIterations(),
             tol: this.tolerance(), speed: this.speed(),
+            algorithm: this.algorithm(),
+            degree: this.degree(),
+            lambda: this.lambda(),
         });
         this.initialized = true;
+
     }
 }

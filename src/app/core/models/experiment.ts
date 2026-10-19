@@ -24,6 +24,8 @@ export interface SavedExperiment {
     algorithm: Algorithm;
     learningRate: number;
     maxIterations: number;
+    degree?: number; // Polynomial
+    lambda?: number; // Ridge / Lasso
 
     // cấu hình dữ liệu
     dataSource: 'synthetic' | 'csv';

@@ -8,13 +8,35 @@
 
     <div class="field">
         <label>Thuật toán</label>
-        <select (change)="store.algorithm.set($any($event.target).value)">
-            <option value="linear" selected>Linear Regression</option>
-            <option value="polynomial" disabled>Polynomial (sắp có)</option>
-            <option value="ridge" disabled>Ridge (sắp có)</option>
-            <option value="lasso" disabled>Lasso (sắp có)</option>
+        <select (change)="store.setAlgorithm($any($event.target).value)">
+            <option value="linear" [selected]="store.algorithm() === 'linear'">Linear Regression</option>
+            <option value="polynomial" [selected]="store.algorithm() === 'polynomial'">Polynomial</option>
+            <option value="ridge" [selected]="store.algorithm() === 'ridge'">Ridge</option>
+            <option value="lasso" [selected]="store.algorithm() === 'lasso'">Lasso</option>
         </select>
     </div>
+
+    @if (store.algorithm() === 'polynomial') {
+    <div class="field">
+        <label>Degree</label>
+        <select (change)="store.setDegree(+$any($event.target).value)">
+            @for (v of degreeOptions; track v) {
+            <option [value]="v" [selected]="v === store.degree()">{{ v }}</option>
+            }
+        </select>
+    </div>
+    }
+
+    @if (store.algorithm() === 'ridge' || store.algorithm() === 'lasso') {
+    <div class="field">
+        <label>Lambda (λ)</label>
+        <select (change)="store.setLambda(+$any($event.target).value)">
+            @for (v of lambdaOptions; track v) {
+            <option [value]="v" [selected]="v === store.lambda()">{{ v }}</option>
+            }
+        </select>
+    </div>
+    }
 
     <div class="field">
         <label>Learning rate</label>

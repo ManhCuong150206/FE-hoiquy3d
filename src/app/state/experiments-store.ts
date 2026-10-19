@@ -48,6 +48,8 @@ export class ExperimentsStore {
             algorithm: this.lab.algorithm(),
             learningRate: this.lab.learningRate(),
             maxIterations: this.lab.maxIterations(),
+            degree: this.lab.algorithm() === 'polynomial' ? this.lab.degree() : undefined,
+            lambda: ['ridge', 'lasso'].includes(this.lab.algorithm()) ? this.lab.lambda() : undefined,
             dataSource: this.lab.dataSource(),
             csvName: this.lab.csvName(),
             sampleCount: this.lab.trainX().length + this.lab.testX().length,
@@ -106,7 +108,7 @@ export class ExperimentsStore {
 
     exportCsv() {
         const cols = [
-            'id', 'name', 'createdAt', 'algorithm', 'learningRate', 'maxIterations', 'iterations',
+            'id', 'name', 'createdAt', 'algorithm', 'learningRate', 'maxIterations', 'degree', 'lambda', 'iterations',
             'dataSource', 'csvName', 'sampleCount', 'featureCount', 'noise', 'seed', 'trainRatio',
             'w', 'b',
             'train_mse', 'train_rmse', 'train_mae', 'train_r2',
@@ -117,7 +119,7 @@ export class ExperimentsStore {
             return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
         };
         const lines = this.list().map((e) => [
-            e.id, e.name, new Date(e.createdAt).toISOString(), e.algorithm, e.learningRate, e.maxIterations, e.iterations,
+            e.id, e.name, new Date(e.createdAt).toISOString(), e.algorithm, e.learningRate, e.maxIterations, e.degree ?? '', e.lambda ?? '', e.iterations,
             e.dataSource, e.csvName, e.sampleCount, e.featureCount, e.noise, e.seed, e.trainRatio,
             e.w.join(' '), e.b,
             e.train.mse, e.train.rmse, e.train.mae, e.train.r2,
