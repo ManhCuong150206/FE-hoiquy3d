@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { mae, mse, predict, r2, rmse } from '../core/engine/metrics';
+import { polynomialFeatures } from '../core/engine/polynomial';
 import { makeLinearData, trainTestSplit } from '../core/engine/synthetic';
 import { Algorithm, SavedExperiment } from '../core/models/experiment';
 
@@ -71,15 +72,33 @@ export class LabStore {
         return 4 / m;
     });
 
+
     metrics = computed(() => {
         const s = this.latest();
         if (!s) return null;
+
         const calc = (X: number[][], y: number[]) => {
-            const p = predict(X, s.w, s.b);
-            return { mse: mse(y, p), rmse: rmse(y, p), mae: mae(y, p), r2: r2(y, p) };
+            // Polynomial cần biến đổi đặc trưng giống Worker
+            const inputX = this.algorithm() === 'polynomial'
+                ? polynomialFeatures(X, this.degree())
+                : X;
+
+            const p = predict(inputX, s.w, s.b);
+
+            return {
+                mse: mse(y, p),
+                rmse: rmse(y, p),
+                mae: mae(y, p),
+                r2: r2(y, p)
+            };
         };
-        return { train: calc(this.trainX(), this.trainY()), test: calc(this.testX(), this.testY()) };
+
+        return {
+            train: calc(this.trainX(), this.trainY()),
+            test: calc(this.testX(), this.testY())
+        };
     });
+
 
     constructor() {
         this.generateData();

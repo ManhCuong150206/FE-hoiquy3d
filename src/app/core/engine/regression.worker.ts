@@ -1,33 +1,80 @@
 /// <reference lib="webworker" />
 import { gdStep } from './linear';
 import { mse, predict } from './metrics';
+import { lassoStep } from './lasso';
+import { polynomialFeatures } from './polynomial';
 
 interface WorkerState {
   Xtr: number[][]; ytr: number[]; Xte: number[][]; yte: number[];
   w: number[]; b: number; i: number; prev: number;
   lr: number; maxIter: number; tol: number; speed: number;
+  algorithm: 'linear' | 'polynomial' | 'ridge' | 'lasso';
+  lambda: number; degree: number;
 }
 
 let s: WorkerState | null = null;
 let timer: ReturnType<typeof setTimeout> | undefined;
 
+
 addEventListener('message', ({ data }) => {
   switch (data.type) {
-    case 'init':
+    case 'init': {
       clearTimeout(timer);
+
+      const algorithm = data.algorithm as WorkerState['algorithm'];
+      const degree = Math.max(1, Math.floor(Number(data.degree) || 2));
+
+      const Xtr = algorithm === 'polynomial'
+        ? polynomialFeatures(data.Xtr, degree)
+        : data.Xtr;
+
+      const Xte = algorithm === 'polynomial'
+        ? polynomialFeatures(data.Xte, degree)
+        : data.Xte;
+
       s = {
-        Xtr: data.Xtr, ytr: data.ytr, Xte: data.Xte, yte: data.yte,
-        w: new Array<number>(data.Xtr[0]?.length ?? 0).fill(0), b: 0, i: 0, prev: Infinity,
-        lr: data.lr, maxIter: data.maxIter, tol: data.tol, speed: data.speed,
+        Xtr,
+        ytr: data.ytr,
+        Xte,
+        yte: data.yte,
+
+        w: new Array<number>(Xtr[0]?.length ?? 0).fill(0),
+        b: 0,
+        i: 0,
+        prev: Infinity,
+
+        lr: data.lr,
+        maxIter: data.maxIter,
+        tol: data.tol,
+        speed: data.speed,
+
+        algorithm,
+        degree,
+        lambda: data.lambda,
       };
-      report(false); // gửi trạng thái ban đầu (iteration 0)
+
+      report(false);
       break;
-    case 'play': loop(); break;
-    case 'pause': clearTimeout(timer); break;
-    case 'step': tick(); break;
-    case 'speed': if (s) s.speed = data.speed; break;
+    }
+
+    case 'play':
+      loop();
+      break;
+
+    case 'pause':
+      clearTimeout(timer);
+      break;
+
+    case 'step':
+      tick();
+      break;
+
+    case 'speed':
+      if (s) s.speed = data.speed;
+      break;
   }
 });
+
 
 function report(done: boolean) {
   if (!s) return;
@@ -40,7 +87,35 @@ function report(done: boolean) {
 
 function tick(): boolean {
   if (!s) return false;
-  const r = gdStep(s.Xtr, s.ytr, s.w, s.b, s.lr);
+
+  let r: { w: number[]; b: number };
+
+  if (s.algorithm === 'lasso') {
+    // Lasso Regression (L1)
+    r = lassoStep(
+      s.Xtr,
+      s.ytr,
+      s.w,
+      s.b,
+      s.lr,
+      s.lambda
+    );
+  } else {
+    // Linear hoặc Ridge
+    const lambda = s.algorithm === 'ridge'
+      ? s.lambda
+      : 0;
+
+    r = gdStep(
+      s.Xtr,
+      s.ytr,
+      s.w,
+      s.b,
+      s.lr,
+      lambda
+    );
+  }
+
   s.w = r.w;
   s.b = r.b;
   s.i++;

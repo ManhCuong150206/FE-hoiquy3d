@@ -5,6 +5,7 @@ import {
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LabStore } from '../../state/lab-store';
+import { polynomialFeatures } from '../../core/engine/polynomial';
 
 @Component({
   selector: 'app-viewport3d',
@@ -40,14 +41,28 @@ export class Viewport3d implements OnDestroy {
       this.rebuildPoints(trX, trY, teX, teY, scale);
     });
 
-    // Mỗi bước huấn luyện → cập nhật mặt phẳng
+
+    // Mỗi bước huấn luyện → cập nhật bề mặt mô hình
     effect(() => {
       const ready = this.ready();
       const s = this.store.latest();
       const scale = this.store.dataScale();
+      const algorithm = this.store.algorithm();
+      const degree = this.store.degree();
+      const featureCount = this.store.dataFeatures();
+
       if (!ready) return;
-      this.updatePlane(s?.w ?? [0, 0], s?.b ?? 0, scale);
+
+      this.updatePlane(
+        s?.w ?? [],
+        s?.b ?? 0,
+        scale,
+        algorithm,
+        degree,
+        featureCount
+      );
     });
+
   }
 
   private init() {
@@ -64,7 +79,7 @@ export class Viewport3d implements OnDestroy {
 
       this.scene.add(new THREE.GridHelper(10, 10, 0x999999, 0xdddddd), new THREE.AxesHelper(5));
 
-      const geo = new THREE.PlaneGeometry(10, 10, 10, 10);
+      const geo = new THREE.PlaneGeometry(10, 10, 40, 40);
       geo.rotateX(-Math.PI / 2); // trục Y của Three.js là chiều "lên"
       this.plane = new THREE.Mesh(
         geo,
@@ -119,17 +134,55 @@ export class Viewport3d implements OnDestroy {
     this.scene.add(...this.pointMeshes);
   }
 
-  // mặt phẳng ŷ = b + w1·x1 + w2·x2 (quy đổi về tọa độ hiển thị)
-  private updatePlane(w: number[], b: number, scale: number) {
-    if (!this.plane) return;
-    const pos = (this.plane.geometry as THREE.PlaneGeometry).attributes['position'] as THREE.BufferAttribute;
+
+  // Cập nhật bề mặt hồi quy trong hệ tọa độ Three.js:
+  // X = x1, Z = x2, Y = giá trị dự đoán
+  private updatePlane(
+    w: number[],
+    b: number,
+    scale: number,
+    algorithm: string,
+    degree: number,
+    featureCount: number
+  ) {
+    if (!this.plane || scale <= 0) return;
+
+    const geometry = this.plane.geometry as THREE.PlaneGeometry;
+    const pos = geometry.attributes['position'] as THREE.BufferAttribute;
+
     for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i) / scale;
-      const z = pos.getZ(i) / scale;
-      pos.setY(i, scale * (b + (w[0] ?? 0) * x + (w[1] ?? 0) * z));
+      // Chuyển tọa độ hiển thị về dữ liệu gốc
+      const x1 = pos.getX(i) / scale;
+      const x2 = pos.getZ(i) / scale;
+
+      // Tạo một mẫu dữ liệu gốc
+      const row = new Array<number>(featureCount).fill(0);
+
+      if (featureCount >= 1) row[0] = x1;
+      if (featureCount >= 2) row[1] = x2;
+
+      // Dự đoán bằng cùng cách biến đổi như Worker
+      const features = algorithm === 'polynomial'
+        ? polynomialFeatures([row], degree)[0]
+        : row;
+
+      let prediction = b;
+
+      for (let j = 0; j < features.length; j++) {
+        prediction += (w[j] ?? 0) * features[j];
+      }
+
+      // Quy đổi kết quả về tọa độ hiển thị
+      pos.setY(i, prediction * scale);
     }
+
     pos.needsUpdate = true;
+
+    // Cập nhật pháp tuyến cho hình học sau khi thay đổi đỉnh
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
   }
+
 
   view(name: 'default' | 'top' | 'front' | 'side') {
     const p = { default: [8, 6, 8], top: [0, 14, 0.01], front: [0, 3, 14], side: [14, 3, 0] }[name];
