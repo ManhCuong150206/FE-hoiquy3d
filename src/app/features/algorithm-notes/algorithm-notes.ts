@@ -35,9 +35,9 @@ const NOTES: Record<Algorithm, Note> = {
   lasso: {
     title: 'Hồi quy Lasso (L1)',
     model: 'ŷ = b + w₁x₁ + w₂x₂ + …',
-    loss: 'L = MSE + λ · Σ |wⱼ|',
-    text: 'Thêm phạt trị tuyệt đối của trọng số. Phạt L1 đẩy một số trọng số về đúng 0, nên Lasso còn đóng vai trò chọn đặc trưng. Do |w| không khả vi tại 0, gradient descent dùng subgradient λ · sign(w).',
-    tip: 'Với gradient descent, trọng số thường dao động rất sát 0 chứ khó bằng 0 tuyệt đối. Đây là hạn chế của phương pháp, không phải lỗi của dữ liệu.',
+    loss: 'J = MSE + λ × tổng trị tuyệt đối các trọng số; không phạt intercept.',
+    text: 'Engine dùng ISTA: bước gradient của MSE tạo u = w − αg, rồi soft-thresholding co u về 0 với ngưỡng αλ. Giá trị trong ngưỡng trở thành đúng 0, giúp chọn đặc trưng.',
+    tip: 'Intercept b chỉ cập nhật bằng gradient MSE, không bị phạt. λ = 0 trở về bước gradient thông thường. Biểu đồ hiện MSE; panel học hiển thị riêng phần phạt và mục tiêu J.',
   },
 };
 

@@ -18,8 +18,14 @@ export function polynomialFeatures(
 ): number[][] {
   if (X.length === 0) return [];
 
-  const d = X[0].length;
+  const powers = polynomialPowers(X[0].length, degree);
+  return X.map(row => powers.map(exponents =>
+    exponents.reduce((value, power, j) => value * Math.pow(row[j], power), 1)));
+}
+
+export function polynomialPowers(d: number, degree: number): number[][] {
   const powers: number[][] = [];
+  if (d < 1) return powers;
 
   function generate(
     remaining: number,
@@ -44,13 +50,5 @@ export function polynomialFeatures(
     generate(total, 0, []);
   }
 
-  return X.map(row =>
-    powers.map(exponents =>
-      exponents.reduce(
-        (value, power, j) =>
-          value * Math.pow(row[j], power),
-        1
-      )
-    )
-  );
+  return powers;
 }

@@ -104,6 +104,7 @@ export interface BuildOptions {
 }
 
 export interface BuildResult {
+    provenance?: import('../models/training-step').DatasetProvenance;
     X: number[][];
     y: number[];
     total: number;
@@ -129,11 +130,13 @@ export function buildDataset(t: CsvTable, o: BuildOptions): BuildResult {
     let X: number[][] = [];
     let y: number[] = [];
     let dropped = 0;
-    for (const r of t.rows) {
+    let sources: number[] = [];
+    for (const [index, r] of t.rows.entries()) {
         const yv = toNumber(r[o.yCol], decimalComma);
         if (Number.isNaN(yv)) { dropped++; continue; }
         X.push(o.xCols.map((c) => toNumber(r[c], decimalComma)));
         y.push(yv);
+        sources.push(index);
     }
 
     // 2) xử lý ô thiếu ở các cột X
@@ -141,12 +144,14 @@ export function buildDataset(t: CsvTable, o: BuildOptions): BuildResult {
     if (o.missing === 'drop') {
         const keepX: number[][] = [];
         const keepY: number[] = [];
+        const keepSources: number[] = [];
         X.forEach((row, i) => {
             if (row.some((v) => Number.isNaN(v))) dropped++;
-            else { keepX.push(row); keepY.push(y[i]); }
+            else { keepX.push(row); keepY.push(y[i]); keepSources.push(sources[i]); }
         });
         X = keepX;
         y = keepY;
+        sources = keepSources;
     } else {
         const fill = o.xCols.map((_, j) => {
             if (o.missing === 'zero') return 0;
@@ -166,11 +171,17 @@ export function buildDataset(t: CsvTable, o: BuildOptions): BuildResult {
         return { ...fail(`Chỉ còn ${X.length} dòng hợp lệ, cần ít nhất ${MIN_ROWS}.`), droppedRows: dropped, filledCells: filled };
     }
 
-    // 3) chuẩn hoá z-score (X theo từng cột, và y)
+    const provenance: import('../models/training-step').DatasetProvenance = {
+        labels: o.xCols.map(c => t.headers[c]), target: t.headers[o.yCol], standardized: o.standardize, stats: [],
+        rows: sources.map((index, i) => ({ sourceRow: index + 2,
+            original: [...o.xCols, o.yCol].map(c => t.rows[index][c]), filled: [...X[i], y[i]] })),
+    };
+    // 3) Giữ nguyên tiền xử lý trước khi chia train/test; xem docs/learning-walkthrough.md.
     if (o.standardize) {
         const z = (vals: number[]) => {
             const m = vals.reduce((a, b) => a + b, 0) / vals.length;
             const sd = Math.sqrt(vals.reduce((a, b) => a + (b - m) ** 2, 0) / vals.length) || 1;
+            provenance.stats.push({ mean: m, sd });
             return vals.map((v) => (v - m) / sd);
         };
         for (let j = 0; j < k; j++) {
@@ -180,5 +191,5 @@ export function buildDataset(t: CsvTable, o: BuildOptions): BuildResult {
         y = z(y);
     }
 
-    return { X, y, total: t.rows.length, used: X.length, droppedRows: dropped, filledCells: filled };
+    return { X, y, total: t.rows.length, used: X.length, droppedRows: dropped, filledCells: filled, provenance };
 }

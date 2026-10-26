@@ -12,7 +12,8 @@ export function lassoStep(
     w: number[],
     b: number,
     lr: number,
-    lambda: number
+    lambda: number,
+    trace?: (value: import('../models/training-step').GradientTrace) => void
 ): { w: number[]; b: number } {
     const n = X.length;
     const d = w.length;
@@ -52,6 +53,8 @@ export function lassoStep(
 
     // Intercept không bị phạt L1
     const nextB = b - lr * k * gb;
+    trace?.({ gradient: gw.map(g => k * g), biasGradient: k * gb,
+        intermediate: w.map((wj, j) => wj - lr * k * gw[j]) });
 
     return {
         w: nextW,

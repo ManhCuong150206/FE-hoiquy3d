@@ -112,7 +112,7 @@ export class CsvImport {
             this.fail(res.error);
             return;
         }
-        this.store.loadDataset(res.X, res.y, this.fileName());
+        this.store.loadDataset(res.X, res.y, this.fileName(), res.provenance);
 
         const parts = [`Đã nạp ${res.used}/${res.total} mẫu`];
         if (res.droppedRows) parts.push(`bỏ ${res.droppedRows} dòng`);

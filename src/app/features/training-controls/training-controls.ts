@@ -15,7 +15,7 @@ export class TrainingControls {
   lambdaOptions = [0, 0.001, 0.01, 0.1, 1, 10];
 
   toggle() {
-    if (this.store.status() === 'running') this.store.pause();
+    if (this.store.status() === 'running' || this.store.auto()) this.store.pause();
     else this.store.play();
   }
 }

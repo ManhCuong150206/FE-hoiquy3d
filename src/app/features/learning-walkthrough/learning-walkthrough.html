@@ -1,0 +1,269 @@
+<section class="lesson" aria-labelledby="lesson-title">
+  <div class="lesson-head">
+    <div>
+      <h2 id="lesson-title">Giải thích từng bước học</h2>
+      <p>Nhìn dữ liệu trở thành một lần cập nhật mô hình.</p>
+    </div>
+    <button type="button" (click)="lab.toggleExpanded()" [attr.aria-expanded]="lab.expanded()"
+      aria-controls="lesson-content">{{ lab.expanded() ? 'Thu gọn' : 'Mở giải thích' }}</button>
+  </div>
+  @if (lab.expanded()) {
+  <div id="lesson-content">
+    @if (lab.mode() === 'normal') {
+    <p>Chuyển sang học từng bước để xem sáu pha của cùng một iteration.</p>
+    <button type="button" (click)="lab.setMode('learn')" [disabled]="lab.switching()">Bật học từng bước</button>
+    } @else {
+    <div class="toolbar">
+      <button class="primary" type="button" (click)="lab.auto() ? lab.pausePresentation() : lab.play()"
+        [disabled]="lab.switching() || (!lab.auto() && lab.busy()) || lab.status() === 'error'">{{ lab.auto() ? 'Tạm
+        dừng trình diễn' : lab.status() === 'done' ? 'Học lại từ đầu' : 'Phát các pha' }}</button>
+      <button type="button" (click)="lab.nextPhase()"
+        [disabled]="lab.busy() || lab.switching() || lab.status() === 'done' || lab.status() === 'error'">{{
+        lab.snapshot() ? 'Pha tiếp theo' : 'Bắt đầu bước học' }}</button>
+      <label>Thời lượng mỗi pha
+        <select aria-label="Thời lượng mỗi pha" [value]="lab.phaseSeconds()"
+          (change)="lab.setPhaseSeconds(number($event))">
+          @for (v of [0.5, 1, 2, 3, 5]; track v) { <option [value]="v" [selected]="v === lab.phaseSeconds()">{{ v }}
+            giây</option> }
+        </select>
+      </label>
+    </div>
+    <p class="subtle">Đây là thời gian minh họa, không phải thời gian tính toán. Mỗi iteration dùng {{
+      lab.trainX().length }} mẫu train; {{ lab.testX().length }} mẫu test chỉ đánh giá.</p>
+    @if (lab.switching() || lab.busy()) { <p role="status">{{ lab.switching() ? 'Đang dừng tại một iteration hoàn
+      chỉnh…' : 'Đang tính / xác nhận bước học…' }}</p> }
+    <div class="sample-picker">
+      <label>Mẫu train đang theo dõi <input aria-label="Mẫu train đang theo dõi" type="number" min="1"
+          [max]="lab.trainX().length" [value]="lab.selectedSample() + 1"
+          (input)="lab.selectSample(number($event) - 1)" (change)="normalizeSample($event)" /></label>
+      <span>/ {{ lab.trainX().length }} · {{ lab.selectedSource() ? 'Bản ghi CSV ' + lab.selectedSource()!.sourceRow : 'Mẫu
+        nguồn ' + (lab.trainIndices()[lab.selectedSample()] + 1) }}</span>
+    </div>
+    <details>
+      <summary>Chọn trong bảng mẫu train</summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mẫu train</th>
+              <th>Đặc trưng đưa vào mô hình</th>
+              <th>y thật</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of sampleRows(); track r.index) { <tr [class.selected]="r.index === lab.selectedSample()">
+              <td><button [attr.aria-pressed]="r.index === lab.selectedSample()" (click)="lab.selectSample(r.index)">Mẫu
+                  {{ r.index + 1 }}</button></td>
+              <td>{{ r.x.map(v => fmt(v)).join('; ') }}</td>
+              <td>{{ fmt(r.y) }}</td>
+            </tr> }
+          </tbody>
+        </table>
+      </div>
+    </details>
+    @if (lab.snapshot(); as s) {
+    <p class="iteration">Iteration {{ s.before.iteration }} → {{ s.after.iteration }} · {{ lab.phase() === 5 ? 'Đã áp
+      dụng mô hình mới' : 'Đang hiển thị mô hình trước cập nhật' }}</p>
+    <ol class="phases" aria-label="Sáu pha học">
+      @for (title of phases; track title; let i = $index) { <li [class.current]="lab.phase() === i"
+        [class.complete]="lab.phase() > i" [attr.aria-current]="lab.phase() === i ? 'step' : null">{{ title }}</li> }
+    </ol>
+    <h3 aria-live="polite">{{ phases[lab.phase()] }}</h3>
+    <p class="explanation">{{ explanations[lab.phase()] }}</p>
+    @if (selected(); as sample) {
+    @switch (lab.phase()) {
+    @case (0) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Biến</th>
+            <th>Giá trị gốc</th>
+            <th>Sau xử lý thiếu</th>
+            <th>Đưa vào mô hình</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of inputs(); track $index) { <tr>
+            <th>{{ r.label }}</th>
+            <td>{{ r.original || '(trống)' }}</td>
+            <td>{{ fmt(r.filled) }}</td>
+            <td>{{ fmt(r.value) }}</td>
+          </tr> }
+        </tbody>
+      </table>
+    </div>
+    @if (lab.provenance()?.standardized) {
+    <p>Đã chuẩn hóa cả X và y: z = (giá trị sau xử lý thiếu − trung bình) / độ lệch chuẩn. Loss bên dưới dùng đơn vị
+      chuẩn hóa.</p>
+    @for (r of inputs(); track $index) { <p class="formula">{{ r.label }}: ({{ fmt(r.filled) }} − {{ fmt(r.stats?.mean)
+      }}) / {{ fmt(r.stats?.sd) }} ≈ {{ fmt(r.value) }}</p> }
+    <p class="subtle">Tiền xử lý hiện được tính trước khi chia train/test. Đợt này giữ nguyên cách tính; đây là hạn chế
+      đã ghi nhận riêng.</p>
+    } @else { <p>Không áp dụng z-score. Phép co điểm cho vừa khung 3D chỉ thay đổi cách hiển thị, không đổi dữ liệu học.
+    </p> }
+    }
+    @case (1) {
+    <p class="formula">ŷ = b + tổng (trọng số × đặc trưng) ≈ {{ fmt(sample.before) }}</p>
+    <p>Intercept trước cập nhật: b = {{ fmt(s.before.b) }}.</p>
+    @if (s.algorithm === 'polynomial') { <p>Polynomial mở rộng X thành lũy thừa và tích chéo. Bảng dùng đúng thứ tự đặc
+      trưng của worker.</p> }
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Đặc trưng</th>
+            <th>Giá trị</th>
+            <th>Trọng số cũ</th>
+            <th>Tích đóng góp</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (x of features(); track $index; let j = $index) { <tr>
+            <th>{{ terms()[j] }}</th>
+            <td>{{ fmt(x) }}</td>
+            <td>w{{ j + 1 }} = {{ fmt(s.before.w[j]) }}</td>
+            <td>{{ fmt(x * s.before.w[j]) }}</td>
+          </tr> }
+        </tbody>
+      </table>
+    </div>
+    <p class="formula">{{ substitution() }}</p>
+    }
+    @case (2) {
+    <dl class="figures">
+      <div>
+        <dt>y thật</dt>
+        <dd>{{ fmt(sample.y) }}</dd>
+      </div>
+      <div>
+        <dt>ŷ trước cập nhật</dt>
+        <dd>{{ fmt(sample.before) }}</dd>
+      </div>
+      <div>
+        <dt>Residual = ŷ − y</dt>
+        <dd>{{ signed(sample.residual) }}</dd>
+      </div>
+    </dl>
+    <p>{{ sample.residual < 0 ? 'Mô hình dự đoán thấp hơn giá trị thật.' : sample.residual> 0 ? 'Mô hình dự đoán cao hơn
+        giá trị thật.' : 'Dự đoán trùng với giá trị thật của mẫu này.' }}</p>
+    <p>Trong 3D: cầu viền là điểm thật đang chọn; khối vuông là dự đoán; đoạn nối thể hiện sai số theo chiều y.</p>
+    }
+    @case (3) {
+    <p class="formula">Sai số bình phương mẫu: ({{ fmt(sample.residual) }})² ≈ {{ fmt(sample.squared) }}</p>
+    <p class="formula">Đóng góp vào MSE: {{ fmt(sample.squared) }} / {{ s.trainCount }} ≈ {{ fmt(sample.contribution) }}
+    </p>
+    <p class="formula">MSE train = tổng {{ s.trainCount }} sai số bình phương / {{ s.trainCount }} = {{
+      fmt(s.before.trainLoss * s.trainCount) }} / {{ s.trainCount }} ≈ {{ fmt(s.before.trainLoss) }}</p>
+    <p class="formula">{{ objective() }}</p>
+    <dl class="figures">
+      <div>
+        <dt>MSE train trước</dt>
+        <dd>{{ fmt(s.before.trainLoss) }}</dd>
+      </div>
+      <div>
+        <dt>Phần phạt · λ = {{ s.lambda }}</dt>
+        <dd>{{ fmt(s.penaltyBefore) }}</dd>
+      </div>
+      <div>
+        <dt>Mục tiêu J trước</dt>
+        <dd>{{ fmt(s.before.trainLoss + s.penaltyBefore) }}</dd>
+      </div>
+    </dl>
+    <p>Test MSE trước: {{ fmt(s.before.testLoss) }}. Con số này không được dùng để cập nhật trọng số.</p>
+    }
+    @case (4) {
+    <p class="formula">α = {{ s.lr }} · gⱼ(MSE) = (2 / {{ s.trainCount }}) × tổng [(ŷᵢ − yᵢ) × đặc trưngᵢⱼ]</p>
+    <p class="formula">gᵦ = (2 / {{ s.trainCount }}) × tổng (ŷᵢ − yᵢ); b mới = b cũ − α × gᵦ.</p>
+    @if (s.algorithm === 'lasso') {
+    <p><strong>Lasso dùng ISTA.</strong> Trước tiên u = w − α × gradient MSE, sau đó co về 0: w mới = sign(u) × max(trị
+      tuyệt đối u − αλ, 0).</p>
+    <p>Ngưỡng αλ = {{ fmt(s.lr * s.lambda) }}. Giá trị u trong ngưỡng trở thành 0. Intercept không bị co.</p>
+    } @else {
+    <p>{{ s.algorithm === 'ridge' ? 'Ridge cộng 2λw vào gradient mỗi trọng số; intercept chỉ có gradient MSE.' :
+      'Linear/Polynomial dùng gradient MSE, không có phần phạt.' }} Mức thay đổi = −α × gradient.</p>
+    }
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tham số</th>
+            <th>Cũ</th>
+            <th>Gradient</th>@if (s.algorithm === 'lasso') { <th>u sau gradient</th> }<th>Thay đổi</th>
+            <th>Mới</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of parameters(); track r.name) { <tr>
+            <th>{{ r.name }}<small>{{ direction(r.gradient) }}</small></th>
+            <td>{{ fmt(r.old) }}</td>
+            <td>{{ fmt(r.gradient) }}</td>@if (s.algorithm === 'lasso') { <td>{{ fmt(r.intermediate) }}</td> }<td>{{
+              signed(r.delta) }}</td>
+            <td>{{ fmt(r.next) }}</td>
+          </tr> }
+        </tbody>
+      </table>
+    </div>
+    }
+    @case (5) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Đại lượng</th>
+            <th>Trước · {{ s.before.iteration }}</th>
+            <th>Sau · {{ s.after.iteration }}</th>
+            <th>Thay đổi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Dự đoán mẫu</th>
+            <td>{{ fmt(sample.before) }}</td>
+            <td>{{ fmt(sample.after) }}</td>
+            <td>{{ signed(sample.after - sample.before) }}</td>
+          </tr>
+          <tr>
+            <th>MSE train</th>
+            <td>{{ fmt(s.before.trainLoss) }}</td>
+            <td>{{ fmt(s.after.trainLoss) }}</td>
+            <td>{{ signed(s.after.trainLoss - s.before.trainLoss) }}</td>
+          </tr>
+          <tr>
+            <th>Phần phạt</th>
+            <td>{{ fmt(s.penaltyBefore) }}</td>
+            <td>{{ fmt(s.penaltyAfter) }}</td>
+            <td>{{ signed(s.penaltyAfter - s.penaltyBefore) }}</td>
+          </tr>
+          <tr>
+            <th>Mục tiêu J</th>
+            <td>{{ fmt(s.before.trainLoss + s.penaltyBefore) }}</td>
+            <td>{{ fmt(s.after.trainLoss + s.penaltyAfter) }}</td>
+            <td>{{ signed(s.after.trainLoss + s.penaltyAfter - s.before.trainLoss - s.penaltyBefore) }}</td>
+          </tr>
+          <tr>
+            <th>MSE test · chỉ đánh giá</th>
+            <td>{{ fmt(s.before.testLoss) }}</td>
+            <td>{{ fmt(s.after.testLoss) }}</td>
+            <td>{{ signed(s.after.testLoss - s.before.testLoss) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p [class.warning]="s.after.trainLoss > s.before.trainLoss">{{ s.after.trainLoss > s.before.trainLoss ? 'MSE train
+      tăng ở bước này. Hãy cân nhắc giảm learning rate; loss không được bảo đảm luôn giảm.' : s.after.trainLoss <
+        s.before.trainLoss ? 'MSE train giảm ở bước này. Các bước tiếp theo vẫn có thể tăng hoặc phân kỳ.'
+        : 'MSE train không đổi ở bước này.' }}</p>
+        @if (s.done) { <p>Đã dừng: đạt số iteration tối đa hoặc thay đổi MSE nhỏ hơn ngưỡng dừng. Bấm “Học lại từ đầu”
+          để chạy lại.</p> }
+        }
+        }
+        }
+        <p class="subtle">Số hiển thị được làm tròn; phép tính giữ đầy đủ độ chính xác. Không có iteration trung gian
+          giữa hai mô hình.</p>
+        } @else { <p>Bấm “Bắt đầu bước học” để xem pha A, hoặc “Phát các pha” để trình diễn tự động.</p> }
+        @if (lab.errorMsg(); as error) { <p role="alert" class="warning">{{ error }}</p> }
+        }
+  </div>
+  }
+</section>

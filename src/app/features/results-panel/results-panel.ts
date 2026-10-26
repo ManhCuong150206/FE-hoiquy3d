@@ -15,7 +15,7 @@ export class ResultsPanel {
     if (h.length < 2) return null;
     const max = Math.max(...h.map((s) => Math.max(s.trainLoss, s.testLoss))) || 1;
     const line = (key: 'trainLoss' | 'testLoss') =>
-      h.map((s, i) => `${(i / (h.length - 1)) * 300},${100 - (s[key] / max) * 100}`).join(' ');
+      h.map((s) => `${((s.iteration - h[0].iteration) / Math.max(1, h.at(-1)!.iteration - h[0].iteration)) * 300},${100 - (s[key] / max) * 100}`).join(' ');
     return { train: line('trainLoss'), test: line('testLoss') };
   });
 }

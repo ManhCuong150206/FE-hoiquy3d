@@ -1,0 +1,241 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.lesson {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.lesson-head,
+.toolbar,
+.sample-picker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+h3 {
+    font-size: 18px;
+    margin: 18px 0 8px;
+}
+
+p {
+    margin: 8px 0 12px;
+}
+
+.lesson-head p,
+.subtle {
+    color: #52616d;
+    font-size: 13px;
+}
+
+.toolbar {
+    justify-content: flex-start;
+    margin-top: 16px;
+}
+
+.toolbar label {
+    margin: 0;
+}
+
+button,
+select,
+input {
+    min-height: 40px;
+}
+
+button:disabled {
+    opacity: .65;
+    cursor: not-allowed;
+}
+
+.primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+}
+
+.sample-picker {
+    justify-content: flex-start;
+    margin: 16px 0;
+}
+
+.sample-picker input {
+    width: 110px;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+summary {
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.iteration {
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.phases {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    gap: 4px;
+    overflow-x: auto;
+}
+
+.phases li {
+    padding: 9px 10px;
+    flex: 1 0 auto;
+    color: #52616d;
+    border-bottom: 3px solid transparent;
+}
+
+.phases .current {
+    color: #17394f;
+    border-color: #0877bd;
+    font-weight: 600;
+    background: #f1f6fa;
+}
+
+.phases .complete {
+    color: #17394f;
+}
+
+.explanation {
+    max-width: 85ch;
+}
+
+.formula {
+    background: #f5f7f9;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+
+.table-wrap {
+    overflow: auto;
+    max-height: 340px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+    text-align: right;
+    padding: 10px 12px;
+    border-bottom: 1px solid #edf0f2;
+    vertical-align: top;
+}
+
+th:first-child,
+td:first-child {
+    text-align: left;
+}
+
+thead th {
+    color: #52616d;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+tbody th {
+    font-weight: 500;
+    min-width: 110px;
+}
+
+td {
+    white-space: nowrap;
+}
+
+small {
+    display: block;
+    color: #52616d;
+    font-weight: 400;
+    min-width: 180px;
+}
+
+.selected {
+    background: #f1f6fa;
+}
+
+.figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+dt {
+    color: #52616d;
+}
+
+dd {
+    margin: 4px 0 0;
+    font-size: 21px;
+    font-variant-numeric: tabular-nums;
+}
+
+.warning {
+    color: #a12727;
+}
+
+:is(button, select, input, summary):focus-visible {
+    outline: 3px solid #0877bd;
+    outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+    .phases {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .phases li {
+        padding: 8px 4px;
+        font-size: 13px;
+    }
+
+    .lesson {
+        padding: 16px;
+    }
+
+    .toolbar {
+        align-items: stretch;
+    }
+
+    button,
+    select,
+    input {
+        min-height: 44px;
+    }
+
+    th,
+    td {
+        padding: 8px;
+    }
+
+    .sample-picker label {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}

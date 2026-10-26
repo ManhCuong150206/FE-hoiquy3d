@@ -1,7 +1,24 @@
 .workspace {
     display: grid;
-    grid-template-columns: 260px 260px minmax(0, 1fr) 340px;
+    grid-template-columns: 220px 220px minmax(300px, 1fr) 280px;
     gap: 16px;
-    padding: 24px 145px;
+    padding: 24px clamp(16px, 2vw, 40px);
     align-items: start;
+}
+.workspace > * { min-width: 0; }
+app-experiments-panel, app-data-panel { grid-row: 1 / span 2; }
+app-learning-walkthrough { grid-column: 3 / 5; }
+@media (max-width: 1150px) {
+    .workspace { grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr); }
+    app-experiments-panel, app-data-panel { grid-row: auto; }
+    app-data-panel { grid-column: 1; grid-row: 2; }
+    app-viewport3d { grid-column: 2; grid-row: 1; }
+    app-results-panel { grid-column: 2; grid-row: 2; }
+    app-learning-walkthrough { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+    .workspace { display: flex; flex-direction: column; padding: 16px; }
+    .workspace > * { width: 100%; }
+    app-viewport3d { order: 0; } app-learning-walkthrough { order: 1; }
+    app-results-panel { order: 2; } app-data-panel { order: 3; } app-experiments-panel { order: 4; }
 }

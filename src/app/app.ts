@@ -6,10 +6,11 @@ import { DataPanel } from './features/data-panel/data-panel';
 import { Viewport3d } from './features/viewport3d/viewport3d';
 import { ResultsPanel } from './features/results-panel/results-panel';
 import { AlgorithmNotes } from './features/algorithm-notes/algorithm-notes';
+import { LearningWalkthrough } from './features/learning-walkthrough/learning-walkthrough';
 
 @Component({
   selector: 'app-root',
-  imports: [Header, TrainingControls, ExperimentsPanel, DataPanel, Viewport3d, ResultsPanel, AlgorithmNotes],
+  imports: [Header, TrainingControls, ExperimentsPanel, DataPanel, Viewport3d, ResultsPanel, AlgorithmNotes, LearningWalkthrough],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

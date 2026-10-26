@@ -3,7 +3,7 @@
   <p class="sub">Dữ liệu tổng hợp (sinh theo seed)</p>
 
   <label>Số đặc trưng (≥ 3 chỉ hiện lát cắt 2 đặc trưng đầu)</label>
-  <select (change)="store.featureCount.set(num($event))">
+  <select aria-label="Số đặc trưng" (change)="store.featureCount.set(num($event))">
     @for (v of [1, 2, 3, 4, 5]; track v) {
     <option [value]="v" [selected]="v === store.featureCount()">{{ v }}</option>
     }

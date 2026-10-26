@@ -23,6 +23,6 @@ export function trainTestSplit(X: number[][], y: number[], ratio: number, seed: 
     [idx[i], idx[j]] = [idx[j], idx[i]];
   }
   const cut = Math.floor(idx.length * ratio);
-  const pick = (ids: number[]) => ({ X: ids.map((i) => X[i]), y: ids.map((i) => y[i]) });
+  const pick = (ids: number[]) => ({ X: ids.map((i) => X[i]), y: ids.map((i) => y[i]), indices: ids });
   return { train: pick(idx.slice(0, cut)), test: pick(idx.slice(cut)) };
 }

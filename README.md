@@ -12,6 +12,7 @@
 - Lưu thí nghiệm, so sánh tối đa 4 lần chạy, áp dụng lại cấu hình, xuất JSON/CSV
 - Làm việc ngoại tuyến: thí nghiệm lưu trong IndexedDB và tự đồng bộ khi có mạng
 - Ghi chú thuật toán (công thức, lưu ý) thay đổi theo thuật toán đang chọn
+- **Học từng bước**: panel sáu pha A–F dùng số liệu thật của worker, tự phát mặc định 1 giây/pha hoặc chuyển pha thủ công; chọn mẫu và theo dõi sai số trong 3D.
 
 ## Công nghệ
 
@@ -61,7 +62,9 @@ Mở trình duyệt tại http://localhost:4200. Ứng dụng tự tải lại k
 4. Xem mặt phẳng, đường loss và bảng metric ở cột *Kết quả*.
 5. Đặt tên rồi bấm **Lưu** để lưu thí nghiệm. Tick 2 đến 4 bản để so sánh.
 
-Lưu ý: với từ 3 đặc trưng trở lên, khung 3D chỉ hiển thị lát cắt theo 2 đặc trưng đầu. Nếu loss tăng hoặc thành NaN thì learning rate đang quá lớn.
+Chọn **Học từng bước** rồi bấm **Bắt đầu bước học** để xem pha A. **Pha tiếp theo** chuyển thủ công, **Phát các pha** tự chạy; có thể tạm dừng, đổi thời lượng hoặc thu gọn panel để dừng trình diễn. A–E giữ mô hình cũ; F áp dụng mô hình mới đúng một lần. Xem [mô tả và giới hạn](docs/learning-walkthrough.md).
+
+Lưu ý: với từ 3 đặc trưng trở lên, khung 3D hiển thị lát cắt theo 2 đặc trưng đầu. Chế độ học cố định các đặc trưng còn lại theo mẫu đang chọn; chế độ thường cố định bằng 0. Loss có thể tăng; nếu phân kỳ, giảm learning rate rồi Reset.
 
 ## Cấu trúc thư mục
 
@@ -86,7 +89,7 @@ src/app/
 ## Trạng thái hiện tại và backend
 
 - Phần giao diện đã hoàn thiện cho cả 4 thuật toán.
-- Phần tính toán hiện chạy ngay trong trình duyệt (Web Worker), **chưa kết nối backend**. Worker hiện mới xử lý hồi quy tuyến tính; Polynomial, Ridge và Lasso chờ logic bổ sung (xem mục dưới).
+- Cả bốn thuật toán tính ngay trong trình duyệt (Web Worker), **không lấy kết quả huấn luyện từ backend**. Dữ liệu đến từ bộ sinh theo seed hoặc CSV người dùng nhập; số liệu kết quả được tính thật từ dữ liệu này.
 - Đồng bộ thí nghiệm gọi `POST /api/experiments/bulk` (khai báo ở `state/experiments-store.ts`, hằng `SYNC_URL`). Khi chưa có backend, ứng dụng báo "chưa đồng bộ được" và vẫn giữ dữ liệu trong trình duyệt.
 
 ### Dành cho người làm logic / backend
@@ -104,10 +107,7 @@ src/app/
 }
 ```
 
-Việc còn lại:
-
-- **Polynomial**: mở rộng đặc trưng thành lũy thừa theo `degree` (khi đó `w` dài hơn), đồng thời đổi cách tính mặt trong `viewport3d.ts` (`updatePlane`) cho khớp.
-- **Ridge / Lasso**: thêm phạt `λ·Σw²` / `λ·Σ|w|` vào gradient.
+`TrainingSession` dùng cùng phép cập nhật cho hai chế độ: Linear/Polynomial dùng gradient MSE; Ridge thêm `2λw`; Lasso dùng ISTA (bước gradient MSE rồi soft-threshold `αλ`). Không phạt intercept. Chế độ học gửi `prepare` để lấy snapshot và chỉ gửi `commit` ở pha F. Mỗi lượt chạy có `runId` để loại phản hồi cũ sau Reset/Stop.
 
 ## Lỗi thường gặp
 

@@ -12,9 +12,16 @@
     <div class="legend">
         <span class="dot train"></span> Train
         <span class="dot test"></span> Test
-        <span>· Mặt phẳng = mô hình hiện tại</span>
+        <span>· Bề mặt đã áp dụng · iteration {{ store.iteration() }}</span>
     </div>
 
     <div #host class="host"></div>
+    @if (webglError()) { <p role="alert">Trình duyệt không tạo được WebGL. Số liệu vẫn dùng được; hãy bật tăng tốc đồ họa để xem 3D.</p> }
+    @if (modelClipped()) { <p role="alert">Bề mặt ngoài miền dữ liệu quá lớn để vẽ. Hãy giảm learning rate. Số liệu mô hình được giữ nguyên.</p> }
+    <p class="hint">{{ sliceCaption() }} Phép co hiển thị không phải chuẩn hóa dữ liệu.</p>
+    @if (store.mode() === 'learn') {
+        <p class="hint" aria-live="polite">Mẫu train {{ store.selectedSample() + 1 }} · y = {{ store.selectedY().toFixed(6) }} · ŷ đang hiển thị = {{ store.selectedPrediction().toFixed(6) }}</p>
+        <p class="hint">Cầu viền: điểm thật · khối vuông: dự đoán · đoạn nối: sai số. Bấm điểm train để chọn; điểm thật không di chuyển.</p>
+    }
     <p class="hint">Kéo để xoay · cuộn để zoom · chuột phải để pan</p>
 </section>

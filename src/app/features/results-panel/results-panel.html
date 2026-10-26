@@ -1,24 +1,26 @@
 <section class="card">
   <h3>KẾT QUẢ</h3>
+  <p class="legend">Mô hình đã áp dụng · iteration {{ store.iteration() }}</p>
 
   <div class="losses">
     <div class="box">
-      <span>Test loss</span>
+      <span>Test MSE</span>
       <strong>{{ store.latest()?.testLoss?.toFixed(3) ?? '—' }}</strong>
     </div>
     <div class="box">
-      <span>Training loss</span>
+      <span>Train MSE</span>
       <strong class="muted">{{ store.latest()?.trainLoss?.toFixed(3) ?? '—' }}</strong>
     </div>
   </div>
 
-  <h4>Loss theo iteration</h4>
+  <h4>MSE theo iteration</h4>
   <svg viewBox="0 0 300 100" preserveAspectRatio="none" class="chart">
     @if (chart(); as c) {
       <polyline [attr.points]="c.train" fill="none" stroke="#9aa5ae" stroke-width="1.5" />
       <polyline [attr.points]="c.test" fill="none" stroke="#1f2d3a" stroke-width="1.5" />
     }
   </svg>
+  <div class="legend">Iteration {{ store.history()[0]?.iteration ?? 0 }} → {{ store.iteration() }} · chưa cộng phần phạt</div>
   <div class="legend"><span class="train">― Train</span> <span>― Test</span></div>
 
   @if (store.metrics(); as m) {
