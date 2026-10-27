@@ -9,9 +9,9 @@
     gap: 16px;
     flex-wrap: wrap;
     padding: 12px 24px;
-    background: #f5f7fa;
-    border-bottom: 1px solid #e5e9ee;
-    color: #1f2d3a;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
     font-size: 13px;
 }
 
@@ -24,7 +24,7 @@
 .logo {
     font-size: 26px;
     line-height: 1;
-    color: #0877bd;
+    color: var(--accent);
 }
 
 .titles {
@@ -35,11 +35,11 @@
 .titles h1 {
     margin: 0;
     font-size: 16px;
-    color: #17394f;
+    color: var(--heading);
 }
 
 .titles small {
-    color: #5b6b7b;
+    color: var(--secondary);
 }
 
 .status {
@@ -55,8 +55,8 @@
     gap: 6px;
     padding: 3px 10px;
     border-radius: 12px;
-    background: #e8f5ec;
-    color: #1e6b3a;
+    background: var(--ok-bg);
+    color: var(--ok-fg);
     font-weight: 600;
 }
 
@@ -68,16 +68,16 @@
 }
 
 .chip.off {
-    background: #fdecec;
-    color: #a12727;
+    background: var(--danger-bg);
+    color: var(--danger-fg);
 }
 
 .pending {
-    color: #a85d00;
+    color: var(--warn-fg);
 }
 
 .error {
-    color: #a12727;
+    color: var(--danger-fg);
 }
 
 button {
@@ -85,15 +85,15 @@ button {
     padding: 0 12px;
     border: 0;
     border-radius: 6px;
-    background: #17394f;
-    color: #fff;
+    background: var(--primary);
+    color: var(--on-primary);
     font: inherit;
     font-weight: 600;
     cursor: pointer;
 }
 
 button:hover:not(:disabled) {
-    background: #1f4d6a;
+    background: var(--primary-hover);
 }
 
 button:disabled {

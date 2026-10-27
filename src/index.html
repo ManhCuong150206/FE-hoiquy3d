@@ -2,6 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <script>
+    (function () {
+      var theme;
+      try { theme = localStorage.getItem('hoiquy3d-theme'); } catch (_) {}
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <title>Hoiquy3d</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">

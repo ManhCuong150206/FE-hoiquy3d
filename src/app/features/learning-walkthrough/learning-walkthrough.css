@@ -4,9 +4,6 @@
 }
 
 .lesson {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
     font-size: 14px;
     line-height: 1.55;
 }
@@ -38,8 +35,8 @@ p {
 
 .lesson-head p,
 .subtle {
-    color: #52616d;
-    font-size: 13px;
+    color: var(--subtle);
+    font-size: 14px;
 }
 
 .toolbar {
@@ -58,14 +55,14 @@ input {
 }
 
 button:disabled {
-    opacity: .65;
+    opacity: 1;
     cursor: not-allowed;
 }
 
 .primary {
-    background: var(--teal);
-    color: white;
-    border-color: var(--teal);
+    background: var(--primary-alt);
+    color: var(--on-primary);
+    border-color: var(--primary-alt);
 }
 
 .sample-picker {
@@ -100,19 +97,19 @@ summary {
 .phases li {
     padding: 9px 10px;
     flex: 1 0 auto;
-    color: #52616d;
+    color: var(--subtle);
     border-bottom: 3px solid transparent;
 }
 
 .phases .current {
-    color: #17394f;
-    border-color: #0877bd;
+    color: var(--heading);
+    border-color: var(--accent);
     font-weight: 600;
-    background: #f1f6fa;
+    background: var(--selected-bg);
 }
 
 .phases .complete {
-    color: #17394f;
+    color: var(--heading);
 }
 
 .explanation {
@@ -120,9 +117,9 @@ summary {
 }
 
 .formula {
-    background: #f5f7f9;
+    background: var(--formula-bg);
     padding: 12px;
-    border-radius: 6px;
+    border-radius: var(--radius-control);
     overflow-wrap: anywhere;
     font-variant-numeric: tabular-nums;
 }
@@ -142,7 +139,7 @@ th,
 td {
     text-align: right;
     padding: 10px 12px;
-    border-bottom: 1px solid #edf0f2;
+    border-bottom: 1px solid var(--lesson-border);
     vertical-align: top;
 }
 
@@ -152,7 +149,7 @@ td:first-child {
 }
 
 thead th {
-    color: #52616d;
+    color: var(--subtle);
     font-weight: 500;
     white-space: nowrap;
 }
@@ -168,13 +165,13 @@ td {
 
 small {
     display: block;
-    color: #52616d;
+    color: var(--subtle);
     font-weight: 400;
     min-width: 180px;
 }
 
 .selected {
-    background: #f1f6fa;
+    background: var(--selected-bg);
 }
 
 .figures {
@@ -185,7 +182,7 @@ small {
 }
 
 dt {
-    color: #52616d;
+    color: var(--subtle);
 }
 
 dd {
@@ -195,11 +192,11 @@ dd {
 }
 
 .warning {
-    color: #a12727;
+    color: var(--danger-fg);
 }
 
 :is(button, select, input, summary):focus-visible {
-    outline: 3px solid #0877bd;
+    outline: 3px solid var(--accent);
     outline-offset: 3px;
 }
 
@@ -211,7 +208,7 @@ dd {
 
     .phases li {
         padding: 8px 4px;
-        font-size: 13px;
+        font-size: 14px;
     }
 
     .lesson {

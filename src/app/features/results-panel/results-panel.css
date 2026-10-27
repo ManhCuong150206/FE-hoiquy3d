@@ -5,8 +5,8 @@
 
 .box {
     flex: 1;
-    background: #f3f6f8;
-    border-radius: 8px;
+    background: var(--metric-bg);
+    border-radius: var(--radius-control);
     padding: 10px;
 }
 
@@ -17,7 +17,7 @@
 }
 
 .box strong {
-    font-size: 24px;
+    font-size: 30px;
 }
 
 .muted {
@@ -26,13 +26,13 @@
 
 h4 {
     margin: 16px 0 6px;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .chart {
     width: 100%;
-    height: 120px;
-    background: #fafbfc;
+    height: 160px;
+    background: var(--chart-bg);
     border-radius: 6px;
 }
 
@@ -50,7 +50,7 @@ table {
 th,
 td {
     text-align: right;
-    padding: 4px 0;
+    padding: 10px 0;
 }
 
 th:first-child,
@@ -64,3 +64,15 @@ td:first-child {
     margin: 2px 0;
     word-break: break-word;
 }
+.box { min-width: 0; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.box strong { display: block; font-weight: 800; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.box:first-child strong { color: var(--accent); }
+.chart { border: 1px solid var(--border); border-radius: var(--radius-control); padding: 6px; }
+.legend { margin-top: 8px; line-height: 1.5; }
+.series { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
+.series i { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+.series.train i { background: var(--chart-train); }
+td:not(:first-child) { font-family: Consolas, monospace; }
+th, td { border-bottom: 1px solid var(--row-border); }
+td.good { color: var(--ok-fg); background: var(--ok-bg); font-weight: 700; }
+.parameters { padding: 12px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-control); }

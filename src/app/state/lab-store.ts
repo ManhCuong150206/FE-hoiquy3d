@@ -42,6 +42,19 @@ export class LabStore {
     learningRate = signal(0.01);
     maxIterations = signal(1000);
     tolerance = signal(1e-6);
+    // Visual sticking threshold as a fraction of train-y population standard deviation.
+    stickEpsilon = signal(0.3);
+    stickThreshold = computed(() => {
+        const y = this.trainY();
+        if (!y.length) return 0;
+        let mean = 0, sumSquares = 0;
+        y.forEach((value, i) => {
+            const delta = value - mean;
+            mean += delta / (i + 1);
+            sumSquares += delta * (value - mean);
+        });
+        return Math.sqrt(Math.max(0, sumSquares / y.length)) * this.stickEpsilon();
+    });
     speed = signal(1);
     degree = signal(2);   // Polynomial
     lambda = signal(0.1); // Ridge / Lasso

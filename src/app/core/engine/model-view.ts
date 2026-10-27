@@ -10,3 +10,12 @@ export function modelPredictions(rows: number[][], w: number[], b: number, algor
   const features = algorithm === 'polynomial' ? polynomialFeatures(rows, degree) : rows;
   return predict(features, w, b);
 }
+
+/** Strict residual threshold, in the same units as y (not display coordinates). */
+export function countStuck(yTrue: number[], yPred: number[], eps: number): number {
+  if (yTrue.length !== yPred.length) throw new RangeError('True and predicted values must have equal length.');
+  if (!Number.isFinite(eps) || eps <= 0) return 0;
+  return yTrue.reduce((count, y, i) => count + Number(
+    Number.isFinite(y) && Number.isFinite(yPred[i]) && Math.abs(y - yPred[i]) < eps,
+  ), 0);
+}

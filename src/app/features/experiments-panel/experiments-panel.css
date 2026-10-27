@@ -1,14 +1,10 @@
 :host {
     display: block;
-    font-size: 13px;
-    color: #1f2d3a;
+    font-size: 14px;
+    color: var(--text);
 }
 
 .card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 0 0 1px rgba(16, 24, 40, 0.04);
 }
 
 h2,
@@ -18,7 +14,7 @@ h3 {
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #1f3a4d;
+    color: var(--heading-alt);
 }
 
 h3 {
@@ -33,49 +29,49 @@ h3 {
 .save input {
     flex: 1;
     min-width: 0;
-    height: 36px;
+    height: 44px;
     padding: 0 10px;
-    border: 1px solid #cfd6dd;
-    border-radius: 6px;
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-control);
     font: inherit;
 }
 
 button {
-    height: 32px;
+    height: 44px;
     padding: 0 12px;
-    border: 1px solid #cfd6dd;
-    border-radius: 6px;
-    background: #fff;
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-control);
+    background: var(--surface);
     font: inherit;
     cursor: pointer;
 }
 
 button:hover:not(:disabled) {
-    border-color: #0877bd;
-    color: #0877bd;
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 button:disabled {
-    opacity: 0.5;
+    opacity: 1;
     cursor: not-allowed;
 }
 
 button.primary {
-    height: 36px;
+    height: 44px;
     border: 0;
-    background: #17394f;
-    color: #fff;
+    background: var(--primary);
+    color: var(--on-primary);
     font-weight: 700;
 }
 
 button.primary:hover:not(:disabled) {
-    background: #1f4d6a;
-    color: #fff;
+    background: var(--primary-hover);
+    color: var(--on-primary);
 }
 
 button.danger:hover:not(:disabled) {
-    border-color: #c0392b;
-    color: #c0392b;
+    border-color: var(--danger-strong);
+    color: var(--danger-strong);
 }
 
 .hint,
@@ -83,11 +79,11 @@ button.danger:hover:not(:disabled) {
 .note {
     margin: 8px 0 0;
     font-size: 12px;
-    color: #5b6b7b;
+    color: var(--secondary);
 }
 
 .note {
-    color: #1f3a4d;
+    color: var(--heading-alt);
 }
 
 .empty {
@@ -110,13 +106,13 @@ button.danger:hover:not(:disabled) {
     display: flex;
     gap: 8px;
     padding: 10px;
-    border: 1px solid #e5e9ee;
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
 }
 
 .list li.on {
-    border-color: #0877bd;
-    background: #f3f9fd;
+    border-color: var(--accent);
+    background: var(--pick-bg);
 }
 
 .pick {
@@ -146,20 +142,20 @@ button.danger:hover:not(:disabled) {
     flex: none;
     padding: 1px 8px;
     border-radius: 10px;
-    font-size: 11px;
-    background: #e8f5ec;
-    color: #1e6b3a;
+    font-size: 12px;
+    background: var(--ok-bg);
+    color: var(--ok-fg);
 }
 
 .sync.pending {
-    background: #fff3e0;
-    color: #a85d00;
+    background: var(--warn-bg);
+    color: var(--warn-fg);
 }
 
 .meta {
     margin-top: 2px;
     font-size: 12px;
-    color: #5b6b7b;
+    color: var(--secondary);
 }
 
 .actions {
@@ -169,7 +165,7 @@ button.danger:hover:not(:disabled) {
 }
 
 .actions button {
-    height: 28px;
+    height: 44px;
     padding: 0 10px;
     font-size: 12px;
 }
@@ -199,7 +195,7 @@ td {
     padding: 5px 8px;
     text-align: right;
     white-space: nowrap;
-    border-bottom: 1px solid #eef1f4;
+    border-bottom: 1px solid var(--row-border);
 }
 
 thead th {
@@ -212,11 +208,21 @@ thead th {
 tbody th {
     text-align: left;
     font-weight: 500;
-    color: #5b6b7b;
+    color: var(--secondary);
 }
 
 td.best {
     font-weight: 700;
-    color: #0877bd;
-    background: #eaf4fb;
+    color: var(--accent);
+    background: var(--best-bg);
 }
+.save { flex-wrap: wrap; }
+.save input { flex: 1 1 100%; }
+.save .primary { width: 100%; }
+.top, .actions, .export { flex-wrap: wrap; }
+.top { align-items: center; }
+.sync { border-radius: var(--radius-pill); }
+.list li { background: var(--surface-2); padding: 12px; border-radius: var(--radius-control); }
+.list .name { white-space: normal; overflow-wrap: anywhere; }
+button { min-height: 40px; }
+button:disabled { color: var(--muted); background: var(--surface-2); }

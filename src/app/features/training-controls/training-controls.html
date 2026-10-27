@@ -5,12 +5,19 @@
             <option value="normal">Chạy bình thường</option><option value="learn">Học từng bước</option>
         </select>
     </div>
+    <div class="run-controls">
     <button (click)="store.reset()">Reset</button>
-    <button class="play" aria-label="Chạy hoặc tạm dừng" (click)="toggle()" [disabled]="store.switching() || (store.busy() && !store.auto())">{{ store.status() === 'running' || store.auto() ? 'Dừng' : 'Chạy' }}</button>
+    <button class="play" [class.running]="store.status() === 'running' || store.auto()" aria-label="Chạy hoặc tạm dừng" (click)="toggle()" [disabled]="store.switching() || (store.busy() && !store.auto())"><span aria-hidden="true">{{ store.status() === 'running' || store.auto() ? '⏸' : '▶' }}</span> {{ store.status() === 'running' || store.auto() ? 'Dừng' : 'Chạy' }}</button>
     <button (click)="store.step()" [disabled]="store.busy() || store.switching() || (store.mode() === 'learn' && store.status() === 'done')">{{ store.mode() === 'learn' ? 'Tiếp pha' : 'Step' }}</button>
-    <button (click)="store.stop()">Stop</button>
+    <button class="stop" (click)="store.stop()">Stop</button>
+    </div>
 
-    <div class="iter">Iteration {{ store.iteration() }} / {{ store.maxIterations() }}</div>
+    <div class="iteration-group"><div class="iter">Iteration <strong>{{ store.iteration() }}</strong> / {{ store.maxIterations() }}</div>
+        <div class="progress" role="progressbar" aria-label="Tiến trình huấn luyện" [attr.aria-valuenow]="store.iteration()" [attr.aria-valuemax]="store.maxIterations()" aria-valuemin="0">
+            <span [style.width.%]="store.iteration() / store.maxIterations() * 100"></span>
+        </div>
+    </div>
+    <div class="parameter-controls">
 
     <div class="field">
         <label>Thuật toán</label>
@@ -73,6 +80,7 @@
     </div>
     }
 
+    </div>
     @if (store.lrError() ?? store.errorMsg(); as msg) {
     <p class="warn">⚠ {{ msg }}</p>
     }

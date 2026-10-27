@@ -8,6 +8,12 @@
     </div>
 
     <div class="status">
+        <button type="button" (click)="themeStore.toggle()"
+            [attr.aria-pressed]="themeStore.theme() === 'dark'"
+            [attr.aria-label]="themeStore.theme() === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'">
+            <span aria-hidden="true">{{ themeStore.theme() === 'dark' ? '☾' : '☀' }}</span>
+            {{ themeStore.theme() === 'dark' ? 'Tối' : 'Sáng' }}
+        </button>
         <span class="chip" [class.off]="!exp.online()" role="status">
             <i class="dot"></i>{{ exp.online() ? 'Trực tuyến' : 'Ngoại tuyến' }}
         </span>

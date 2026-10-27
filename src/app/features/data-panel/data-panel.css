@@ -1,3 +1,6 @@
-.sub { margin: 0; font-size: 13px; color: var(--muted); }
+.sub { margin: 0; font-size: 14px; color: var(--muted); }
 .row { display: flex; gap: 8px; }
-.regen { width: 100%; margin-top: 16px; background: var(--teal); color: #fff; border: none; padding: 10px; font-weight: 600; }
+.regen { width: 100%; margin-top: 16px; background: var(--primary-alt); color: var(--on-primary); border: none; padding: 10px; font-weight: 600; }
+.row input { min-width: 0; width: 0; flex: 1; }
+.row button { flex: 0 0 80px; }
+.regen { border-radius: var(--radius-control); box-shadow: var(--primary-glow); }

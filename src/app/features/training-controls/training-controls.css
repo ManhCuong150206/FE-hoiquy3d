@@ -1,43 +1,21 @@
 .controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    background: #fff;
-    padding: 12px 40px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    margin: 20px clamp(16px, 2vw, 40px) 0; padding: 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-card); box-shadow: var(--shadow);
 }
-
-.play {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--teal);
-    color: #fff;
-    border: none;
-    font-size: 16px;
-}
-
-.iter {
-    font-family: monospace;
-    min-width: 170px;
-}
-
-.field {
-    display: flex;
-    flex-direction: column;
-    min-width: 120px;
-}
-
-.field label {
-    margin: 0 0 2px;
-    font-size: 11px;
-    text-transform: uppercase;
-}
-
-.warn {
-    flex-basis: 100%;
-    margin: 0;
-    color: #c0392b;
-    font-size: 13px;
-}
+.run-controls, .parameter-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding-left: 16px; border-left: 1px solid var(--control-border); }
+.run-controls button { min-height: 44px; }
+.play { min-width: 112px; height: 56px; border-radius: var(--radius-pill); white-space: nowrap; font-size: 15px; }
+.play span { margin-right: 5px; }
+button.play.running { background: var(--warn-bg); color: var(--warn-fg); border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+button.play.running:hover:not(:disabled) { background: var(--warn-bg); color: var(--warn-fg); }
+.stop { background: var(--danger-bg); color: var(--danger-fg); border-color: var(--danger-fg); }
+.iteration-group { border-left: 1px solid var(--control-border); padding-left: 16px; }
+.iter { background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 7px 12px; font: 13px/1.5 Consolas, monospace; white-space: nowrap; }
+.iter strong { color: var(--accent); }
+.progress { height: 4px; margin: 8px 10px 0; background: var(--control-border); border-radius: var(--radius-pill); overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--primary); max-width: 100%; }
+.field { display: flex; flex-direction: column; min-width: 110px; }
+.field label { margin: 0 0 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.warn { flex-basis: 100%; margin: 0; padding: 12px 16px; background: var(--danger-bg); color: var(--danger-fg); border: 1px solid var(--danger-fg); border-radius: var(--radius-control); font-size: 14px; }

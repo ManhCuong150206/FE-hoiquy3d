@@ -1,5 +1,5 @@
 <section class="card">
-  <h3>KẾT QUẢ</h3>
+  <h3 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9V4"/></svg>KẾT QUẢ</h3>
   <p class="legend">Mô hình đã áp dụng · iteration {{ store.iteration() }}</p>
 
   <div class="losses">
@@ -16,12 +16,12 @@
   <h4>MSE theo iteration</h4>
   <svg viewBox="0 0 300 100" preserveAspectRatio="none" class="chart">
     @if (chart(); as c) {
-      <polyline [attr.points]="c.train" fill="none" stroke="#9aa5ae" stroke-width="1.5" />
-      <polyline [attr.points]="c.test" fill="none" stroke="#1f2d3a" stroke-width="1.5" />
+      <polyline [attr.points]="c.train" fill="none" stroke="var(--chart-train)" stroke-width="2" />
+      <polyline [attr.points]="c.test" fill="none" stroke="var(--primary)" stroke-width="2" />
     }
   </svg>
   <div class="legend">Iteration {{ store.history()[0]?.iteration ?? 0 }} → {{ store.iteration() }} · chưa cộng phần phạt</div>
-  <div class="legend"><span class="train">― Train</span> <span>― Test</span></div>
+  <div class="legend"><span class="series train"><i aria-hidden="true"></i> Train</span> <span class="series test"><i aria-hidden="true"></i> Test</span></div>
 
   @if (store.metrics(); as m) {
     <h4>Metric</h4>
@@ -30,14 +30,16 @@
       <tr><td>MSE</td><td>{{ m.train.mse.toFixed(3) }}</td><td>{{ m.test.mse.toFixed(3) }}</td></tr>
       <tr><td>RMSE</td><td>{{ m.train.rmse.toFixed(3) }}</td><td>{{ m.test.rmse.toFixed(3) }}</td></tr>
       <tr><td>MAE</td><td>{{ m.train.mae.toFixed(3) }}</td><td>{{ m.test.mae.toFixed(3) }}</td></tr>
-      <tr><td>R²</td><td>{{ m.train.r2.toFixed(3) }}</td><td>{{ m.test.r2.toFixed(3) }}</td></tr>
+      <tr><td>R²</td><td [class.good]="m.train.r2 >= 0.9">{{ m.train.r2.toFixed(3) }}</td><td [class.good]="m.test.r2 >= 0.9">{{ m.test.r2.toFixed(3) }}</td></tr>
     </table>
   }
 
   @if (store.latest(); as s) {
     <h4>Tham số mô hình</h4>
+    <div class="parameters">
     <p class="mono">w = [{{ s.w.map(v => v.toFixed(2)).join(', ') }}]</p>
     <p class="mono">b = {{ s.b.toFixed(2) }}</p>
     <p class="mono">Mẫu train / test: {{ store.trainX().length }} / {{ store.testX().length }}</p>
+    </div>
   }
 </section>

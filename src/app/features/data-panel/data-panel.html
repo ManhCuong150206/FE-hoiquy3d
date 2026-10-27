@@ -1,5 +1,5 @@
 <section class="card">
-  <h3>DỮ LIỆU</h3>
+  <h3 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg>DỮ LIỆU</h3>
   <p class="sub">Dữ liệu tổng hợp (sinh theo seed)</p>
 
   <label>Số đặc trưng (≥ 3 chỉ hiện lát cắt 2 đặc trưng đầu)</label>
@@ -14,10 +14,10 @@
     (change)="store.sampleCount.set(num($event))" />
 
   <label>Noise: {{ store.noise() }}%</label>
-  <input type="range" min="0" max="50" step="1" [value]="store.noise()" (input)="store.noise.set(num($event))" />
+  <input type="range" min="0" max="50" step="1" [style.--range-fill]="(store.noise() / 50 * 100) + '%'" [value]="store.noise()" (input)="store.noise.set(num($event))" />
 
   <label>Tỉ lệ train/test: {{ (store.trainRatio() * 100).toFixed(0) }}%</label>
-  <input type="range" min="10" max="90" step="10" [value]="store.trainRatio() * 100"
+  <input type="range" min="10" max="90" step="10" [style.--range-fill]="((store.trainRatio() * 100 - 10) / 80 * 100) + '%'" [value]="store.trainRatio() * 100"
     (input)="store.trainRatio.set(num($event) / 100)" />
 
   <label>Seed</label>
