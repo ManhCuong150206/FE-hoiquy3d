@@ -6,11 +6,12 @@
 
 - Thuật toán: Linear Regression, Polynomial, Ridge (L2), Lasso (L1)
 - Hiển thị 3D bằng Three.js: điểm train/test và mặt mô hình hiện tại (kéo để xoay, cuộn để zoom, chuột phải để pan)
+- Góc xoay camera được tính bằng phép nhân số phức trên các cặp tọa độ; bố cục và điều khiển hiện tại được giữ nguyên
 - Điều khiển huấn luyện: Play, Step, Stop, Reset, learning rate, max iterations, tốc độ phát
 - Dữ liệu tổng hợp theo seed (số mẫu, số đặc trưng, noise, tỉ lệ train/test) hoặc nhập từ file CSV
 - Kết quả: train/test loss, biểu đồ loss theo iteration, các metric MSE, RMSE, MAE, R², tham số `w`, `b`
 - Lưu thí nghiệm, so sánh tối đa 4 lần chạy, áp dụng lại cấu hình, xuất JSON/CSV
-- Làm việc ngoại tuyến: thí nghiệm lưu trong IndexedDB và tự đồng bộ khi có mạng
+- Làm việc ngoại tuyến: thí nghiệm lưu trong IndexedDB; PWA cache app shell để mở lại giao diện khi offline
 - Ghi chú thuật toán (công thức, lưu ý) thay đổi theo thuật toán đang chọn
 - **Học từng bước**: panel sáu pha A–F dùng số liệu thật của worker, tự phát mặc định 1 giây/pha hoặc chuyển pha thủ công; chọn mẫu và theo dõi sai số trong 3D.
 

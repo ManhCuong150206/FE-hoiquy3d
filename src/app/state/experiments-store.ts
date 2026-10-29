@@ -5,7 +5,7 @@ import { experimentDb } from '../core/storage/experiment-db';
 import { LabStore } from './lab-store';
 
 // Endpoint nhận lô thí nghiệm (upsert theo id). Cần backend Express + MongoDB phía server.
-const SYNC_URL = '/api/experiments/bulk';
+const SYNC_URL = '/api/v1/experiments/bulk';
 
 function newId(): string {
     return globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;

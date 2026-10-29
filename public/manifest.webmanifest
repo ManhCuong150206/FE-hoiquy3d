@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Hồi quy 3D",
+  "short_name": "Hồi quy 3D",
+  "description": "Học và trực quan hóa các mô hình hồi quy trong không gian 3D.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f2f4fa",
+  "theme_color": "#f2f4fa",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

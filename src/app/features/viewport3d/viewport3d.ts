@@ -7,6 +7,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LabStore } from '../../state/lab-store';
 import { countStuck, modelPredictions, sliceRow } from '../../core/engine/model-view';
 import { Algorithm } from '../../core/models/experiment';
+import { rotatePair, unitRotation } from '../../core/engine/complex-rotation';
 
 @Component({
   selector: 'app-viewport3d',
@@ -34,6 +35,8 @@ export class Viewport3d implements OnDestroy {
   private predictedMarker?: THREE.Mesh;
   private residualLine?: THREE.Line;
   private pointerStart = { x: 0, y: 0 };
+  private cameraDrag?: { pointerId: number; x: number; y: number };
+  private cameraPitch = 0;
   webglError = signal(false);
   modelClipped = signal(false);
   pointSize = signal(1);
@@ -134,6 +137,8 @@ export class Viewport3d implements OnDestroy {
       this.camera = new THREE.PerspectiveCamera(50, el.clientWidth / el.clientHeight, 0.1, 200);
       this.camera.position.set(8, 6, 8);
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      // Keep OrbitControls for zoom and pan; camera orbit uses complex plane rotations below.
+      this.controls.enableRotate = false;
 
       this.scene.add(new THREE.GridHelper(10, 10, 0x475569, 0x273244), new THREE.AxesHelper(5));
       const light = new THREE.DirectionalLight(0xffffff, 2);
@@ -160,6 +165,10 @@ export class Viewport3d implements OnDestroy {
       this.scene.add(this.trueMarker, this.predictedMarker, this.residualLine);
       this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown);
       this.renderer.domElement.addEventListener('pointerup', this.onPointerUp);
+      this.renderer.domElement.addEventListener('pointerdown', this.onCameraDragStart);
+      this.renderer.domElement.addEventListener('pointermove', this.onCameraDragMove);
+      this.renderer.domElement.addEventListener('pointerup', this.onCameraDragEnd);
+      this.renderer.domElement.addEventListener('pointercancel', this.onCameraDragEnd);
 
       this.observer = new ResizeObserver(() => {
         if (!this.renderer || !this.camera) return;
@@ -295,10 +304,42 @@ export class Viewport3d implements OnDestroy {
     if (hit?.instanceId !== undefined) this.store.selectSample(hit.instanceId);
   };
 
+  private onCameraDragStart = (event: PointerEvent) => {
+    if (event.button !== 0 || !this.camera || !this.controls) return;
+    this.cameraDrag = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+  };
+
+  private onCameraDragMove = (event: PointerEvent) => {
+    const drag = this.cameraDrag;
+    if (!drag || drag.pointerId !== event.pointerId || !this.camera || !this.controls) return;
+
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    drag.x = event.clientX;
+    drag.y = event.clientY;
+
+    const target = this.controls.target;
+    const relative = this.camera.position.clone().sub(target);
+
+    // Yaw rotates (x,z), then pitch rotates (y,z), each as a complex multiplication.
+    const [x, z] = rotatePair(relative.x, relative.z, unitRotation(-dx * 0.006));
+    const nextPitch = Math.max(-1.45, Math.min(1.45, this.cameraPitch + dy * 0.006));
+    const [y, pitchedZ] = rotatePair(relative.y, z, unitRotation(nextPitch - this.cameraPitch));
+    this.cameraPitch = nextPitch;
+
+    this.camera.position.set(target.x + x, target.y + y, target.z + pitchedZ);
+    this.controls.update();
+  };
+
+  private onCameraDragEnd = (event: PointerEvent) => {
+    if (this.cameraDrag?.pointerId === event.pointerId) this.cameraDrag = undefined;
+  };
+
 
   view(name: 'default' | 'top' | 'front' | 'side') {
     const p = { default: [8, 6, 8], top: [0, 14, 0.01], front: [0, 3, 14], side: [14, 3, 0] }[name];
     this.camera?.position.set(p[0], p[1], p[2]);
+    this.cameraPitch = Math.asin(p[1] / Math.hypot(p[0], p[1], p[2]));
     this.camera?.lookAt(0, 0, 0);
     this.controls?.target.set(0, 0, 0);
     this.controls?.update();
@@ -313,6 +354,10 @@ export class Viewport3d implements OnDestroy {
     this.controls?.dispose();
     this.renderer.domElement.removeEventListener('pointerdown', this.onPointerDown);
     this.renderer.domElement.removeEventListener('pointerup', this.onPointerUp);
+    this.renderer.domElement.removeEventListener('pointerdown', this.onCameraDragStart);
+    this.renderer.domElement.removeEventListener('pointermove', this.onCameraDragMove);
+    this.renderer.domElement.removeEventListener('pointerup', this.onCameraDragEnd);
+    this.renderer.domElement.removeEventListener('pointercancel', this.onCameraDragEnd);
     this.scene.traverse(object => {
       if (object instanceof THREE.Light || object instanceof THREE.InstancedMesh) object.dispose();
       const mesh = object as THREE.Mesh;

@@ -32,6 +32,11 @@ app.use(
     maxAge: '1y',
     index: false,
     redirect: false,
+    setHeaders: (response, filePath) => {
+      if (/\/(ngsw-worker\.js|ngsw\.json|safety-worker\.js)$/.test(filePath.replaceAll('\\', '/'))) {
+        response.setHeader('Cache-Control', 'no-cache');
+      }
+    },
   }),
 );
 
