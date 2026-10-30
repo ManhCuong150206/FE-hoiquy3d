@@ -168,7 +168,7 @@ export class AlgorithmSphere implements OnDestroy {
     if (this.destroyed || !this.visible || document.hidden) return;
     const delta = this.previous ? Math.min(now - this.previous, 80) : 16.7; this.previous = now;
     this.accumulated += delta;
-    
+
     if (delta > 25) this.slowFrames++; else this.slowFrames = Math.max(0, this.slowFrames - 1);
     if (this.slowFrames > 90 && this.renderer && this.renderer.getPixelRatio() > 1) { this.renderer.setPixelRatio(1); this.resizeScene(); this.slowFrames = 0; }
     this.draw(); this.frame = requestAnimationFrame(this.animate);
