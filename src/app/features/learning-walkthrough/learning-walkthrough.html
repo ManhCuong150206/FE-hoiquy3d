@@ -9,6 +9,12 @@
   </div>
   @if (lab.expanded()) {
   <div id="lesson-content">
+    @if (!lab.snapshot()) {
+      <ol class="phase-preview" aria-label="Lộ trình sáu pha học">
+        @for (title of phases; track title; let i = $index) { <li><strong>{{ title }}</strong><span>{{ previews[i] }}</span></li> }
+      </ol>
+      <p class="subtle">Đây là lộ trình giải thích; mô hình chỉ thực hiện bước học khi bạn bấm nút.</p>
+    }
     @if (lab.mode() === 'normal') {
     <p>Chuyển sang học từng bước để xem sáu pha của cùng một iteration.</p>
     <button type="button" (click)="lab.setMode('learn')" [disabled]="lab.switching()">Bật học từng bước</button>

@@ -18,17 +18,17 @@
 
     <div #host class="host"></div>
     <div class="stick-controls">
-        <label for="stick-epsilon"><span class="slider-label">Ngưỡng dính ε <span class="value-pill">{{ (store.stickEpsilon() * 100).toFixed(0) }}% σ</span></span>
-            <input id="stick-epsilon" type="range" min="0" max="100" step="1"
-                [style.--range-fill]="(store.stickEpsilon() * 100) + '%'" [value]="store.stickEpsilon() * 100" (input)="setEpsilon($event)" aria-describedby="stick-rule" />
+        <label [attr.for]="idPrefix() + '-stick-epsilon'"><span class="slider-label">Ngưỡng dính ε <span class="value-pill">{{ (store.stickEpsilon() * 100).toFixed(0) }}% σ</span></span>
+            <input [id]="idPrefix() + '-stick-epsilon'" type="range" min="0" max="100" step="1"
+                [style.--range-fill]="(store.stickEpsilon() * 100) + '%'" [value]="store.stickEpsilon() * 100" (input)="setEpsilon($event)" [attr.aria-describedby]="idPrefix() + '-stick-rule'" />
             <span>ε = {{ store.stickThreshold().toPrecision(3) }} · cùng đơn vị với y</span>
         </label>
-        <label for="point-size"><span class="slider-label">Cỡ điểm <span class="value-pill">{{ pointSize().toFixed(1) }}x</span></span>
-            <input id="point-size" type="range" min="0.6" max="2" step="0.1"
+        <label [attr.for]="idPrefix() + '-point-size'"><span class="slider-label">Cỡ điểm <span class="value-pill">{{ pointSize().toFixed(1) }}x</span></span>
+            <input [id]="idPrefix() + '-point-size'" type="range" min="0.6" max="2" step="0.1"
                 [style.--range-fill]="((pointSize() - 0.6) / 1.4 * 100) + '%'" [value]="pointSize()" (input)="setPointSize($event)" />
         </label>
     </div>
-    <p id="stick-rule" class="hint">Dính khi |y − ŷ| &lt; ε: điểm sáng và lớn hơn. Tọa độ dữ liệu giữ nguyên; σ chỉ tính từ train y.</p>
+    <p [id]="idPrefix() + '-stick-rule'" class="hint">Dính khi |y − ŷ| &lt; ε: điểm sáng và lớn hơn. Tọa độ dữ liệu giữ nguyên; σ chỉ tính từ train y.</p>
     @if (webglError()) { <p role="alert">Trình duyệt không tạo được WebGL. Số liệu vẫn dùng được; hãy bật tăng tốc đồ họa để xem 3D.</p> }
     @if (modelClipped()) { <p role="alert">Bề mặt ngoài miền dữ liệu quá lớn để vẽ. Hãy giảm learning rate. Số liệu mô hình được giữ nguyên.</p> }
     <p class="hint">{{ sliceCaption() }} Phép co hiển thị không phải chuẩn hóa dữ liệu.</p>

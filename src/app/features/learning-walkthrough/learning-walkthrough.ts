@@ -7,6 +7,14 @@ import { predict } from '../../core/engine/metrics';
 export class LearningWalkthrough {
   lab = inject(LabStore);
   phases = ['A · Đầu vào', 'B · Dự đoán', 'C · Sai số', 'D · Loss', 'E · Hệ số', 'F · Đánh giá'];
+  readonly previews = [
+    'Xem đặc trưng và giá trị mục tiêu của mẫu train đang theo dõi.',
+    'Kết hợp đặc trưng với trọng số để tạo giá trị dự đoán.',
+    'So sánh dự đoán với giá trị thật trên mô hình 3D.',
+    'Tổng hợp sai số trên tập train và phần phạt nếu có.',
+    'Quan sát gradient và cách tính trọng số mới.',
+    'Áp dụng một lần cập nhật, rồi so sánh kết quả train/test.',
+  ];
   explanations = [
     'Mỗi bước dùng toàn bộ tập train. Mẫu đang chọn chỉ giúp bạn theo dõi một phép tính; mô hình không học riêng từ mẫu này.',
     'Nhân từng đặc trưng với trọng số tương ứng, rồi cộng intercept b để có dự đoán. Tất cả hệ số dưới đây thuộc mô hình trước cập nhật.',

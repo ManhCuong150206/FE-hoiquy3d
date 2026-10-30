@@ -1,0 +1,40 @@
+async (page) => {
+ page.setDefaultTimeout(15000); page.setDefaultNavigationTimeout(30000);
+ const check = (ok, message) => { if (!ok) throw new Error(message); };
+ await page.goto('http://127.0.0.1:4300/');
+ await page.setViewportSize({width:1440,height:1000});
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(async () => { localStorage.clear(); await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase('hoiquy3d');request.onsuccess=resolve;request.onerror=()=>reject(request.error);}); });
+ await page.reload();
+ await page.getByRole('heading', {name:'Chào mừng trở lại.'}).waitFor();
+ await page.evaluate(() => window.scrollTo({top:0,behavior:'instant'}));
+ check(await page.locator('#lab').count() === 0, 'Lab must not mount before a selection');
+ check(await page.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'Default theme must be dark');
+ await page.screenshot({path:'output/playwright/welcome-desktop.png'});
+ await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
+ check(await page.locator('#entry-email').evaluate(el => !el.validity.valid), 'Empty email must be invalid');
+ await page.getByRole('button',{name:'Đăng ký',exact:true}).click();
+ await page.getByLabel('Tên hiển thị').fill('Người thử nghiệm');
+ await page.getByLabel('Email',{exact:true}).fill('demo@example.com');
+ await page.getByLabel('Mật khẩu',{exact:true}).fill('demo-password');
+ const outbound = [];
+ const listener = req => { if (req.method() === 'POST') outbound.push(req.url()); };
+ page.on('request',listener);
+ await page.locator('form').getByRole('button',{name:'Đăng ký',exact:true}).click();
+ await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden && !document.querySelector('.experience').dataset.transition);
+ check(await page.getByLabel('Email',{exact:true}).inputValue() === '', 'Demo email must clear');
+ check(await page.getByLabel('Mật khẩu',{exact:true}).inputValue() === '', 'Demo password must clear');
+ check(outbound.length === 0, 'Demo auth must not send credentials');
+ page.off('request',listener);
+ await page.locator('app-algorithm-sphere canvas').waitFor({state:'visible'});
+ await page.screenshot({path:'output/playwright/algorithms-desktop.png'});
+ const perf = await page.evaluate(async () => {
+  const canvas=document.querySelector('app-algorithm-sphere canvas');
+  const start=Number(canvas.dataset.renderCount),started=performance.now();const cpu=[];
+  await new Promise(resolve=>{const sample=()=>{cpu.push(Number(canvas.dataset.renderCpuMs));if(performance.now()-started<1500)requestAnimationFrame(sample);else resolve();};requestAnimationFrame(sample);});
+  cpu.sort((a,b)=>a-b);
+  return {renderedFps:+((Number(canvas.dataset.renderCount)-start)*1000/(performance.now()-started)).toFixed(1),p95CpuSubmissionMs:cpu[Math.floor(cpu.length*.95)]};
+ });
+ check(perf.renderedFps<=62,'Actual WebGL render cap exceeded');
+ return {suite:'entry',passed:['dark default','lab deferred','invalid form blocked','registration UI','credentials cleared/no auth request','button page navigation','sphere WebGL'],performance:perf};
+}

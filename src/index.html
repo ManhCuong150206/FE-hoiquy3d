@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="utf-8">
   <script>
@@ -7,15 +7,15 @@
       var theme;
       try { theme = localStorage.getItem('hoiquy3d-theme'); } catch (_) {}
       if (theme !== 'light' && theme !== 'dark') {
-        theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        theme = 'dark';
       }
       document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
-  <title>Hoiquy3d</title>
+  <title>Hồi quy 3D — Nhìn thấy cách mô hình học</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f2f4fa">
+  <meta name="theme-color" content="#07090e">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>

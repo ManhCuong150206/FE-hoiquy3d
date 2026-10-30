@@ -1,0 +1,26 @@
+<div class="welcome-grid">
+  <div class="intro-copy">
+    <p class="eyebrow"><span></span> AN INTERACTIVE MACHINE LEARNING LAB</p>
+    <h1>Hồi quy 3D<span class="headline-second">Nhìn thấy cách<br>mô hình <em>học.</em></span></h1>
+    <p class="description">Từ những điểm dữ liệu đến một mô hình có ý nghĩa. Khám phá hồi quy qua chuyển động, thực nghiệm và từng bước học.</p>
+    <div class="intro-meta"><span><b>04</b> thuật toán</span><span><b>3D</b> trực quan</span><span><b>∞</b> khám phá</span></div>
+    <button class="scroll-link" type="button" (click)="explore.emit()"><span class="scroll-icon">→</span><span>Khám phá thuật toán<small>CONTINUE TO EXPLORE</small></span></button>
+  </div>
+  <div class="auth-card glass" data-tilt>
+    <div class="auth-top"><span class="mini-orbit" aria-hidden="true">✦</span><span>YOUR NEXT DISCOVERY</span><span class="status-dot" aria-hidden="true"></span></div>
+    <p class="eyebrow">BẮT ĐẦU HÀNH TRÌNH</p>
+    <h2>{{ registering() ? 'Tạo không gian của bạn.' : 'Chào mừng trở lại.' }}</h2>
+    <p class="auth-description">{{ registering() ? 'Một góc riêng cho những ý tưởng và thực nghiệm mới.' : 'Một ý tưởng. Một bộ dữ liệu. Vô vàn điều để khám phá.' }}</p>
+    <form (submit)="submit($event)">
+      @if (registering()) {<label for="display-name">Tên hiển thị</label><input id="display-name" name="displayName" autocomplete="nickname" placeholder="Bạn muốn được gọi là gì?" required maxlength="80">}
+      <label for="entry-email">Email</label><input id="entry-email" name="email" type="email" autocomplete="email" placeholder="ban@example.com" required>
+      <label for="entry-password">Mật khẩu</label><input id="entry-password" name="password" type="password" [attr.autocomplete]="registering() ? 'new-password' : 'current-password'" placeholder="Nhập mật khẩu của bạn" required minlength="8">
+      <button class="primary auth-submit" type="submit">{{ registering() ? 'Đăng ký' : 'Đăng nhập' }} <span aria-hidden="true">↗</span></button>
+    </form>
+    <p class="demo-note">Bản trải nghiệm · Chưa kết nối xác thực tài khoản.</p>
+    <p class="switch-auth">{{ registering() ? 'Đã có tài khoản?' : 'Chưa có tài khoản?' }} <button type="button" (click)="toggleMode()">{{ registering() ? 'Đăng nhập' : 'Đăng ký' }}</button></p>
+    <div class="divider"><span>hoặc khám phá ngay</span></div>
+    <button class="guest-button" type="button" (click)="explore.emit()">Tham gia với tư cách Guest <span aria-hidden="true">→</span></button>
+    <p role="status" class="sr-only">{{ message() }}</p>
+  </div>
+</div>

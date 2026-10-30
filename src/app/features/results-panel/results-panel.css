@@ -76,3 +76,5 @@ td:not(:first-child) { font-family: Consolas, monospace; }
 th, td { border-bottom: 1px solid var(--row-border); }
 td.good { color: var(--ok-fg); background: var(--ok-bg); font-weight: 700; }
 .parameters { padding: 12px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-control); }
+
+.series.test i{background:var(--color-test)}

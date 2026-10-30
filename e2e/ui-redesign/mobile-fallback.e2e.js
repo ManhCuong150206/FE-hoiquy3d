@@ -1,0 +1,30 @@
+async (page) => {
+ page.setDefaultTimeout(15000); page.setDefaultNavigationTimeout(30000);
+ const check=(ok,message)=>{if(!ok)throw new Error(message);};
+ await page.context().clearCookies();
+ await page.goto('http://127.0.0.1:4300/');
+ await page.setViewportSize({width:390,height:844});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.getByRole('heading',{name:'Chào mừng trở lại.'}).waitFor();
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile horizontal overflow');
+ await page.screenshot({path:'output/playwright/welcome-mobile.png'});
+ await page.getByRole('button',{name:'Tham gia với tư cách Guest',exact:true}).click();
+ await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden && !document.querySelector('.experience').dataset.transition);
+ check(await page.locator('.cursor-glow').evaluate(el=>getComputedStyle(el).display)==='none','Reduced motion cursor must hide');
+ await page.getByRole('button',{name:'Khám phá Polynomial',exact:true}).focus();await page.keyboard.press('Enter');
+ await page.locator('#selected-algorithm').waitFor();
+ check(await page.locator('#selected-algorithm').getAttribute('data-value')==='polynomial','Keyboard algorithm choice');
+ check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile lab overflow');
+ await page.screenshot({path:'output/playwright/lab-mobile.png'});
+ const context=await page.context().browser().newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+ await context.addInitScript(()=>{ const original=HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext=function(type,...args){if(String(type).includes('webgl'))return null;return original.call(this,type,...args);}; });
+ const fallback=await context.newPage();await fallback.goto('http://127.0.0.1:4300/');
+ await fallback.getByRole('button',{name:'Tham gia với tư cách Guest',exact:true}).click();
+ await fallback.getByText('Chọn một thuật toán bên dưới để tiếp tục.',{exact:true}).waitFor();
+ await fallback.getByRole('button',{name:'Khám phá Linear',exact:true}).click();
+ await fallback.locator('#selected-algorithm').waitFor();
+ check(await fallback.locator('#selected-algorithm').getAttribute('data-value')==='linear','Fallback choice must work');
+ await context.close();
+ return {suite:'mobile/accessibility/fallback',passed:['390px no horizontal overflow','Guest','reduced motion hides cursor','keyboard selection','mobile lab','WebGL disabled fallback remains usable']};
+}

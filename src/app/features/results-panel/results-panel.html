@@ -17,7 +17,7 @@
   <svg viewBox="0 0 300 100" preserveAspectRatio="none" class="chart">
     @if (chart(); as c) {
       <polyline [attr.points]="c.train" fill="none" stroke="var(--chart-train)" stroke-width="2" />
-      <polyline [attr.points]="c.test" fill="none" stroke="var(--primary)" stroke-width="2" />
+      <polyline [attr.points]="c.test" fill="none" stroke="var(--color-test)" stroke-width="2" />
     }
   </svg>
   <div class="legend">Iteration {{ store.history()[0]?.iteration ?? 0 }} → {{ store.iteration() }} · chưa cộng phần phạt</div>

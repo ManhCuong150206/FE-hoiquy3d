@@ -8,7 +8,7 @@ const STORAGE_KEY = 'hoiquy3d-theme';
 export class ThemeStore {
     private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
     private readonly document = inject(DOCUMENT);
-    private readonly current = signal<Theme>('light');
+    private readonly current = signal<Theme>('dark');
     readonly theme = this.current.asReadonly();
 
     constructor() {
@@ -20,7 +20,7 @@ export class ThemeStore {
             try { saved = window.localStorage.getItem(STORAGE_KEY); } catch { /* Storage blocked. */ }
             const theme = saved === 'light' || saved === 'dark'
                 ? saved
-                : window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                : 'dark';
             this.apply(theme);
         });
     }

@@ -1,0 +1,35 @@
+async(page)=>{
+ page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);
+ const check=(ok,message)=>{if(!ok)throw new Error(message);};
+ const wait=async id=>page.waitForFunction(id=>!document.getElementById(id).hidden&&!document.querySelector('.experience').dataset.transition,id);
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('http://127.0.0.1:4300/');
+ await page.locator('.experience[data-motion=active]').waitFor();
+ const visible=()=>page.locator('[data-screen]:not([hidden])').count();
+ check(await visible()===1,'Only welcome visible');
+ await page.mouse.move(30,400);await page.mouse.wheel(0,1300);await page.waitForTimeout(350);
+ check(await page.locator('#algorithms').isHidden(),'Wheel must not change pages');
+ await page.getByRole('button',{name:'Tham gia với tư cách Guest',exact:true}).click();await page.locator('.experience[data-transition=exit]').waitFor();
+ await page.locator('.experience[data-transition=enter]').waitFor();
+ await page.waitForFunction(()=>document.querySelector('.experience').dataset.transition==='enter' && getComputedStyle(document.querySelector('.sphere-container')).transform!=='none');
+ check(await page.locator('#welcome').isHidden(),'Old page must hide at swap');
+ await wait('algorithms');check(await visible()===1,'Only selector visible');
+ check(await page.locator('#algorithms').getAttribute('data-entered')==='complete','Destination entrance must complete');
+ await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await wait('lab');
+ check(await page.locator('#selected-algorithm').getAttribute('data-value')==='linear','Readonly selected algorithm');
+ check(await page.locator('select[aria-label="Thuật toán"]').count()===0,'No algorithm dropdown');
+ const viewport=page.locator('#lab app-viewport3d canvas');await viewport.waitFor();
+ const sample=await viewport.evaluate(async canvas=>{const frames=Number(canvas.dataset.renderCount),start=performance.now();await new Promise(resolve=>setTimeout(resolve,1200));return {fps:(Number(canvas.dataset.renderCount)-frames)*1000/(performance.now()-start),cpuMs:Number(canvas.dataset.renderCpuMs)};});
+ check(sample.fps>0&&sample.fps<=62,'Lab WebGL must respect 60 FPS cap');
+ await page.getByRole('button',{name:'Quay lại chọn thuật toán',exact:false}).click();await wait('algorithms');
+ check(await page.locator('#selected-algorithm').getAttribute('data-value')==='linear','Back preserves selection');
+ const sphere=page.locator('app-algorithm-sphere canvas');const before=await sphere.getAttribute('data-render-count');
+ await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await wait('lab');
+ await page.waitForTimeout(150);const hiddenCount=await sphere.getAttribute('data-render-count');await page.waitForTimeout(400);
+ check(await sphere.getAttribute('data-render-count')===hiddenCount,'Hidden sphere must stop drawing');
+ check(Number(hiddenCount)>=Number(before),'Valid render counter');
+ await page.emulateMedia({reducedMotion:'reduce'});await page.locator('.experience[data-motion=reduced]').waitFor();
+ await page.getByRole('button',{name:'Quay lại chọn thuật toán',exact:false}).click();await wait('algorithms');
+ await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await wait('lab');
+ check(await visible()===1,'Reduced motion must show exactly one page');
+ return {suite:'page-motion/readonly',performance:sample,passed:['one visible page','wheel cannot navigate','outgoing animation','incoming 3D animation verified','lab render capped at 60 FPS','readonly algorithm','dropdown removed','back preserves model','hidden sphere stops rendering','reduced-motion navigation']};
+}

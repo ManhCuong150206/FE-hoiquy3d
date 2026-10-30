@@ -115,3 +115,9 @@ src/app/
 - **Không vào được `localhost:4200`**: kiểm tra `ng serve` đã chạy xong chưa, hoặc cổng 4200 đang bị chiếm (dùng `ng serve --port 4300`).
 - **Báo thiếu thư viện**: chạy lại `npm install`.
 - **Dòng đỏ "Chưa đồng bộ được với máy chủ"**: bình thường khi chưa có backend, dữ liệu vẫn được giữ trong trình duyệt.
+
+## Giao diện dark/neon
+
+Luồng mới: đăng nhập demo/Guest → cầu 3D chọn thuật toán → phòng thực nghiệm hiện có. Tài liệu thiết kế tại `docs/UI-REDESIGN-SPEC.md`; hướng dẫn và kết quả kiểm thử tại `docs/UI-REDESIGN-VERIFICATION.md`.
+
+Chạy E2E sau khi mở dev server cổng 4300: `powershell -NoProfile -ExecutionPolicy Bypass -File e2e/run-ui-redesign.ps1`.

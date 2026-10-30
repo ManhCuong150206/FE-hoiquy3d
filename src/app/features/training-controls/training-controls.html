@@ -20,13 +20,9 @@
     <div class="parameter-controls">
 
     <div class="field">
-        <label>Thuật toán</label>
-        <select aria-label="Thuật toán" (change)="store.setAlgorithm($any($event.target).value)">
-            <option value="linear" [selected]="store.algorithm() === 'linear'">Linear Regression</option>
-            <option value="polynomial" [selected]="store.algorithm() === 'polynomial'">Polynomial</option>
-            <option value="ridge" [selected]="store.algorithm() === 'ridge'">Ridge</option>
-            <option value="lasso" [selected]="store.algorithm() === 'lasso'">Lasso</option>
-        </select>
+        <label for="selected-algorithm">Thuật toán đã chọn</label>
+        <output id="selected-algorithm" class="selected-algorithm" [attr.data-value]="store.algorithm()" [attr.data-algorithm]="store.algorithm()"><span aria-hidden="true"></span>{{ labels[store.algorithm()] }} Regression</output>
+        <button type="button" class="algorithm-back" (click)="changeAlgorithm.emit()">← Quay lại chọn thuật toán</button>
     </div>
 
     @if (store.algorithm() === 'polynomial') {

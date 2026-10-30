@@ -1,8 +1,9 @@
 # Đặc tả làm mới giao diện — Hồi quy 3D
 
-- **Phiên bản:** 1.0
+- **Phiên bản:** 1.3
+- **Triển khai:** Đã có phiên bản giao diện cục bộ; xem [kết quả kiểm thử](UI-REDESIGN-VERIFICATION.md).
 - **Ngày:** 30/10/2026
-- **Phạm vi:** Tài liệu thiết kế giao diện; chưa bao gồm triển khai code
+- **Phạm vi:** Đặc tả giao diện và bản triển khai cục bộ; chưa kết nối xác thực thật
 - **Frontend hiện tại:** Angular + TypeScript + Three.js
 - **Tài liệu tham khảo trải nghiệm:** https://robinpayot.com/
 
@@ -16,10 +17,10 @@ Không viết lại hoặc thay đổi logic tính hồi quy, xử lý CSV, tr�
 
 1. Tạo phong cách công nghệ hiện đại, nền đen, nội dung dễ đọc và vùng 3D nổi bật.
 2. Dùng màu thuật toán nhất quán để nhận diện Linear, Polynomial, Ridge và Lasso.
-3. Tạo luồng cuộn toàn màn hình: Đăng nhập/Guest → chọn thuật toán bằng cầu 3D → phòng thực nghiệm hiện có.
+3. Tạo luồng các trang độc lập, mỗi lần chỉ hiện một trang: Đăng nhập/Guest → chọn thuật toán bằng cầu 3D → phòng thực nghiệm → trang học từng bước, ghi chú và mô hình 3D.
 4. Dùng hiệu ứng Liquid Glass cho nút và bề mặt tương tác theo cách phù hợp với web.
 5. Thêm hiệu ứng con trỏ nhẹ trên thiết bị có chuột; không ảnh hưởng nhập liệu hay điều khiển cảnh 3D.
-6. Ưu tiên chuyển động mượt: mục tiêu tối thiểu ổn định 60 FPS trên thiết bị phổ thông có hỗ trợ WebGL; khai thác tần số 120/144 Hz khi thiết bị và trình duyệt cho phép.
+6. Cố định trần render 3D và GSAP ở 60 FPS, kể cả màn hình 120/144/240 Hz; tối ưu công việc mỗi khung hình trong ngân sách khoảng 16,67 ms.
 7. Có chế độ giảm hiệu ứng khi thiết bị yếu hoặc người dùng bật Reduce Motion.
 
 ## 3. Phạm vi thay đổi
@@ -39,7 +40,7 @@ Không viết lại hoặc thay đổi logic tính hồi quy, xử lý CSV, tr�
 - API, schema MongoDB, xác thực thật, đăng ký tài khoản hoặc lưu mật khẩu.
 - Ý nghĩa màu phân biệt train/test, điểm dự đoán, residual hoặc chú giải dữ liệu; được đổi mã màu nhưng phải giữ rõ nhãn/ý nghĩa.
 
-Màn hình đăng nhập/đăng ký trong giai đoạn này là **giao diện prototype**. Không gửi, lưu hoặc log email/mật khẩu. Nút submit chỉ hiển thị trạng thái demo hoặc chuyển tiếp theo prototype; Guest đi tiếp trực tiếp.
+Màn hình đăng nhập/đăng ký trong giai đoạn này là **giao diện prototype**. Không gửi, lưu hoặc log email/mật khẩu. Nút submit chỉ hiển thị trạng thái demo hoặc chuyển tiếp theo prototype; Submit hợp lệ hoặc Guest kích hoạt chuyển cảnh phát sáng/phóng nhẹ; không xem đây là đăng nhập tài khoản thật.
 
 ## 4. Luồng màn hình và tương tác
 
@@ -49,7 +50,7 @@ Màn hình đăng nhập/đăng ký trong giai đoạn này là **giao diện pr
 - Form email và mật khẩu; nút “Đăng nhập”.
 - Liên kết/nút “Đăng ký” để chuyển trạng thái form giao diện.
 - Nút nổi bật “Tham gia với tư cách Guest”.
-- Gợi ý cuộn hoặc nút “Khám phá” dẫn xuống màn hình chọn thuật toán.
+- Nút “Khám phá”, Login/Register demo hợp lệ hoặc Guest chuyển sang trang chọn thuật toán; cuộn không chuyển trang.
 - Do chưa có auth backend, không xác thực tài khoản và không lưu thông tin form.
 
 ### Màn hình 2 — Cầu 3D chọn thuật toán
@@ -62,20 +63,32 @@ Màn hình đăng nhập/đăng ký trong giai đoạn này là **giao diện pr
 
 ### Màn hình 3 — Phòng thực nghiệm
 
-Dùng lại bố cục và các panel hiện có: header, training controls, experiments panel, data panel, viewport3d, results panel, learning walkthrough và algorithm notes.
+Dùng lại header, training controls, experiments panel, data panel, viewport3d và results panel. Learning walkthrough và algorithm notes chuyển sang màn hình 4.
 
 - Khi vào, thuật toán được chọn trên cầu phải hiển thị đồng nhất ở điều khiển, ghi chú, metric và vùng 3D.
 - Không tạo bản sao logic của các panel/engine hiện tại chỉ để phục vụ màn hình mới.
 - Điều khiển chạy, pause, step, stop, reset, chọn dữ liệu và xem kết quả giữ nguyên hành vi.
 - Có nút điều hướng “Đổi thuật toán” để quay lại màn hình cầu mà không mất dataset/thí nghiệm đang có; nếu đổi thuật toán làm mất snapshot huấn luyện theo logic hiện tại thì giao diện báo rõ trước khi áp dụng.
 
-### Cuộn và chuyển cảnh
+### Màn hình 4 — Học từng bước cùng mô hình 3D
 
-- Màn hình chào mừng và màn hình chọn thuật toán dùng trang cuộn theo từng màn (section-based scroll snap) trên desktop.
-- Chuyển cảnh có thời lượng ngắn, easing mượt, không khóa cuộn lâu và không tự cuộn liên tục ngoài ý muốn.
-- Có nút điều hướng thay cho cuộn; hỗ trợ Page Up/Down, phím mũi tên và Tab.
-- Trên màn hình nhỏ, cho cuộn tự nhiên; không bắt buộc khối cầu 3D chiếm toàn viewport.
-- Khi giảm chuyển động được bật, bỏ camera fly-through và dùng chuyển cảnh mờ/đổi section đơn giản.
+- Trang riêng sau phòng thực nghiệm; dùng nút đi tới/quay lại. Chỉ trang hiện tại được hiển thị.
+- Desktop: mô hình 3D bên trái, giải thích sáu pha bên phải, ghi chú thuật toán phía dưới. Mobile xếp dọc.
+- Tái sử dụng `Viewport3d`, `LearningWalkthrough`, `AlgorithmNotes` với cùng `LabStore`; giữ nguyên dataset, thuật toán, iteration, snapshot và mẫu đang chọn.
+- Hai viewport có ID điều khiển riêng để tránh trùng label/ID. Scene ngoài màn hình ngừng render theo cơ chế hiện có.
+- Lộ trình sáu pha xuất hiện trước khi bắt đầu; không có phép tính nào chạy chỉ để hiển thị danh sách này.
+- Cuộn chỉ đọc nội dung trong trang hiện tại, không chuyển trang. Bật học từng bước, bắt đầu pha, chuyển pha hoặc phát trình diễn đều do nút điều khiển hiện có; cuộn không gọi cập nhật mô hình.
+- Nếu mô hình đang chạy tự động từ trước, vòng chạy hiện có vẫn giữ hành vi; điều hướng không tự bật một vòng chạy mới.
+
+### Chuyển trang và chuyển cảnh
+
+- Bốn trang giữ component/state khi đã tải nhưng chỉ một trang được hiển thị. Trang ẩn dùng `hidden`/`display:none`, không tham gia bố cục, tương tác hoặc tab order.
+- Chỉ nút bấm hoặc bấm vùng màu trên cầu đổi trang; wheel/Page Down chỉ đọc nội dung dài trong trang hiện tại. Wheel trên canvas mô hình vẫn zoom camera như trước.
+- Mỗi lần chuyển: trang cũ mờ/lùi nhẹ 0,3 giây → đổi trang dưới lớp màu → trang mới hiện lên 0,6 giây và nội dung xuất hiện so le. Tổng khoảng 1–1,3 giây tùy số panel.
+- Trang chọn: cầu phóng từ xa và xoay nhẹ vào vị trí; copy/card hiện theo lớp. Trang thực nghiệm: heading, controls và các panel hiện lần lượt. Trang học: mô hình và giải thích vào từ hai phía.
+- Lựa chọn điều hướng mới hoàn tất trạng thái của chuyển cảnh trước rồi bắt đầu chuyển mới, tránh hai trang cùng hiện. Focus được đặt ở tiêu đề sau khi kết thúc.
+- Hiệu ứng Nhẹ/reduced motion đổi trang trực tiếp, vẫn giữ trạng thái học. Không dùng ScrollTrigger/ScrollTo hoặc cuộn ép để đổi trang.
+- Đây là điều hướng bằng state của Angular trong cùng ứng dụng; chưa tạo các URL route riêng.
 
 ## 5. Design tokens và bảng màu
 
@@ -131,16 +144,16 @@ Màu algorithm accent dùng cho cầu chọn, nhãn thuật toán và viền nh�
 
 ## 9. Yêu cầu hiệu năng
 
-Mục tiêu là animation không giật trên thiết bị phổ thông có WebGL; không cam kết cứng 144 FPS trên mọi máy. Màn hình 144 Hz có thể hiển thị nhiều hơn 60 FPS nếu CPU/GPU và trình duyệt đáp ứng.
+Render 3D và ticker GSAP giới hạn tối đa 60 FPS. Một khung hình mục tiêu có ngân sách 16,67 ms. Máy yếu hoặc tác vụ nặng vẫn có thể đạt ít hơn 60 FPS; không thể ép phần cứng luôn giữ đúng 60. Đo số lần render WebGL thực, không dùng tần số requestAnimationFrame của màn hình làm FPS của cảnh.
 
 - Giữ tính toán hồi quy trong Web Worker như hiện tại; không chuyển computation vào vòng render.
 - Render scene chỉ khi cần hoặc khi animation/camera đang chuyển động; dừng requestAnimationFrame khi component bị ẩn/hủy.
 - Tận dụng InstancedMesh cho điểm dữ liệu; giới hạn số mẫu hiển thị và dùng sampling khi dataset lớn, nhưng không đổi dữ liệu gốc hoặc kết quả mô hình.
 - Giới hạn device pixel ratio theo cấu hình thích ứng (mốc khởi đầu 1.5–2); giảm resolution/particle/shadow trước khi giảm tính năng học.
 - Lazy-load scene cầu nếu phù hợp; giải phóng geometry, material, texture và listener khi rời màn hình.
-- Dùng IntersectionObserver/Page Visibility để tạm ngừng animation khi section/tab không hiển thị.
+- Dùng IntersectionObserver/Page Visibility để tạm ngừng animation khi trang/tab không hiển thị.
 - Có chế độ chất lượng thấp: bỏ bloom, blur mạnh, bóng động và particle; giảm pixel ratio và mật độ mesh.
-- Đo FPS/frame time trên desktop 60 Hz và 144 Hz; kiểm tra thêm thiết bị phổ thông. Mục tiêu nghiệm thu: thao tác cuộn và chọn thuật toán ổn định tối thiểu 60 FPS trên cấu hình demo nhóm chốt, không có freeze kéo dài.
+- Đo FPS/frame time trên desktop 60 Hz và 144 Hz; kiểm tra thêm thiết bị phổ thông. Mục tiêu nghiệm thu: render không vượt trần 60 FPS, gần 60 FPS trên cấu hình demo đã đo và không có freeze kéo dài; ghi rõ giới hạn của máy thử.
 
 ## 10. Responsive, khả năng tiếp cận và fallback
 
@@ -155,37 +168,37 @@ Mục tiêu là animation không giật trên thiết bị phổ thông có WebG
 Frontend nằm tại `FE/FE-hoiquy3d`.
 
 - `src/styles.css`: nguồn design tokens, màu nền, typography và reset/theme toàn cục.
-- `src/app/app.html` / `app.css`: shell điều phối section và responsive layout; giữ các component phòng lab sẵn có.
+- `src/app/app.html` / `app.css`: shell điều phối từng trang và responsive layout; giữ các component phòng lab sẵn có.
 - `src/app/app.ts`: chỉ kết nối component/điều phối màn hình; tránh nhét engine hoặc logic nghiệp vụ vào root component.
 - `src/app/state/theme-store.ts`: xem xét dùng làm điểm áp theme thay vì tạo hệ thống màu rời; lưu ý theme hiện hỗ trợ light/dark, thiết kế mới lấy dark làm mặc định.
 - `src/app/features/viewport3d`: tiếp tục dùng scene hiện tại cho visualization mô hình; cầu chọn thuật toán nên là scene/component riêng để không làm lẫn trạng thái camera và dữ liệu lab.
 - `src/app/state/lab-store.ts`: dùng API state hiện có để đổi thuật toán; không thay quy tắc huấn luyện để phục vụ animation.
 - Các panel `training-controls`, `data-panel`, `experiments-panel`, `results-panel`, `learning-walkthrough`, `algorithm-notes`: ưu tiên đổi template/CSS/bố cục, giữ hành vi.
-- `src/app/app.routes.ts` hiện chưa khai báo route; lựa chọn luồng section có thể dùng một shell stateful trước, không bắt buộc xây router nhiều trang. Nếu sau này dùng URL route, đó là quyết định triển khai cần giữ trạng thái và back navigation nhất quán.
+- `src/app/app.routes.ts` hiện chưa khai báo route; bản hiện tại dùng một shell stateful chỉ hiển thị trang đang chọn, không bắt buộc xây router nhiều trang. Nếu sau này dùng URL route, đó là quyết định triển khai cần giữ trạng thái và back navigation nhất quán.
 
 ## 12. Tiêu chí nghiệm thu giao diện
 
-1. Các section chào mừng, chọn thuật toán và phòng thực nghiệm chạy theo đúng thứ tự; có thể quay lại chọn thuật toán khác.
+1. Bốn trang chào mừng, chọn thuật toán, thực nghiệm và học xuất hiện đúng thứ tự, mỗi lần chỉ hiện một trang; có thể quay lại chọn thuật toán khác.
 2. Nút Login/Register/Guest hiển thị đúng; không gửi hay lưu credential trong giai đoạn prototype.
 3. Chọn mỗi thuật toán cập nhật đúng nhãn/màu và mở phòng thực nghiệm bằng thuật toán đó qua store hiện có.
 4. Các chức năng chạy/pause/step/reset, nhập dữ liệu, xem metric và hướng dẫn học vẫn hoạt động như trước.
 5. Màu sắc lấy từ design tokens; các điểm Train/Test vẫn có chú giải rõ.
 6. Liquid Glass có fallback khi blur không hỗ trợ và vẫn đọc được trên nền tối.
 7. Con trỏ trang trí không chặn click, nhập form hay điều khiển OrbitControls; bị tắt trên touch/reduced motion.
-8. Cuộn, chuyển cảnh, bàn phím và mobile đều dùng được; WebGL lỗi vẫn có lối chọn thuật toán không 3D.
-9. FPS đạt mục tiêu tối thiểu 60 trên thiết bị/cấu hình demo nhóm đã ghi nhận; 120/144 Hz là tối ưu theo khả năng máy, không phải cam kết phổ quát.
+8. Nút chuyển trang, chuyển cảnh, bàn phím và mobile đều dùng được; WebGL lỗi vẫn có lối chọn thuật toán không 3D.
+9. Trần render 60 FPS được kiểm tra trên các tần số màn hình; cảnh trên máy thử đạt gần 60 FPS. Ghi riêng thời gian CPU gửi lệnh vẽ, không nhầm với thời gian GPU.
 10. Test hiện có cho engine/store/viewport tiếp tục đạt; bổ sung test cho flow điều hướng và lựa chọn thuật toán trước khi merge giao diện.
 
 ## 13. Kế hoạch triển khai giao diện
 
 1. Chụp baseline giao diện và ghi lại các hành vi hiện tại cần giữ.
 2. Tạo design tokens tối và cập nhật kiểu dáng chung, panel, control, trạng thái focus.
-3. Làm shell/scroll sections và responsive navigation.
+3. Làm shell với các trang ẩn/hiện độc lập và responsive navigation.
 4. Thêm màn hình login/register/guest dạng prototype không kết nối auth.
 5. Thêm sphere selector, ánh sáng/chất liệu và ánh xạ lựa chọn vào `LabStore`.
-6. Đưa các panel thực nghiệm hiện có vào section cuối, giữ logic.
+6. Đưa các panel thực nghiệm hiện có vào trang thực nghiệm, giữ logic.
 7. Thêm cursor glow, Liquid Glass và chuyển cảnh với reduced-motion/fallback.
-8. Đo hiệu năng 60/144 Hz, tinh chỉnh adaptive quality, chạy build/test FE và rà lại thao tác hiện có.
+8. Đo trần render 60 FPS trên màn hình 60/144 Hz, tinh chỉnh adaptive quality, chạy build/test FE và rà lại thao tác hiện có.
 
 ## 14. Thuật ngữ
 
@@ -194,4 +207,31 @@ Frontend nằm tại `FE/FE-hoiquy3d`.
 - **PBR:** mô hình shading dựa trên cách vật liệu phản ứng với ánh sáng; trong Three.js thường cấu hình qua roughness/metalness/clearcoat.
 - **Frame time/FPS:** thời gian dựng một khung hình và số khung hình mỗi giây. 60 FPS tương ứng khoảng 16.7 ms/frame; 144 FPS khoảng 6.9 ms/frame.
 - **Adaptive quality:** tự giảm hiệu ứng/độ phân giải khi máy không đạt độ mượt mục tiêu.
-- **Scroll snap:** hành vi cuộn căn section vào vị trí định trước; phải có điều khiển thay thế và không khóa người dùng.
+- **Page transition:** chuỗi hiệu ứng rời trang và vào trang. Chỉ nút/chọn cầu kích hoạt; cuộn không điều hướng.
+
+## 15. Điều phối trang và hiệu năng (phiên bản 1.3)
+
+- `JourneyMotion.switchPage`: GSAP timeline cho exit → swap → enter; có cleanup, hoàn tất chuyển cảnh cũ khi điều hướng mới và fallback không chuyển động.
+- `FrameBudget`: bộ giới hạn theo deadline 60 FPS; bỏ callback dư của màn hình tần số cao và không chạy bù hàng loạt sau tác vụ chậm. Pointer và animation dùng chung ngân sách của mỗi scene.
+- GSAP ticker đặt 60 FPS; cursor glow cũng có bộ giới hạn riêng. CSS hover vẫn do compositor của trình duyệt quản lý, không thay đổi tần số vật lý của màn hình.
+- Cầu giữ bốn vùng màu ban đầu; hover phát sáng, kéo quá 6 pixel không chọn khi nhả. Phép xoay vẫn qua số phức/quaternion.
+- `Viewport3d.active`: chỉ khởi tạo khi vào trang lần đầu, ngừng RAF và bỏ các phép tính dự đoán/geometry không cần thiết khi trang ẩn; khi hiện lại lấy trạng thái mới nhất từ LabStore.
+- `controls.update` và gửi lệnh render chạy trong cùng slot khung hình, ngoài Angular. Resize bỏ qua kích thước 0 của trang ẩn. Giữ instancing, DPR cap và tắt render khi tab ẩn.
+- CPU render metric là thời gian JavaScript chuẩn bị/gửi lệnh cho GPU, không phải thời gian GPU hoàn tất khung hình.
+- Không thay công thức học, Web Worker, dữ liệu CSV, IndexedDB, API hoặc MongoDB để phục vụ chuyển cảnh.
+
+## 16. Các chức năng giữ lại từ phiên bản 1.2
+
+- Login/Register/Guest là prototype; xóa nội dung form, không gửi hay lưu credential.
+- Bốn thuật toán Linear cyan, Polynomial hồng, Ridge tím, Lasso bạc. Chọn khác thuật toán đã có tiến trình vẫn cần xác nhận đặt lại model.
+- Trang thứ ba chỉ hiển thị tên thuật toán đã chọn; muốn đổi phải quay lại cầu.
+- Trang thứ tư có mô hình 3D, lộ trình sáu pha, điều khiển từng pha và ghi chú; dùng chung dataset, iteration, snapshot với trang thực nghiệm.
+- Cuộn và hiệu ứng giao diện không gọi cập nhật mô hình. Vòng chạy tự động do người dùng đã bật giữ hành vi hiện có.
+
+Phiên bản 1.3 thay thế cơ chế cuộn/ScrollTrigger/ScrollTo và mục tiêu render trên 60 FPS của các phiên bản trước.
+
+## 17. Tinh chỉnh thanh giao diện
+
+- Bỏ toàn bộ thanh điều hướng trên cùng: nhãn thương hiệu, các mục 01–04 và nút Hiệu ứng.
+- Giữ các nút trong từng trang: tiếp tục/Guest, chọn cầu/card, quay lại chọn thuật toán và mở/quay lại trang học.
+- Các trang chiếm đủ chiều cao màn hình, không chừa khoảng trống 82 px cho thanh cũ. Trần 60 FPS và tôn trọng giảm chuyển động của hệ điều hành giữ nguyên.

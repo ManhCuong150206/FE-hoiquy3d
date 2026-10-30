@@ -40,12 +40,10 @@ describe('ThemeStore', () => {
         return fixture.componentInstance.store;
     }
 
-    it.each([false, true])('defaults to the OS preference (dark=%s)', async (dark) => {
-        vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: dark })));
+    it('uses dark by default regardless of OS preference', async () => {
         const store = await create();
-        expect(store.theme()).toBe(dark ? 'dark' : 'light');
-        expect(document.documentElement.getAttribute('data-theme')).toBe(store.theme());
-        expect(window.matchMedia).toHaveBeenCalledWith('(prefers-color-scheme: dark)');
+        expect(store.theme()).toBe('dark');
+        expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     });
 
     it.each(['light', 'dark'])('prefers saved %s over the OS setting', async (saved) => {
@@ -56,10 +54,11 @@ describe('ThemeStore', () => {
 
     it('ignores an invalid saved value', async () => {
         stored.set(key, 'invalid');
-        expect((await create()).theme()).toBe('light');
+        expect((await create()).theme()).toBe('dark');
     });
 
     it('toggles the DOM, persists, and restores on a new instance', async () => {
+        stored.set(key, 'light');
         const store = await create();
         store.toggle();
         expect(store.theme()).toBe('dark');
@@ -88,14 +87,14 @@ describe('ThemeStore', () => {
         try {
             const store = await create();
             expect(() => store.toggle()).not.toThrow();
-            expect(store.theme()).toBe('dark');
+            expect(store.theme()).toBe('light');
         } finally { getter.mockRestore(); }
     });
 
     it('does not access browser APIs or mutate the document on the server', async () => {
         const store = await create('server');
         store.toggle();
-        expect(store.theme()).toBe('light');
+        expect(store.theme()).toBe('dark');
         expect(storage.getItem).not.toHaveBeenCalled();
         expect(storage.setItem).not.toHaveBeenCalled();
         expect(window.matchMedia).not.toHaveBeenCalled();

@@ -1,6 +1,7 @@
+import { FrameBudget, recordRender } from '../../presentation/frame-budget';
 import {
   Component, ElementRef, NgZone, OnDestroy,
-  afterNextRender, effect, inject, signal, viewChild, computed,
+  afterNextRender, effect, inject, signal, viewChild, computed, input, untracked,
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -15,6 +16,12 @@ import { rotatePair, unitRotation } from '../../core/engine/complex-rotation';
   styleUrl: './viewport3d.css',
 })
 export class Viewport3d implements OnDestroy {
+  readonly active = input(true);
+  private readonly mounted = signal(false);
+  private initialized = false;
+  private readonly budget = new FrameBudget();
+  readonly idPrefix = input('viewport');
+  readonly lowQuality = input(false);
   private host = viewChild.required<ElementRef<HTMLDivElement>>('host');
   private zone = inject(NgZone);
   store = inject(LabStore);
@@ -30,7 +37,17 @@ export class Viewport3d implements OnDestroy {
   private pointMeshes: THREE.InstancedMesh[] = [];
   private pointData: unknown[] = [];
   private observer?: ResizeObserver;
+  private trainColor = 0;
+  private testColor = 0;
   private raf = 0;
+  private visibilityObserver?: IntersectionObserver;
+  private sceneVisible = true;
+  private renderLoop?: () => void;
+  private syncRendering = () => {
+    if (typeof window === 'undefined') return;
+    cancelAnimationFrame(this.raf);
+    if (this.active() && this.sceneVisible && !document.hidden) this.zone.runOutsideAngular(() => this.renderLoop?.());
+  };
   private trueMarker?: THREE.Mesh;
   private predictedMarker?: THREE.Mesh;
   private residualLine?: THREE.Line;
@@ -41,6 +58,7 @@ export class Viewport3d implements OnDestroy {
   modelClipped = signal(false);
   pointSize = signal(1);
   stuck = computed(() => {
+    if (!this.active()) return { trainPred: [] as number[], testPred: [] as number[], train: 0, test: 0 };
     const s = this.store.latest(), eps = this.store.stickThreshold();
     const predictRows = (rows: number[][]) => s
       ? modelPredictions(rows, s.w, s.b, this.store.algorithm(), this.store.degree())
@@ -58,11 +76,21 @@ export class Viewport3d implements OnDestroy {
   });
 
   constructor() {
+    effect(() => {
+      const low = this.lowQuality(), ready = this.ready();
+      if (ready && this.renderer) this.renderer.setPixelRatio(low ? 1 : Math.min(window.devicePixelRatio, 1.5));
+    });
     // Chỉ chạy trên trình duyệt (an toàn với SSR)
-    afterNextRender(() => this.init());
+    afterNextRender(() => this.mounted.set(true));
+    effect(() => {
+      if (!this.mounted() || !this.active()) { this.syncRendering(); return; }
+      if (!this.initialized) { this.initialized = true; untracked(() => this.init()); }
+      this.syncRendering();
+    });
 
     // Only data changes rebuild meshes. Committed models/settings update instances, never the RAF loop.
     effect(() => {
+      if (!this.active()) return;
       const ready = this.ready();
       const trX = this.store.trainX(); const trY = this.store.trainY();
       const teX = this.store.testX(); const teY = this.store.testY();
@@ -74,13 +102,14 @@ export class Viewport3d implements OnDestroy {
         this.rebuildPoints(trX, trY, teX, teY, scale);
         this.pointData = data;
       }
-      this.updatePoints(this.pointMeshes[0], trX, trY, stuck.trainPred, 0x10b981, scale, eps, size);
-      this.updatePoints(this.pointMeshes[1], teX, teY, stuck.testPred, 0xf43f5e, scale, eps, size);
+      this.updatePoints(this.pointMeshes[0], trX, trY, stuck.trainPred, this.trainColor, scale, eps, size);
+      this.updatePoints(this.pointMeshes[1], teX, teY, stuck.testPred, this.testColor, scale, eps, size);
     });
 
 
     // Mỗi bước huấn luyện → cập nhật bề mặt mô hình
     effect(() => {
+      if (!this.active()) return;
       const ready = this.ready();
       const s = this.store.latest();
       const scale = this.store.dataScale();
@@ -105,6 +134,7 @@ export class Viewport3d implements OnDestroy {
     });
 
     effect(() => {
+      if (!this.active()) return;
       const ready = this.ready(), learn = this.store.mode() === 'learn';
       const row = this.store.selectedX(), y = this.store.selectedY(), prediction = this.store.selectedPrediction();
       const scale = this.store.dataScale(), phase = this.store.phase(), snapshot = this.store.snapshot();
@@ -130,6 +160,10 @@ export class Viewport3d implements OnDestroy {
     this.zone.runOutsideAngular(() => {
       try { this.renderer = new THREE.WebGLRenderer({ antialias: true }); }
       catch { this.webglError.set(true); return; }
+      const palette = getComputedStyle(el);
+      this.trainColor = new THREE.Color(palette.getPropertyValue('--color-train').trim()).getHex();
+      this.testColor = new THREE.Color(palette.getPropertyValue('--color-test').trim()).getHex();
+      this.renderer.setPixelRatio(this.lowQuality() ? 1 : Math.min(window.devicePixelRatio, 1.5));
       this.renderer.setSize(el.clientWidth, el.clientHeight);
       el.appendChild(this.renderer.domElement);
 
@@ -143,7 +177,7 @@ export class Viewport3d implements OnDestroy {
       this.scene.add(new THREE.GridHelper(10, 10, 0x475569, 0x273244), new THREE.AxesHelper(5));
       const light = new THREE.DirectionalLight(0xffffff, 2);
       light.position.set(4, 8, 6);
-      this.scene.add(new THREE.AmbientLight(0xffffff, 1.4), light);
+      this.scene.add(new THREE.HemisphereLight(0xe5f5ff, 0x141328, 1.8), light);
 
       const geo = new THREE.PlaneGeometry(10, 10, 40, 40);
       geo.rotateX(-Math.PI / 2); // trục Y của Three.js là chiều "lên"
@@ -171,19 +205,30 @@ export class Viewport3d implements OnDestroy {
       this.renderer.domElement.addEventListener('pointercancel', this.onCameraDragEnd);
 
       this.observer = new ResizeObserver(() => {
-        if (!this.renderer || !this.camera) return;
+        if (!this.renderer || !this.camera || !this.active() || !el.clientWidth || !el.clientHeight) return;
         this.renderer.setSize(el.clientWidth, el.clientHeight);
         this.camera.aspect = el.clientWidth / el.clientHeight;
         this.camera.updateProjectionMatrix();
       });
       this.observer.observe(el);
 
-      const loop = () => {
-        this.raf = requestAnimationFrame(loop);
-        this.controls!.update();
-        this.renderer!.render(this.scene, this.camera!);
+      this.renderLoop = () => {
+        const started = performance.now();
+        if (this.budget.take(started) !== null) {
+          this.controls!.update();
+          this.renderer!.render(this.scene, this.camera!); recordRender(this.renderer!.domElement, started);
+        }
+        this.raf = requestAnimationFrame(this.renderLoop!);
       };
-      loop();
+      if (typeof IntersectionObserver !== 'undefined') {
+        this.visibilityObserver = new IntersectionObserver(entries => {
+          this.sceneVisible = entries.some(entry => entry.isIntersecting);
+          this.syncRendering();
+        });
+        this.visibilityObserver.observe(el);
+      }
+      document.addEventListener('visibilitychange', this.syncRendering);
+      this.syncRendering();
     });
     this.ready.set(!!this.renderer); // kích hoạt 2 effect ở trên
   }
@@ -231,8 +276,8 @@ export class Viewport3d implements OnDestroy {
       m.dispose();
     }
     this.pointMeshes = [
-      this.makePoints(trX, trY, 0x10b981, scale), // train: xanh lá
-      this.makePoints(teX, teY, 0xf43f5e, scale), // test: đỏ hồng
+      this.makePoints(trX, trY, this.trainColor, scale), // train: xanh lá
+      this.makePoints(teX, teY, this.testColor, scale), // test: đỏ hồng
     ];
     this.scene.add(...this.pointMeshes);
   }
@@ -351,6 +396,8 @@ export class Viewport3d implements OnDestroy {
 
     cancelAnimationFrame(this.raf);
     this.observer?.disconnect();
+    this.visibilityObserver?.disconnect();
+    document.removeEventListener('visibilitychange', this.syncRendering);
     this.controls?.dispose();
     this.renderer.domElement.removeEventListener('pointerdown', this.onPointerDown);
     this.renderer.domElement.removeEventListener('pointerup', this.onPointerUp);

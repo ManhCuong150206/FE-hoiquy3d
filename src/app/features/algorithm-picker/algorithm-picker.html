@@ -1,0 +1,16 @@
+  <div class="section-heading"><p class="eyebrow">02 / CHỌN GÓC NHÌN CỦA BẠN</p><span class="section-index">FOUR WAYS TO FIND A PATTERN</span></div>
+  <div class="algorithm-stage">
+    <div class="algorithm-copy"><h2 id="algorithm-heading">Mỗi dữ liệu,<br>một <em>khả năng.</em></h2><p>Bốn cách tiếp cận. Một không gian để thử.<br>Kéo xoay cầu · Rê vùng màu để phát sáng · Bấm để chọn.</p><div class="preview-label" [attr.data-algorithm]="highlighted()"><span></span>{{ labels[highlighted()] }} Regression <b aria-hidden="true">↗</b></div></div>
+    <div class="sphere-container" [class.departing]="departing()">
+      @defer (on viewport) { <app-algorithm-sphere [active]="highlighted()" [departing]="departing()" [lowEffects]="lowEffects()" (selected)="selected.emit($event)" /> } @placeholder { <div class="sphere-placeholder" aria-label="Đang chuẩn bị khối cầu 3D"><div></div></div> }
+    </div>
+    <div class="stage-caption"><span>EXPLORE THE SURFACE</span><span aria-hidden="true">✦</span><span>CHỌN ĐỂ BẮT ĐẦU</span></div>
+  </div>
+  <div class="algorithm-cards" aria-label="Chọn thuật toán">
+    @for (algorithm of algorithms; track algorithm.id) {
+      <button class="algorithm-card" [attr.data-algorithm]="algorithm.id" [class.highlighted]="highlighted() === algorithm.id" (mouseenter)="highlighted.set(algorithm.id)" (focus)="highlighted.set(algorithm.id)" (click)="selected.emit(algorithm.id)" [attr.aria-label]="'Khám phá ' + algorithm.label">
+        <span class="card-top"><span>{{ algorithm.number }}</span><span class="algorithm-dot"></span></span><strong>{{ algorithm.label }}<span aria-hidden="true">↗</span></strong><small>{{ algorithm.summary }}</small>
+      </button>
+    }
+  </div>
+  <div class="section-footer"><span>MÔ HÌNH KHÁC NHAU · CÙNG MỘT TINH THẦN KHÁM PHÁ</span><button class="text-button" (click)="back.emit()">↑ Về đầu trang</button></div>
