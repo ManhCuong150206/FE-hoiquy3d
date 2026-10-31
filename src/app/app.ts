@@ -35,6 +35,7 @@ export class App {
   private readonly cursorBudget = new FrameBudget();
   private readonly motion = viewChild(JourneyMotion);
   private readonly glow = viewChild<ElementRef<HTMLDivElement>>('cursorGlow');
+  private readonly welcome = viewChild(WelcomePanel);
   private readonly confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
   readonly pageBusy = signal(false);
   private pointerFrame = 0;
@@ -44,13 +45,25 @@ export class App {
     afterNextRender(() => {
       this.zone.runOutsideAngular(() => {
         if (!window.matchMedia?.('(hover: hover) and (pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        let x = 0, y = 0;
-        const paint = (now: number) => { this.pointerFrame = 0; if (this.cursorBudget.take(now) === null) { this.pointerFrame = requestAnimationFrame(paint); return; } const glow = this.glow()?.nativeElement; if (glow) { glow.style.transform = `translate3d(${x - 90}px,${y - 90}px,0)`; glow.style.opacity = '1'; } };
-        const move = (event: PointerEvent) => { if (this.lowEffects()) return; x = event.clientX; y = event.clientY; if (!this.pointerFrame) this.pointerFrame = requestAnimationFrame(paint); };
+        let x = 0, y = 0, previousX = 0, previousY = 0;
+        const paint = (now: number) => { this.pointerFrame = 0; if (this.cursorBudget.take(now) === null) { this.pointerFrame = requestAnimationFrame(paint); return; } const glow = this.glow()?.nativeElement; if (glow) { glow.style.transform = `translate3d(${x - 50}px,${y - 50}px,0)`; glow.style.opacity = '1';
+          const tail = glow.querySelector<HTMLElement>('.cursor-tail'); const dx = x - previousX, dy = y - previousY, length = Math.hypot(dx, dy);
+          if (tail && length > .5) tail.style.transform = `matrix(${dx/length},${dy/length},${-dy/length},${dx/length},0,0)`;
+          previousX = x; previousY = y; } };
+        const move = (event: PointerEvent) => { if (this.lowEffects() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; x = event.clientX; y = event.clientY; if (!this.pointerFrame) this.pointerFrame = requestAnimationFrame(paint); };
         const leave = () => { const glow = this.glow()?.nativeElement; if (glow) glow.style.opacity = '0'; };
+        const down = (event: PointerEvent) => {
+          if (event.pointerType === 'touch' || this.lowEffects() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          x = event.clientX; y = event.clientY; const glow = this.glow()?.nativeElement;
+          if (glow) { glow.style.transform = `translate3d(${x - 50}px,${y - 50}px,0)`; glow.style.opacity = '1'; glow.classList.add('pressed', 'rippling'); glow.querySelector('.cursor-ripple')?.getAnimations?.().forEach(animation => animation.currentTime = 0); }
+        };
+        const up = () => this.glow()?.nativeElement.classList.remove('pressed');
+        const rippleEnd = () => this.glow()?.nativeElement.classList.remove('rippling');
+        window.addEventListener('pointerdown', down, { passive: true }); window.addEventListener('pointerup', up, { passive: true });
+        this.glow()?.nativeElement.addEventListener('animationend', rippleEnd);
         window.addEventListener('pointermove', move, { passive: true });
         document.addEventListener('pointerleave', leave);
-        this.cleanupPointer = () => { window.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', leave); };
+        this.cleanupPointer = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerdown', down); window.removeEventListener('pointerup', up); this.glow()?.nativeElement.removeEventListener('animationend', rippleEnd); document.removeEventListener('pointerleave', leave); };
       });
     });
     inject(DestroyRef).onDestroy(() => { this.cleanupPointer?.(); if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(this.pointerFrame); });
@@ -68,6 +81,11 @@ export class App {
     const motion = this.motion();
     if (motion) motion.switchPage(from, target, this.preview(), swap, done);
     else { swap(); done(); }
+  }
+
+  logout() {
+    this.lab.pause(); this.cancelChange(); this.welcome()?.resetEntry();
+    this.navigate('welcome', true);
   }
 
   chooseAlgorithm(algorithm: Algorithm) {

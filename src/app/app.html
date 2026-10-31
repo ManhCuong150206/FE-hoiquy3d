@@ -1,22 +1,23 @@
 <div class="experience" appJourneyMotion [motionEnabled]="!lowEffects()" [attr.aria-busy]="pageBusy()">
+<div class="starfield-base" aria-hidden="true"></div>
 @defer (on idle) { <app-spatial-backdrop [lowEffects]="lowEffects()" [screen]="activeScreen()" /> }
 <div class="scene-wipe" aria-hidden="true"></div>
-<div #cursorGlow class="cursor-glow" aria-hidden="true"></div>
+<div #cursorGlow class="cursor-glow" aria-hidden="true"><i class="cursor-ring"></i><i class="cursor-dot"></i><i class="cursor-tail"></i><i class="cursor-ripple"></i></div>
 <a href="#algorithms" class="skip-link" (click)="$event.preventDefault(); navigate('algorithms')">Đến phần chọn thuật toán</a>
 <section id="welcome" [hidden]="activeScreen() !== 'welcome'" data-screen class="journey-section welcome-section" aria-label="Chào mừng"><app-welcome-panel (explore)="navigate('algorithms', true)" /></section>
 <section id="algorithms" [hidden]="activeScreen() !== 'algorithms'" data-screen class="journey-section algorithm-section" aria-labelledby="algorithm-heading">
-  <app-algorithm-picker [active]="preview()" [departing]="transitioning()" [lowEffects]="lowEffects()" (selected)="chooseAlgorithm($event)" (back)="navigate('welcome')" />
+  <app-algorithm-picker [active]="preview()" [departing]="transitioning()" [lowEffects]="lowEffects()" (selected)="chooseAlgorithm($event)" (back)="logout()" />
 </section>
 @if (opened()) {
 <section id="lab" [hidden]="activeScreen() !== 'lab'" data-screen class="lab-section" aria-labelledby="lab-title" [attr.data-algorithm]="lab.algorithm()">
   <div class="lab-heading" data-motion><div><p class="eyebrow">03 / PHÒNG THỰC NGHIỆM</p><h2 id="lab-title" tabindex="-1">{{ labels[lab.algorithm()] }} <span>Regression Lab</span></h2></div><button class="change-algorithm" (click)="navigate('algorithms')">← Đổi thuật toán</button></div>
   @defer (when opened()) {
   <app-header />
-  <app-training-controls data-motion (changeAlgorithm)="navigate('algorithms')" />
+  <app-training-controls data-motion />
   <main class="workspace"><app-experiments-panel data-motion data-tilt /><app-data-panel data-motion /><app-viewport3d data-motion idPrefix="experiment" [active]="activeScreen() === 'lab'" [lowQuality]="lowEffects()" /><app-results-panel data-motion data-tilt /></main>
   <div class="lesson-entry"><p>Muốn hiểu mô hình đã học như thế nào?</p><button class="primary" (click)="navigate('learning', true)">Học từng bước và ghi chú →</button><small>Bấm để mở trang học · chỉ các nút học mới thực hiện tính toán.</small></div>
   }
-  <footer class="lab-footer"><span>HỒI QUY 3D · THỬ, QUAN SÁT, THẤU HIỂU.</span><button (click)="navigate('algorithms')">Khám phá thuật toán khác ↗</button></footer>
+  <footer class="lab-footer"><span>HỒI QUY 3D · THỬ, QUAN SÁT, THẤU HIỂU.</span></footer>
 </section>
 <section id="learning" [hidden]="activeScreen() !== 'learning'" data-screen class="learning-section" [attr.data-algorithm]="lab.algorithm()" aria-labelledby="learning-title">
   <div class="lab-heading" data-motion><div><p class="eyebrow">04 / HIỂU TỪNG BƯỚC</p><h2 id="learning-title">{{ labels[lab.algorithm()] }} <span>Học cùng mô hình 3D</span></h2><p class="learning-hint">Cuộn để đọc. Bấm nút trong phần giải thích để thực hiện các pha học.</p></div><button (click)="navigate('lab', true)">↑ Về thực nghiệm</button></div>

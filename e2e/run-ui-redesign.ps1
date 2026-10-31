@@ -12,7 +12,7 @@ function Invoke-BrowserCommand {
 }
 Invoke-BrowserCommand -CommandArgs @('open','http://127.0.0.1:4300/','--headed') | Out-Null
 try {
-    foreach ($suite in @('entry','lab','learning-offline','mobile-fallback','sphere','motion','slides')) {
+    foreach ($suite in @('entry','lab','learning-offline','mobile-fallback','sphere','motion','slides','neon','navigation-layout')) {
         Invoke-BrowserCommand -CommandArgs @('run-code',"--filename=e2e/ui-redesign/$suite.e2e.js") | Set-Content "output/playwright/$suite-result.log"
     }
 } finally { Invoke-BrowserCommand -CommandArgs @('close') | Out-Null }

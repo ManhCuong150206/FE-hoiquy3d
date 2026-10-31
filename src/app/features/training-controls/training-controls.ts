@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ALGORITHM_LABELS } from '../../core/models/experiment';
 import { LabStore } from '../../state/lab-store';
 
@@ -10,7 +10,6 @@ import { LabStore } from '../../state/lab-store';
 export class TrainingControls {
   store = inject(LabStore);
   readonly labels = ALGORITHM_LABELS;
-  readonly changeAlgorithm = output<void>();
   lrOptions = [0.0001, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1];
   iterOptions = [100, 500, 1000, 5000];
   speedOptions = [0.25, 0.5, 1, 2, 5];

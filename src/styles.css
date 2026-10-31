@@ -203,9 +203,9 @@ input[type='range']::-moz-range-thumb { width: 20px; height: 20px; border: 2px s
  --color-bg:#07090e;--color-surface:#10141d;--color-surface-glass:rgba(24,29,42,.62);
  --color-border:rgba(205,220,255,.16);--color-text:#f4f7ff;--color-muted:#a3aec2;
  --color-primary:#8b7cff;--color-linear:#35e6ff;--color-polynomial:#ff63b6;
- --color-ridge:#a78bfa;--color-lasso:#d7e0ee;--color-train:#43f5b0;--color-test:#ff5478;--color-warning:#ffc857;
+ --color-ridge:#a78bfa;--color-lasso:#d7e0ee;--color-train:#ff922e;--color-test:#42a5ff;--color-warning:#ffc857;
  --primary:#7562e7;--primary-hover:#8874f5;--primary-alt:var(--primary);--accent:#b7aaff;
- --success:var(--color-train);--danger:var(--color-test);--radius-card:18px;--radius-control:11px;
+ --success:#43f5b0;--danger:#ff5478;--radius-card:18px;--radius-control:11px;
  --primary-glow:inset 0 1px 0 #ffffff30,0 7px 24px #7662e72b;
 }
 :root:not([data-theme='light']) {
@@ -258,3 +258,65 @@ html,body{scroll-behavior:auto!important;scroll-snap-type:none!important}.experi
 html{scrollbar-gutter:stable}
 
 .scene-wipe{position:fixed;z-index:150;pointer-events:none;inset:0;width:100%;height:100%;opacity:0;visibility:hidden;background:radial-gradient(ellipse at 65% 40%,color-mix(in srgb,var(--wipe-color,#35e6ff) 20%,#080a12),#080a12 75%);will-change:opacity}
+
+/* Liquid / neon visual layer. Data colors remain independent of algorithm accents. */
+:root{--font-display:'Times New Roman',Times,serif;--neon-ink:#90efff;--chart-train:var(--color-train);--chart-test:var(--color-test);--button-neon:#a0f2ff}
+
+.experience button{--liquid-text:var(--button-neon);color:var(--liquid-text)!important;background:linear-gradient(145deg,#ffffff20 0%,#ffffff04 42%,#90eaff0b 100%)!important;border:1px solid #b5f4ff55!important;border-radius:18px 24px 18px 24px!important;box-shadow:inset 0 1px 2px #ffffff7a,inset 0 -2px 7px #8dddff0c,0 5px 22px #0005!important;text-shadow:0 0 8px #61dfff66,0 0 18px #61dfff35;backdrop-filter:blur(9px) saturate(130%);-webkit-backdrop-filter:blur(9px) saturate(130%);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.experience button::before{content:'';position:absolute;top:2px;left:12%;right:12%;height:34%;border-radius:50%;background:linear-gradient(#ffffff17,transparent);pointer-events:none}
+.experience button:hover:not(:disabled){border-color:#b5f4ffaa!important;box-shadow:inset 0 1px 3px #ffffffa0,0 0 17px #4ddfff27,0 8px 24px #0006!important}
+.experience button:focus-visible{outline:2px solid #9bf3ff;outline-offset:4px}.experience button:active:not(:disabled){transform:scale(.97)}
+.experience button:disabled{--liquid-text:#8394a8;opacity:.48;text-shadow:none}.experience button.stop{--liquid-text:#ff9aac;border-color:#ff6f9466!important}.experience button.play,.experience button.primary{border-color:#93eaff88!important}
+.experience button.algorithm-card{--liquid-text:var(--algorithm-accent);text-align:left;backdrop-filter:blur(6px)}
+.experience :is(h1,h2,h3,.card-title){font-family:var(--font-display)!important;color:var(--algorithm-accent,var(--neon-ink))!important;text-shadow:0 0 12px color-mix(in srgb,var(--algorithm-accent,var(--neon-ink)) 35%,transparent),0 0 28px color-mix(in srgb,var(--algorithm-accent,var(--neon-ink)) 12%,transparent);letter-spacing:.035em}
+.experience :is(h1,h2) em{font-family:inherit;font-style:normal;color:#ffa4dd}.experience :is(h1,h2) span{font-family:inherit}.experience h4{font-family:var(--font-display);color:#b7eeff;text-shadow:0 0 10px #5cdbff33}
+:is(.lab-section,.learning-section) .card,.auth-card{background:linear-gradient(145deg,#ffffff09,transparent 65%),rgba(8,13,23,.94)!important}
+.experience app-results-panel .losses .box:first-child strong{color:var(--color-test)!important;text-shadow:0 0 16px #42a5ff40}.experience app-results-panel .losses .box:last-child strong{color:var(--color-train)!important;text-shadow:0 0 16px #ff922e40}
+.dot.train,.series.train i{box-shadow:0 0 9px #ff922e77}.dot.test,.series.test i{box-shadow:0 0 9px #42a5ff77}
+.cursor-glow{width:100px;height:100px;background:radial-gradient(circle,#59dcff15,transparent 65%);transition:opacity .2s;pointer-events:none;mix-blend-mode:screen}
+.cursor-glow i{position:absolute;pointer-events:none;display:block}.cursor-ring{width:32px;height:32px;left:34px;top:34px;border:1px solid #9eefffaa;border-radius:50%;box-shadow:0 0 12px #5de9ff66,inset 0 0 8px #5de9ff20}.cursor-dot{width:5px;height:5px;left:47.5px;top:47.5px;border-radius:50%;background:#e1fbff;box-shadow:0 0 10px #49eaff}
+.cursor-tail{width:35px;height:2px;left:16px;top:49px;border-radius:50%;background:linear-gradient(90deg,transparent,#65e7ff99);transform-origin:right;opacity:.6}
+.cursor-ripple{inset:34px;border:1px solid #b9f8ff;border-radius:50%;opacity:0}.cursor-glow.pressed .cursor-ring{background:#8feaff1f}.cursor-glow.rippling .cursor-ripple{animation:cursor-wave .5s ease-out}
+@keyframes cursor-wave{0%{transform:scale(.7);opacity:.9}100%{transform:scale(3);opacity:0}}
+@media(hover:none),(pointer:coarse),(prefers-reduced-motion:reduce){.cursor-glow{display:none!important}}
+@supports not (backdrop-filter:blur(1px)){.experience button{background:linear-gradient(145deg,#33404b,#101923)!important}}
+
+.experience .headline-second{color:#c7efff!important;text-shadow:0 0 16px #55caff40}
+.experience app-header .chip:not(.off){color:var(--success)}.experience app-header .chip:not(.off) .dot,.experience .status-dot{background:var(--success)}.experience app-header .chip.off{color:var(--danger)}.experience app-header .chip.off .dot{background:var(--danger)}
+:root[data-theme='light'] .experience :is(.card,.auth-card){background:linear-gradient(145deg,#ffffffee,#eef6fcf5)!important}
+:root[data-theme='light'] .experience button{--liquid-text:#006b80;background:linear-gradient(145deg,#ffffffd9,#e1f2f799)!important;border-color:#417b8d66!important;text-shadow:0 0 9px #007b9920}
+:root[data-theme='light'] .experience button.stop{--liquid-text:#a6294e}
+:root[data-theme='light'] .experience :is(.card,.auth-card) :is(h1,h2,h3,h4){color:#00647a!important;text-shadow:0 0 10px #008baa18}
+:root[data-theme='light'] :is(.intro-copy,.algorithm-copy,.lab-heading){--text:#f4f7ff;--muted:#bcc7dd}
+:root[data-theme='light'] .experience button.algorithm-card{--liquid-text:color-mix(in srgb,var(--algorithm-accent) 55%,#000)}
+
+/* Opaque panels already isolate their controls; avoid repeated backdrop passes there. */
+.experience :is(.controls,.card,app-header) button{backdrop-filter:none;-webkit-backdrop-filter:none}
+.experience app-welcome-panel .status-dot{background:var(--success)}
+
+/* Universe and medium-transparency liquid panels. */
+html,body,.experience,.experience *{font-family:'Times New Roman',Times,serif!important}
+.starfield-base{position:fixed;inset:0;z-index:0;pointer-events:none;background-color:#02040b;background-image:radial-gradient(ellipse at 20% 25%,#183e6b24,transparent 55%),radial-gradient(ellipse at 80% 70%,#37206420,transparent 55%),radial-gradient(1px 1px at 30px 60px,#c6dcff88 90%,transparent),radial-gradient(1px 1px at 100px 150px,#ffffff55 90%,transparent);background-size:auto,auto,223px 197px,317px 283px}
+.experience{font-size:16px}
+:is(#lab,#learning) :is(.card,.controls,app-header .bar){background:linear-gradient(135deg,#ffffff0e,transparent 55%),rgba(7,14,28,.48)!important;border:1px solid #d9f5ff3b!important;border-radius:24px;box-shadow:inset 0 1px 1px #ffffff38,inset 0 -1px 0 #8ac7ff0c,0 14px 35px #0004;backdrop-filter:blur(4px) saturate(120%);-webkit-backdrop-filter:blur(4px) saturate(120%)}
+:is(#lab,#learning) :is(.box,.parameters,.stick-controls,.iter,.chart,.legend>span:not(.applied-model)){background:rgba(5,13,26,.32)!important;border-color:#c3e6ff2b!important;box-shadow:inset 0 1px 0 #ffffff12}
+:is(#lab,#learning) :is(input:not([type=range]),select,.selected-algorithm){background:rgba(2,9,20,.44)!important;color:#f3f7ff;border-color:#b3d5f84d}
+:is(#lab,#learning) :is(.hint,.legend,.subtle,.learning-hint){color:#c4d0e4}
+:is(#lab,#learning) :is(.card-title,h4){font-size:16px!important;letter-spacing:.035em}
+:is(#lab,#learning) label{font-size:14px}
+:is(#lab,#learning) app-viewport3d .host{background:rgba(2,7,17,.14)!important;border-color:#cbe6ff38}
+:is(#lab,#learning) .card{font-size:15px;line-height:1.55}
+:root[data-theme=light] :is(#lab,#learning) :is(.card,.controls,app-header .bar){background:linear-gradient(135deg,#ffffffcc,#e9f6ffd1)!important;color:var(--text)}
+:root[data-theme=light] :is(#lab,#learning) :is(.hint,.legend,.subtle,.learning-hint){color:#344e67}
+:root[data-theme=light] :is(#lab,#learning) :is(.box,.parameters,.stick-controls,.iter,.chart,.legend>span:not(.applied-model)){background:#ffffff70!important}
+:root[data-theme=light] :is(#lab,#learning) :is(input:not([type=range]),select,.selected-algorithm){color:#142b41;background:#ffffff99!important}
+@supports not (backdrop-filter:blur(1px)){:is(#lab,#learning) :is(.card,.controls,app-header .bar){background:rgba(7,14,28,.88)!important}}
+@media(prefers-reduced-motion:reduce){:is(#lab,#learning) :is(.card,.controls,app-header .bar){backdrop-filter:none;-webkit-backdrop-filter:none}}
+
+:is(#lab,#learning) :is(.phase-preview li,.formula,.table-wrap,.figures>div,app-algorithm-notes code){background:rgba(5,13,26,.3)!important;border-color:#c3e6ff2b}
+:is(#lab,#learning) .phase-preview span{color:#d1dbee;font-size:14px}
+:root[data-theme=light] :is(#lab,#learning) :is(.phase-preview li,.formula,.table-wrap,.figures>div,app-algorithm-notes code){background:#ffffff70!important}
+:root[data-theme=light] :is(#lab,#learning) .phase-preview span{color:#344e67}
+
+#lab app-training-controls .field label{font-size:12px;letter-spacing:.035em;white-space:normal;line-height:1.25}
+@media(max-width:700px){#lab app-training-controls .field label{white-space:normal}}

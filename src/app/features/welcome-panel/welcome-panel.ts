@@ -1,4 +1,4 @@
-import { Component, output, signal } from '@angular/core';
+import { Component, ElementRef, output, signal, viewChild } from '@angular/core';
 
 @Component({
   selector: 'app-welcome-panel',
@@ -9,6 +9,10 @@ export class WelcomePanel {
   readonly explore = output<void>();
   readonly registering = signal(false);
   readonly message = signal('');
+
+  private readonly entryForm = viewChild<ElementRef<HTMLFormElement>>('entryForm');
+  resetEntry() { this.entryForm()?.nativeElement.reset(); this.registering.set(false); this.message.set(''); }
+  guest() { this.resetEntry(); this.explore.emit(); }
 
   toggleMode() { this.registering.update(value => !value); this.message.set(''); }
 

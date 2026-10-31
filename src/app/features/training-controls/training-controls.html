@@ -22,7 +22,6 @@
     <div class="field">
         <label for="selected-algorithm">Thuật toán đã chọn</label>
         <output id="selected-algorithm" class="selected-algorithm" [attr.data-value]="store.algorithm()" [attr.data-algorithm]="store.algorithm()"><span aria-hidden="true"></span>{{ labels[store.algorithm()] }} Regression</output>
-        <button type="button" class="algorithm-back" (click)="changeAlgorithm.emit()">← Quay lại chọn thuật toán</button>
     </div>
 
     @if (store.algorithm() === 'polynomial') {

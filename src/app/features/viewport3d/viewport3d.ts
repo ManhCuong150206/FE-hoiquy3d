@@ -158,7 +158,7 @@ export class Viewport3d implements OnDestroy {
   private init() {
     const el = this.host().nativeElement;
     this.zone.runOutsideAngular(() => {
-      try { this.renderer = new THREE.WebGLRenderer({ antialias: true }); }
+      try { this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
       catch { this.webglError.set(true); return; }
       const palette = getComputedStyle(el);
       this.trainColor = new THREE.Color(palette.getPropertyValue('--color-train').trim()).getHex();
@@ -167,7 +167,7 @@ export class Viewport3d implements OnDestroy {
       this.renderer.setSize(el.clientWidth, el.clientHeight);
       el.appendChild(this.renderer.domElement);
 
-      this.scene.background = new THREE.Color(0x0b0f1a);
+      this.scene.background = null; this.renderer.setClearColor(0x000000, 0);
       this.camera = new THREE.PerspectiveCamera(50, el.clientWidth / el.clientHeight, 0.1, 200);
       this.camera.position.set(8, 6, 8);
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -238,7 +238,7 @@ export class Viewport3d implements OnDestroy {
     const mesh = new THREE.InstancedMesh(
       // Scene-space radius: equivalent to .14 / dataScale in source units, also legible for raw CSV.
       new THREE.SphereGeometry(0.14, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45, metalness: 0.05 }),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, metalness: 0.08, emissive: new THREE.Color(color), emissiveIntensity: .32 }),
       X.length,
     );
     const m = new THREE.Matrix4();

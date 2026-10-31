@@ -31,12 +31,13 @@ describe('App algorithm navigation', () => {
   async function setup(iteration = 0) {
     const algorithm = signal<Algorithm>('linear');
     const count = signal(iteration);
+    const pause = vi.fn();
     const setAlgorithm = vi.fn((value: Algorithm) => { algorithm.set(value); count.set(0); });
-    TestBed.configureTestingModule({ imports: [App], providers: [{ provide: LabStore, useValue: { algorithm, iteration: count, setAlgorithm } }] });
+    TestBed.configureTestingModule({ imports: [App], providers: [{ provide: LabStore, useValue: { algorithm, iteration: count, setAlgorithm, pause } }] });
     TestBed.overrideComponent(App, { set: { template: '<h1>Navigation test</h1>', imports: [] } });
     const fixture = TestBed.createComponent(App); await fixture.whenStable();
     vi.spyOn(fixture.componentInstance, 'navigate').mockImplementation(() => {});
-    return { fixture, app: fixture.componentInstance, algorithm, setAlgorithm };
+    return { fixture, app: fixture.componentInstance, algorithm, setAlgorithm, pause };
   }
   it.each<Algorithm>(['linear', 'polynomial', 'ridge', 'lasso'])('opens the existing lab with %s', async (algorithm) => {
     const { fixture, app } = await setup();
@@ -58,6 +59,12 @@ describe('App algorithm navigation', () => {
     const { app, fixture, setAlgorithm } = await setup(12);
     app.chooseAlgorithm('lasso'); app.confirmChange(); await fixture.whenStable();
     expect(setAlgorithm).toHaveBeenCalledExactlyOnceWith('lasso'); expect(app.pending()).toBeNull();
+  });
+  it('logs out of the demo by pausing and returning to welcome without resetting model', async () => {
+    const { app, pause, setAlgorithm } = await setup(12);
+    app.logout(); expect(pause).toHaveBeenCalledOnce();
+    expect(app.navigate).toHaveBeenCalledWith('welcome', true);
+    expect(app.lab.iteration()).toBe(12); expect(setAlgorithm).not.toHaveBeenCalled();
   });
   it('can clean up server-rendered views without browser animation APIs', async () => {
     const { fixture } = await setup();
