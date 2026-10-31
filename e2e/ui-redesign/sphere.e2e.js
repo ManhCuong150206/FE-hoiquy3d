@@ -6,7 +6,9 @@ async(page)=>{
  await page.getByRole('button',{name:'Tham gia với tư cách Guest',exact:true}).click();
  const canvas=page.locator('app-algorithm-sphere canvas');await canvas.waitFor({state:'visible'});
  const rect=await canvas.boundingBox();await canvas.click({position:{x:rect.width/2,y:rect.height/2}});
+ await page.waitForTimeout(250);
+ check(await page.locator('#lab').count()===0,'Sphere click must not select');
+ await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();
  await page.locator('#selected-algorithm').waitFor();
- check(['linear','polynomial','ridge','lasso'].includes(await page.locator('#selected-algorithm').getAttribute('data-value')),'Raycast must select a valid algorithm');
- return {suite:'sphere/quality',passed:['actual sphere raycast selects algorithm']};
+ return {suite:'sphere/quality',passed:['sphere click disabled and card selection works']};
 }

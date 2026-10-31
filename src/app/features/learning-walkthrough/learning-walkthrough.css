@@ -238,3 +238,9 @@ dd {
 }
 
 .phase-preview{list-style:none;display:grid;gap:12px;padding:0;margin:16px 0}.phase-preview li{padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)}.phase-preview strong{display:block;color:var(--algorithm-accent,var(--text));font-size:13px;margin-bottom:5px}.phase-preview span{font-size:12px;color:var(--muted)}
+
+.result-summary{font-weight:600;color:var(--heading);padding:12px;border-radius:12px;background:var(--selected-bg);overflow-wrap:anywhere}.result-details{min-width:0}.result-details summary{color:var(--heading);font-weight:600;min-height:40px}.result-details table{font-size:13px}.pending-result{color:var(--subtle);padding:10px;border-left:3px solid var(--accent)}
+
+.lesson-command{display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:4;padding:10px 0;background:var(--surface);border-bottom:1px solid var(--border)}.iteration-badge{font-size:13px;color:var(--subtle)}.lesson-options{padding:8px 0;margin:6px 0 12px}.lesson-options>label{display:flex;align-items:center;gap:10px}.lesson-options select{max-width:120px}.lesson-head p{display:none}:host{display:block}@media(min-width:901px){.lesson{box-sizing:border-box;max-height:calc(100svh - 220px);overflow-y:auto;overscroll-behavior-y:auto;scrollbar-width:thin;scrollbar-color:var(--accent) transparent}}@media(max-width:900px){.lesson-command{position:static}}
+
+.lesson{overflow-anchor:none}

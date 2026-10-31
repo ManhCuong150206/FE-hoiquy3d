@@ -1,11 +1,48 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, input, output, signal, effect, untracked } from '@angular/core';
+import { LearningRoute } from '../learning-route/learning-route';
 import { LabStore } from '../../state/lab-store';
 import { polynomialFeatures, polynomialPowers } from '../../core/engine/polynomial';
 import { predict } from '../../core/engine/metrics';
 
-@Component({ selector: 'app-learning-walkthrough', templateUrl: './learning-walkthrough.html', styleUrl: './learning-walkthrough.css' })
+@Component({ imports: [LearningRoute], selector: 'app-learning-walkthrough', templateUrl: './learning-walkthrough.html', styleUrl: './learning-walkthrough.css' })
 export class LearningWalkthrough {
+  readonly active = input(true);
+  readonly viewPhase = output<number | null>();
+  readonly detailsOpen = signal(false);
+  readonly phaseSummaries = computed(() => {
+    const s=this.lab.snapshot(), sample=this.selected();
+    if(!s || !sample)return [];
+    return [
+      `Mẫu ${this.lab.selectedSample()+1} · y = ${this.fmt(sample.y)}`,
+      `Dự đoán ŷ = ${this.fmt(sample.before)}`,
+      `Sai số ŷ − y = ${this.signed(sample.residual)}`,
+      `MSE train = ${this.fmt(s.before.trainLoss)}`,
+      `${s.before.w.length+1} hệ số đề xuất · chưa áp dụng`,
+      `MSE: ${this.fmt(s.before.trainLoss)} → ${this.fmt(s.after.trainLoss)}`,
+    ];
+  });
+  viewStage(index:number | null) { this.detailsOpen.set(false);this.viewPhase.emit(index); }
+  toggleDetails(event:Event) { this.detailsOpen.set((event.target as HTMLDetailsElement).open); }
+  private readonly startPending = signal(false);
   lab = inject(LabStore);
+  constructor() {
+    effect(() => {
+      if (this.startPending() && this.lab.mode() === 'learn' && !this.lab.switching() && !this.lab.busy()) {
+        this.startPending.set(false); untracked(() => this.lab.playIteration());
+      }
+    });
+    effect(() => { if (!this.active()) { this.startPending.set(false); untracked(() => this.lab.pausePresentation()); } });
+  }
+  runIteration() {
+    if (this.lab.auto()) { this.lab.pausePresentation(); return; }
+    if (this.lab.mode() !== 'learn') { this.startPending.set(true); this.lab.setMode('learn'); }
+    else this.lab.playIteration();
+  }
+  notes() {
+    const el=document.getElementById('learning-notes');
+    el?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+    el?.focus({preventScroll:true});
+  }
   phases = ['A · Đầu vào', 'B · Dự đoán', 'C · Sai số', 'D · Loss', 'E · Hệ số', 'F · Đánh giá'];
   readonly previews = [
     'Xem đặc trưng và giá trị mục tiêu của mẫu train đang theo dõi.',
@@ -20,7 +57,7 @@ export class LearningWalkthrough {
     'Nhân từng đặc trưng với trọng số tương ứng, rồi cộng intercept b để có dự đoán. Tất cả hệ số dưới đây thuộc mô hình trước cập nhật.',
     'Residual = dự đoán − giá trị thật. Số âm nghĩa là dự đoán thấp hơn thực tế; số dương nghĩa là cao hơn. Điểm dữ liệu thật luôn đứng yên.',
     'Bình phương sai số của từng mẫu, cộng trên toàn bộ tập train và chia cho số mẫu. Tập test chỉ đánh giá, không tham gia gradient.',
-    'Gradient tổng hợp đóng góp của tất cả mẫu train. Bảng cho thấy thay đổi đã tính, nhưng bề mặt vẫn giữ mô hình cũ cho đến pha F.',
+    'Gradient tổng hợp đóng góp của tất cả mẫu train. Bảng và hình 3D minh họa hệ số/bề mặt đề xuất. Mô hình thật chỉ áp dụng cập nhật ở pha F.',
     'Hệ số mới đã được áp dụng đúng một lần. Trọng số đổi độ nghiêng hoặc độ cong; intercept b dịch bề mặt theo chiều y. Dữ liệu thật không đổi.',
   ];
   labels = computed(() => this.lab.provenance()?.labels ?? this.lab.selectedX().map((_, j) => `x${j + 1}`));

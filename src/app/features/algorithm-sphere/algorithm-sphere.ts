@@ -9,16 +9,18 @@ const SECTORS: Algorithm[] = ['linear', 'polynomial', 'ridge', 'lasso'];
 
 @Component({
   selector: 'app-algorithm-sphere',
-  template: `<div class="sphere-host" #host role="img" aria-label="Khối cầu bốn vùng màu: Linear cyan, Polynomial hồng, Ridge tím, Lasso bạc. Kéo để xoay, rê để phát sáng, bấm vùng màu để chọn. Các nút bên dưới hỗ trợ bàn phím.">
+  template: `<div class="sphere-host" #host role="img" aria-label="Khối cầu bốn vùng màu: Linear cyan, Polynomial hồng, Ridge tím, Lasso bạc. Kéo để xoay, rê để phát sáng. Chọn thuật toán bằng các thẻ bên dưới. Các nút bên dưới hỗ trợ bàn phím.">
     @if (!ready()) { <div class="fallback-orb" aria-hidden="true"></div> }
     @if (failed()) { <p class="fallback-note">Chọn một thuật toán bên dưới để tiếp tục.</p> }
-    <span class="orb-caption" aria-hidden="true">{{ hovered() ? hovered() + ' · Bấm để khám phá' : 'Kéo xoay · Rê để phát sáng · Bấm để chọn' }}</span>
+    <span class="orb-caption" aria-hidden="true">{{ hovered() ? hovered() + ' · Chọn thẻ bên dưới' : 'Kéo xoay · Rê để phát sáng · Chọn bằng thẻ' }}</span>
     </div>`,
   styles: [`:host{display:block;height:100%}.sphere-host{position:relative;height:100%;width:100%;display:grid;place-items:center}.sphere-host canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.fallback-orb{width:65%;max-width:300px;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 30deg,#35e6ff,#ff63b6,#a78bfa,#d7e0ee,#35e6ff);box-shadow:inset -35px -40px 60px #000b,inset 18px 20px 40px #fff4,0 0 70px #a78bfa15}.orb-caption{position:absolute;bottom:22px;font-size:8px;letter-spacing:.22em;color:var(--muted);pointer-events:none}.fallback-note{position:absolute;bottom:40px;font-size:10px;color:var(--muted);text-align:center}`],
 })
 export class AlgorithmSphere implements OnDestroy {
   readonly active = input<Algorithm>('linear');
-  readonly selected = output<Algorithm>();
+  readonly hoveredChange = output<Algorithm | null>();
+  readonly attention = input(false);
+  private journey?: {algorithm:Algorithm;from:THREE.Quaternion;to:THREE.Quaternion;local:THREE.Vector3;camera:THREE.Vector3;focus:THREE.Vector3;normal:THREE.Vector3;alignment:number;zoom:number};
   readonly departing = input(false);
   readonly lowEffects = input(false);
   readonly ready = signal(false);
@@ -54,9 +56,10 @@ export class AlgorithmSphere implements OnDestroy {
 
   constructor() {
     effect(() => {
-      const active = this.active();
+      const active = this.active(), attention=this.attention();
       this.departing();
-      this.meshes.forEach(mesh => mesh.material.emissiveIntensity = mesh.userData['algorithm'] === active ? 0.2 : 0.035);
+      this.meshes.forEach(mesh => mesh.material.emissiveIntensity = mesh.userData['algorithm'] === active ? (attention ? .45 : .2) : .035);
+      if(this.renderer)this.renderer.domElement.dataset['previewAlgorithm']=attention?active:'';
       this.draw();
     });
     effect(() => {
@@ -135,6 +138,37 @@ export class AlgorithmSphere implements OnDestroy {
     });
   }
 
+  beginJourney(algorithm:Algorithm,returning=false):boolean {
+    if(!this.renderer || !this.ready() || this.failed())return false;
+    if(returning && this.journey?.algorithm===algorithm){this.journey.alignment=1;this.journey.zoom=1;this.draw();return true;}
+    this.restoreJourney();this.scene.updateMatrixWorld(true);this.camera.updateMatrixWorld(true);
+    const from=this.globe.quaternion.clone(),local=sectorCenter(algorithm);
+    const center=this.globe.getWorldPosition(new THREE.Vector3());
+    const facing=this.camera.position.clone().sub(center).normalize();
+    const world=local.clone().normalize().applyQuaternion(from);
+    const delta=new THREE.Quaternion().setFromUnitVectors(world,facing);
+    const to=delta.multiply(from).normalize();
+    const focus=local.clone().applyQuaternion(to).add(center);
+    this.journey={algorithm,from,to,local,camera:this.camera.position.clone(),focus,normal:facing,alignment:returning?1:0,zoom:returning?1:0};
+    this.drag=undefined;this.renderer.domElement.dataset['flightAlgorithm']=algorithm;this.draw();return true;
+  }
+  setJourney(alignment:number,zoom:number){if(this.journey){this.journey.alignment=alignment;this.journey.zoom=zoom;this.draw();}}
+  journeyAnchor():{x:number;y:number}|null {
+    if(!this.journey||!this.renderer)return null;
+    this.scene.updateMatrixWorld(true);this.camera.updateMatrixWorld(true);
+    const point=this.globe.localToWorld(this.journey.local.clone()).project(this.camera);
+    const rect=this.renderer.domElement.getBoundingClientRect();
+    const x=rect.left+(point.x+1)*rect.width/2,y=rect.top+(1-point.y)*rect.height/2;
+    this.raycaster.setFromCamera(new THREE.Vector2(point.x,point.y),this.camera);
+    this.renderer.domElement.dataset['anchorAlgorithm']=this.raycaster.intersectObjects(this.meshes)[0]?.object.userData['algorithm']??'';
+    this.renderer.domElement.dataset['anchorX']=String(x);this.renderer.domElement.dataset['anchorY']=String(y);
+    return {x,y};
+  }
+  restoreJourney(){
+    if(!this.journey)return;
+    this.globe.quaternion.copy(this.journey.from);this.camera.position.copy(this.journey.camera);this.camera.zoom=1;this.camera.updateProjectionMatrix();this.journey=undefined;this.draw();
+  }
+
   private resizeScene() {
     if (!this.renderer) return;
     const { clientWidth: width, clientHeight: height } = this.host().nativeElement;
@@ -150,11 +184,17 @@ export class AlgorithmSphere implements OnDestroy {
       return;
     }
     this.ornamentSpin = rotatePair(...this.ornamentSpin, unitRotation(.002 * delta / (1000 / 60)));
-    const targetZoom = this.departing() && !this.reducedMotion?.matches && !this.lowEffects() ? 1.2 : 1;
-    if (Math.abs(targetZoom - this.camera.zoom) > .0001) { this.camera.zoom += (targetZoom - this.camera.zoom) * 0.15; this.camera.updateProjectionMatrix(); }
-    this.scene.position.y = (this.scrollProgress - .5) * .45;
+    const targetZoom = 1;
+    if (!this.journey && Math.abs(targetZoom - this.camera.zoom) > .0001) { this.camera.zoom += (targetZoom - this.camera.zoom) * 0.15; this.camera.updateProjectionMatrix(); }
+    if(!this.journey)this.scene.position.y = (this.scrollProgress - .5) * .45;
     this.ornaments.quaternion.set(0, this.ornamentSpin[1], 0, this.ornamentSpin[0]).normalize();
-    this.camera.position.set(this.orbit[0] + this.pointerOffset.x, 0.5 + this.pointerOffset.y, this.orbit[1]); this.camera.lookAt(0, 0, 0);
+    if(this.journey){
+      const j=this.journey;
+      this.globe.quaternion.slerpQuaternions(j.from,j.to,j.alignment);
+      this.camera.zoom=1;this.camera.updateProjectionMatrix();
+      this.camera.position.copy(j.camera).lerp(j.focus.clone().addScaledVector(j.normal,.35),j.zoom);
+      this.camera.lookAt(j.focus.clone().multiplyScalar(j.zoom));
+    }else{this.camera.position.set(this.orbit[0] + this.pointerOffset.x, 0.5 + this.pointerOffset.y, this.orbit[1]); this.camera.lookAt(0,0,0);}
     this.renderer.render(this.scene, this.camera); recordRender(this.renderer.domElement, started);
   }
 
@@ -180,7 +220,7 @@ export class AlgorithmSphere implements OnDestroy {
     return this.raycaster.intersectObjects(this.meshes)[0]?.object.userData['algorithm'] as Algorithm | undefined;
   }
   private pointerDown = (event: PointerEvent) => {
-    if (event.button !== 0 || !this.hit(event) || !this.renderer) return;
+    if (this.journey || event.button !== 0 || !this.hit(event) || !this.renderer) return;
     this.drag = { id: event.pointerId, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY, moved: false };
     this.renderer.domElement.setPointerCapture(event.pointerId);
   };
@@ -188,23 +228,22 @@ export class AlgorithmSphere implements OnDestroy {
     const drag = this.drag; if (!drag || drag.id !== event.pointerId) return;
     this.drag = undefined;
     if (this.renderer?.domElement.hasPointerCapture(event.pointerId)) this.renderer.domElement.releasePointerCapture(event.pointerId);
-    if (!drag.moved) { const algorithm = this.hit(event); if (algorithm) this.zone.run(() => this.selected.emit(algorithm)); }
     this.hover(event);
   };
   private pointerCancel = () => { this.drag = undefined; this.pointerLeave(); };
   private pointerLeave = () => {
     if (this.drag) return;
-    this.zone.run(() => this.hovered.set(null)); this.applyGlow();
+    this.zone.run(() => {this.hovered.set(null);this.hoveredChange.emit(null);}); this.applyGlow();
   };
   private applyGlow() {
     const hovered = this.hovered();
-    this.meshes.forEach(mesh => { const id = mesh.userData['algorithm']; mesh.material.emissiveIntensity = id === hovered ? 1.1 : id === this.active() ? .2 : .035; });
+    this.meshes.forEach(mesh => { const id = mesh.userData['algorithm']; mesh.material.emissiveIntensity = id === hovered ? .6 : id === this.active() ? .2 : .035; });
     const canvas = this.renderer?.domElement;
     if (canvas) { canvas.dataset['hoveredAlgorithm'] = hovered ?? ''; canvas.dataset['dragging'] = String(Boolean(this.drag?.moved)); }
     this.draw();
   }
   private hover = (event: PointerEvent) => {
-    if (!this.renderer) return;
+    if (!this.renderer || this.journey) return;
     const drag = this.drag;
     if (drag && drag.id === event.pointerId) {
       if (Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 6) drag.moved = true;
@@ -218,7 +257,7 @@ export class AlgorithmSphere implements OnDestroy {
     }
     const algorithm = drag?.moved ? undefined : this.hit(event);
     this.renderer.domElement.style.cursor = drag?.moved ? 'grabbing' : algorithm ? 'grab' : 'default';
-    if (this.hovered() !== (algorithm ?? null)) this.zone.run(() => this.hovered.set(algorithm ?? null));
+    if (this.hovered() !== (algorithm ?? null)) this.zone.run(() => {this.hovered.set(algorithm ?? null);this.hoveredChange.emit(algorithm ?? null);});
     this.applyGlow();
   };
   private onSceneScroll = (event: Event) => {
@@ -239,4 +278,10 @@ export class AlgorithmSphere implements OnDestroy {
     this.meshes.forEach(mesh => { mesh.geometry.dispose(); mesh.material.dispose(); });
     this.environment?.dispose(); this.renderer?.dispose(); this.renderer?.domElement.remove();
   }
+}
+
+/** Midpoint of a quarter sphere, generated via the project's unit-complex rotation. */
+export function sectorCenter(algorithm:Algorithm):THREE.Vector3 {
+  const turn=unitRotation((SECTORS.indexOf(algorithm)+.5)*Math.PI/2);
+  return new THREE.Vector3(-turn.real,0,turn.imaginary).multiplyScalar(1.58);
 }

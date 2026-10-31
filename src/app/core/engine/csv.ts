@@ -176,7 +176,7 @@ export function buildDataset(t: CsvTable, o: BuildOptions): BuildResult {
         rows: sources.map((index, i) => ({ sourceRow: index + 2,
             original: [...o.xCols, o.yCol].map(c => t.rows[index][c]), filled: [...X[i], y[i]] })),
     };
-    // 3) Giữ nguyên tiền xử lý trước khi chia train/test; xem docs/learning-walkthrough.md.
+    // 3) Giữ nguyên tiền xử lý trước khi chia train/test; xem docs/CONG-NGHE-VA-HIEU-UNG.md (mục hạn chế CSV).
     if (o.standardize) {
         const z = (vals: number[]) => {
             const m = vals.reduce((a, b) => a + b, 0) / vals.length;

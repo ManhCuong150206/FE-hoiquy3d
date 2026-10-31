@@ -17,6 +17,25 @@ import { rotatePair, unitRotation } from '../../core/engine/complex-rotation';
 })
 export class Viewport3d implements OnDestroy {
   readonly active = input(true);
+  readonly lesson = input(false);
+  readonly reviewPhase = input<number | null>(null);
+  readonly shownPhase = computed(() => this.lesson() ? Math.min(this.reviewPhase() ?? this.store.phase(), this.store.snapshot() ? this.store.phase() : 0) : this.store.phase());
+  readonly shownModel = computed(() => {
+    const snapshot=this.store.snapshot();
+    return this.lesson() && snapshot ? (this.shownPhase() >= 4 ? snapshot.after : snapshot.before) : this.store.latest();
+  });
+  readonly shownPrediction = computed(() => {
+    const model=this.shownModel();
+    return model ? modelPredictions([this.store.selectedX()],model.w,model.b,this.store.algorithm(),this.store.degree())[0] : 0;
+  });
+  readonly lessonCaption = computed(() => [
+    'A · Đầu vào: vòng sáng đánh dấu mẫu thật.',
+    'B · Dự đoán: khối vuông biểu diễn ŷ trước cập nhật.',
+    'C · Sai số: đoạn nối từ y thật đến ŷ.',
+    'D · Loss: sai số của mẫu minh họa; loss tổng hợp toàn bộ train.',
+    'E · Hệ số: bề mặt đề xuất, chưa áp dụng cho mô hình thật.',
+    'F · Đánh giá: bề mặt sau cập nhật của iteration đang xem.',
+  ][this.shownPhase()]);
   private readonly mounted = signal(false);
   private initialized = false;
   private readonly budget = new FrameBudget();
@@ -59,7 +78,7 @@ export class Viewport3d implements OnDestroy {
   pointSize = signal(1);
   stuck = computed(() => {
     if (!this.active()) return { trainPred: [] as number[], testPred: [] as number[], train: 0, test: 0 };
-    const s = this.store.latest(), eps = this.store.stickThreshold();
+    const s = this.shownModel(), eps = this.store.stickThreshold();
     const predictRows = (rows: number[][]) => s
       ? modelPredictions(rows, s.w, s.b, this.store.algorithm(), this.store.degree())
       : rows.map(() => NaN);
@@ -111,7 +130,7 @@ export class Viewport3d implements OnDestroy {
     effect(() => {
       if (!this.active()) return;
       const ready = this.ready();
-      const s = this.store.latest();
+      const s = this.shownModel();
       const scale = this.store.dataScale();
       const algorithm = this.store.algorithm();
       const degree = this.store.degree();
@@ -136,13 +155,16 @@ export class Viewport3d implements OnDestroy {
     effect(() => {
       if (!this.active()) return;
       const ready = this.ready(), learn = this.store.mode() === 'learn';
-      const row = this.store.selectedX(), y = this.store.selectedY(), prediction = this.store.selectedPrediction();
-      const scale = this.store.dataScale(), phase = this.store.phase(), snapshot = this.store.snapshot();
+      const row = this.store.selectedX(), y = this.store.selectedY(), prediction = this.shownPrediction();
+      const scale = this.store.dataScale(), phase = this.shownPhase(), snapshot = this.store.snapshot();
       const size = this.pointSize();
       if (!ready || !this.trueMarker || !this.predictedMarker || !this.residualLine) return;
       const visible = learn && row.length > 0;
       this.trueMarker.visible = visible;
-      this.predictedMarker.visible = this.residualLine.visible = visible && !!snapshot && phase >= 2 && Number.isFinite(prediction);
+      this.predictedMarker.visible = visible && !!snapshot && phase >= 1 && Number.isFinite(prediction);
+      this.residualLine.visible = visible && !!snapshot && phase >= 2 && Number.isFinite(prediction);
+      if(this.plane) this.plane.visible = !this.lesson() || phase > 0;
+      for(const band of this.bands) band.visible = !this.lesson() || phase > 0;
       const x = row[0] * scale, z = (row[1] ?? 0) * scale;
       this.trueMarker.position.set(x, y * scale, z);
       this.trueMarker.scale.setScalar(1.4 * size);

@@ -73,4 +73,9 @@ describe('App algorithm navigation', () => {
     finally { vi.unstubAllGlobals(); }
   });
 
+  it('ignores another algorithm selection while the transition is busy', async () => {
+    const {app,setAlgorithm}=await setup(12);app.pageBusy.set(true);
+    app.chooseAlgorithm('ridge');expect(app.pending()).toBeNull();expect(setAlgorithm).not.toHaveBeenCalled();
+  });
+
 });

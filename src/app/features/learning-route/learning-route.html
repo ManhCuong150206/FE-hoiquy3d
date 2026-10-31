@@ -1,0 +1,30 @@
+<section class="reading-route" aria-label="Lộ trình đọc sáu pha">
+  <h3>Lộ trình khám phá và kết quả</h3>
+  <p class="hint">Chạy một bước rồi chọn chặng để xem lại minh họa và kết quả.</p>
+  <p class="actual" aria-live="polite">{{ locked() ? 'Đang học' : 'Đang xem' }}: <strong>{{ titles[selected() ?? phase() ?? 0] }}</strong> · {{ phase() === 5 ? 'Đã hoàn tất một iteration' : 'Mô hình chỉ cập nhật ở F' }}</p>
+  <div #map class="route-map" [class.static]="reduced()" [attr.data-reading-progress]="progress()">
+    <svg [attr.viewBox]="'0 0 76 '+height()" preserveAspectRatio="none" aria-hidden="true">
+      <path class="guide" [attr.d]="path()" />
+      <path #route class="drawn" [attr.d]="path()" pathLength="1" stroke-dasharray="1 1" [attr.stroke-dashoffset]="1-progress()" />
+      @for (point of points(); track $index; let i=$index) { <circle class="stop" [class.read]="progress() >= i/5" [attr.cx]="point.x" [attr.cy]="point.y" r="6" /> }
+      <circle class="traveler" [attr.cx]="marker().x" [attr.cy]="marker().y" r="5" />
+    </svg>
+    <ol>
+      @for (title of titles; track title; let i=$index) {
+        <li #stage [class.read]="progress() >= i/5" [class.running]="phase() === i" [class.open]="selected() === i" [attr.aria-current]="phase() === i ? 'step' : null">
+          <button type="button" class="stage-toggle" [attr.aria-expanded]="selected() === i && !locked()" [attr.aria-controls]="'stage-result-'+i" [disabled]="locked()" (click)="select(i)">
+            <strong>{{ title }}</strong><span aria-hidden="true">{{ locked() && phase() === i ? '●' : selected() === i && !locked() ? '−' : '+' }}</span>
+          </button>
+          <p class="description">{{ descriptions[i] }}</p>
+          <em class="phase-status">{{ phase() === i ? 'Pha đang thực hiện' : phase() !== null && phase()! > i ? 'Đã thực hiện' : 'Chưa thực hiện' }}</em>
+          <p class="phase-summary">{{ phase() !== null && i <= phase()! && summaries()[i] ? summaries()[i] : 'Kết quả sẽ hiện khi thực hiện chặng này.' }}</p>
+          @if (selected() === i && !locked()) {
+            <div class="stage-result" [id]="'stage-result-'+i" role="region" [attr.aria-label]="'Kết quả '+title">
+              @if (resultTemplate(); as template) { <ng-container [ngTemplateOutlet]="template" [ngTemplateOutletContext]="{phase:i}" /> }
+            </div>
+          }
+        </li>
+      }
+    </ol>
+  </div>
+</section>

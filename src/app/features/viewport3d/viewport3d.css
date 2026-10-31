@@ -24,3 +24,5 @@
 .slider-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); }
 .hint { position: relative; padding-left: 13px; line-height: 1.6; }
 .hint::before { content: '•'; position: absolute; left: 0; color: var(--accent); }
+
+.lesson-illustration{font-size:13px;color:var(--heading);margin:6px 0 10px}.display-options{margin-top:10px}.display-options>summary{cursor:pointer;padding:8px;color:var(--subtle)}:host([data-lesson]) .host{height:clamp(260px,50svh,550px)}

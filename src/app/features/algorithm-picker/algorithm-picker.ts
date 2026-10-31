@@ -1,9 +1,15 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { AlgorithmFlight } from '../../presentation/algorithm-flight';
+import { Component, effect, input, output, signal, ElementRef, inject, viewChild, DestroyRef } from '@angular/core';
 import { Algorithm, ALGORITHM_LABELS } from '../../core/models/experiment';
 import { AlgorithmSphere } from '../algorithm-sphere/algorithm-sphere';
 
-@Component({ selector: 'app-algorithm-picker', imports: [AlgorithmSphere], templateUrl: './algorithm-picker.html', styleUrl: './algorithm-picker.css' })
+@Component({ selector: 'app-algorithm-picker', host: {'[attr.data-algorithm]':'highlighted()'}, imports: [AlgorithmSphere], templateUrl: './algorithm-picker.html', styleUrl: './algorithm-picker.css' })
 export class AlgorithmPicker {
+  private readonly host=inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly sphere=viewChild<AlgorithmSphere>('sphere');
+  private readonly flight=new AlgorithmFlight();
+  readonly hovering=signal(false);
+  readonly flying=signal(false);
   readonly active = input<Algorithm>('linear');
   readonly departing = input(false);
   readonly lowEffects = input(false);
@@ -17,5 +23,13 @@ export class AlgorithmPicker {
     {id:'ridge',number:'03',label:'Ridge',summary:'Cân bằng bằng điều chuẩn L2.'},
     {id:'lasso',number:'04',label:'Lasso',summary:'Chọn điều quan trọng với L1.'},
   ];
-  constructor() { effect(() => this.highlighted.set(this.active())); }
+  preview(algorithm:Algorithm|null){if(this.flying())return;this.hovering.set(algorithm!==null);this.highlighted.set(algorithm??this.active());}
+  async animate(algorithm:Algorithm,back=false):Promise<boolean>{
+    this.highlighted.set(algorithm);
+    if(typeof matchMedia==='undefined'||this.lowEffects()||matchMedia('(prefers-reduced-motion: reduce)').matches){this.flight.restore();this.sphere()?.restoreJourney();return false;}
+    this.flying.set(true);
+    try{return await this.flight.run(this.host,this.sphere(),algorithm,back);}finally{this.flying.set(false);}
+  }
+  restoreFlight(){this.flight.restore();this.sphere()?.restoreJourney();}
+  constructor() { inject(DestroyRef).onDestroy(()=>this.flight.restore()); effect(() => this.highlighted.set(this.active())); }
 }

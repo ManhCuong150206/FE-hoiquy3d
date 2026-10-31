@@ -13,10 +13,12 @@
         <span><span class="dot train"></span> Train dính <strong>{{ stuck().train }}/{{ store.trainY().length }}</strong></span>
         <span><span class="dot test"></span> Test dính <strong>{{ stuck().test }}/{{ store.testY().length }}</strong></span>
         <span><span class="dot band"></span> Dải ±ε</span>
-        <span class="applied-model">Bề mặt đã áp dụng · iteration {{ store.iteration() }}</span>
+        <span class="applied-model">{{ lesson() && store.snapshot() ? 'Minh họa snapshot · iteration ' + shownModel()?.iteration : 'Bề mặt đã áp dụng · iteration ' + store.iteration() }}</span>
     </div>
 
+    @if (lesson()) { <p class="lesson-illustration" role="status" [attr.data-view-phase]="shownPhase()">{{ lessonCaption() }} Xem lại không thay đổi model đã lưu.</p> }
     <div #host class="host"></div>
+    <details class="display-options" [open]="!lesson()">@if (lesson()) { <summary>Tùy chỉnh hiển thị và hướng dẫn</summary> }
     <div class="stick-controls">
         <label [attr.for]="idPrefix() + '-stick-epsilon'"><span class="slider-label">Ngưỡng dính ε <span class="value-pill">{{ (store.stickEpsilon() * 100).toFixed(0) }}% σ</span></span>
             <input [id]="idPrefix() + '-stick-epsilon'" type="range" min="0" max="100" step="1"
@@ -29,12 +31,13 @@
         </label>
     </div>
     <p [id]="idPrefix() + '-stick-rule'" class="hint">Dính khi |y − ŷ| &lt; ε: điểm sáng và lớn hơn. Tọa độ dữ liệu giữ nguyên; σ chỉ tính từ train y.</p>
-    @if (webglError()) { <p role="alert">Trình duyệt không tạo được WebGL. Số liệu vẫn dùng được; hãy bật tăng tốc đồ họa để xem 3D.</p> }
-    @if (modelClipped()) { <p role="alert">Bề mặt ngoài miền dữ liệu quá lớn để vẽ. Hãy giảm learning rate. Số liệu mô hình được giữ nguyên.</p> }
     <p class="hint">{{ sliceCaption() }} Phép co hiển thị không phải chuẩn hóa dữ liệu.</p>
     @if (store.mode() === 'learn') {
-        <p class="hint" aria-live="polite">Mẫu train {{ store.selectedSample() + 1 }} · y = {{ store.selectedY().toFixed(6) }} · ŷ đang hiển thị = {{ store.selectedPrediction().toFixed(6) }}</p>
+        <p class="hint" aria-live="polite">Mẫu train {{ store.selectedSample() + 1 }} · y = {{ store.selectedY().toFixed(6) }} · ŷ đang hiển thị = {{ shownPrediction().toFixed(6) }}</p>
         <p class="hint">Cầu viền: điểm thật · khối vuông: dự đoán · đoạn nối: sai số. Bấm điểm train để chọn; điểm thật không di chuyển.</p>
     }
     <p class="hint">Kéo để xoay camera bằng số phức trên các mặt phẳng tọa độ · cuộn để zoom · chuột phải để pan</p>
+</details>
+    @if (webglError()) { <p role="alert">Trình duyệt không tạo được WebGL. Số liệu vẫn dùng được; hãy bật tăng tốc đồ họa để xem 3D.</p> }
+    @if (modelClipped()) { <p role="alert">Bề mặt ngoài miền dữ liệu quá lớn để vẽ. Hãy giảm learning rate. Số liệu mô hình được giữ nguyên.</p> }
 </section>

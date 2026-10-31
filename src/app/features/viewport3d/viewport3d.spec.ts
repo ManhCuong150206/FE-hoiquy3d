@@ -85,4 +85,22 @@ describe('Viewport3d', () => {
     expect(view.bands.every((band: THREE.Mesh) => !band.visible)).toBe(true);
     for (const object of [view.plane, ...view.bands, view.modelLine]) { object.geometry.dispose(); object.material.dispose(); }
   });
+  it('reviews snapshot before/proposed/after without mutating committed model', () => {
+    const store=component.store;
+    const before={iteration:0,w:[1,2],b:0,trainLoss:1,testLoss:1};
+    const after={iteration:1,w:[2,3],b:1,trainLoss:.5,testLoss:.6};
+    store.history.set([after]);store.phase.set(5);
+    store.snapshot.set({before,after,algorithm:'linear',degree:1,lambda:0,lr:.01,trainCount:2,gradient:[1,1],biasGradient:1,penaltyBefore:0,penaltyAfter:0,done:false});
+    fixture.componentRef.setInput('lesson',true);
+    fixture.componentRef.setInput('reviewPhase',1);
+    expect(component.shownModel()).toBe(before);
+    fixture.componentRef.setInput('reviewPhase',4);
+    expect(component.shownModel()).toBe(after);
+    expect(component.lessonCaption()).toContain('chưa áp dụng');
+    store.phase.set(1);expect(component.shownModel()).toBe(before);store.phase.set(5);
+    fixture.componentRef.setInput('reviewPhase',5);
+    expect(component.shownModel()).toBe(after);
+    expect(store.latest()).toBe(after);expect(store.iteration()).toBe(0);
+  });
+
 });

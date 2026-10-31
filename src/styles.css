@@ -1,3 +1,4 @@
+@import './app/presentation/card-glow.css';
 :root {
     --radius-card: 16px;
     --radius-control: 12px;
@@ -231,9 +232,8 @@ button.primary,button.regen,button.play{background:linear-gradient(155deg,#a99af
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;scroll-snap-type:none}*,*:before,*:after{animation:none!important;transition:none!important}}
 @media(max-width:700px){html{scroll-snap-type:none}}
 
-app-root.low-effects button,app-root.low-effects .glass{backdrop-filter:none}app-root.low-effects .cursor-glow{display:none}app-root.low-effects .sphere-container{transition:none;transform:none;filter:none}
+app-root.low-effects button,app-root.low-effects .glass{backdrop-filter:none}app-root.low-effects .sphere-container{transition:none;transform:none;filter:none}
 
-.cursor-glow{position:fixed;left:0;top:0;width:180px;height:180px;z-index:100;pointer-events:none;background:radial-gradient(circle,#a799ff0c,transparent 65%);opacity:0;transition:opacity .3s;will-change:transform}
 .eyebrow{font-size:9px;letter-spacing:.2em;color:var(--muted);font-weight:600}
 
 /* Spatial presentation is deliberately independent of the training/data layer. */
@@ -273,12 +273,6 @@ html{scrollbar-gutter:stable}
 :is(.lab-section,.learning-section) .card,.auth-card{background:linear-gradient(145deg,#ffffff09,transparent 65%),rgba(8,13,23,.94)!important}
 .experience app-results-panel .losses .box:first-child strong{color:var(--color-test)!important;text-shadow:0 0 16px #42a5ff40}.experience app-results-panel .losses .box:last-child strong{color:var(--color-train)!important;text-shadow:0 0 16px #ff922e40}
 .dot.train,.series.train i{box-shadow:0 0 9px #ff922e77}.dot.test,.series.test i{box-shadow:0 0 9px #42a5ff77}
-.cursor-glow{width:100px;height:100px;background:radial-gradient(circle,#59dcff15,transparent 65%);transition:opacity .2s;pointer-events:none;mix-blend-mode:screen}
-.cursor-glow i{position:absolute;pointer-events:none;display:block}.cursor-ring{width:32px;height:32px;left:34px;top:34px;border:1px solid #9eefffaa;border-radius:50%;box-shadow:0 0 12px #5de9ff66,inset 0 0 8px #5de9ff20}.cursor-dot{width:5px;height:5px;left:47.5px;top:47.5px;border-radius:50%;background:#e1fbff;box-shadow:0 0 10px #49eaff}
-.cursor-tail{width:35px;height:2px;left:16px;top:49px;border-radius:50%;background:linear-gradient(90deg,transparent,#65e7ff99);transform-origin:right;opacity:.6}
-.cursor-ripple{inset:34px;border:1px solid #b9f8ff;border-radius:50%;opacity:0}.cursor-glow.pressed .cursor-ring{background:#8feaff1f}.cursor-glow.rippling .cursor-ripple{animation:cursor-wave .5s ease-out}
-@keyframes cursor-wave{0%{transform:scale(.7);opacity:.9}100%{transform:scale(3);opacity:0}}
-@media(hover:none),(pointer:coarse),(prefers-reduced-motion:reduce){.cursor-glow{display:none!important}}
 @supports not (backdrop-filter:blur(1px)){.experience button{background:linear-gradient(145deg,#33404b,#101923)!important}}
 
 .experience .headline-second{color:#c7efff!important;text-shadow:0 0 16px #55caff40}
@@ -320,3 +314,17 @@ html,body,.experience,.experience *{font-family:'Times New Roman',Times,serif!im
 
 #lab app-training-controls .field label{font-size:12px;letter-spacing:.035em;white-space:normal;line-height:1.25}
 @media(max-width:700px){#lab app-training-controls .field label{white-space:normal}}
+
+.algorithm-flight-layer{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden}.algorithm-flight-layer *{pointer-events:none!important}.algorithm-flight-star{position:fixed;left:0;top:0;width:36px;height:36px;background:var(--flight-color);clip-path:polygon(50% 0,61% 36%,100% 50%,61% 64%,50% 100%,39% 64%,0 50%,39% 36%);filter:drop-shadow(0 0 8px var(--flight-color));will-change:transform,opacity}.algorithm-flight-card{will-change:transform,opacity}.algorithm-flight-layer[data-phase=zoom]{background:radial-gradient(circle,transparent 30%,color-mix(in srgb,var(--flight-color) 6%,transparent))}@media(prefers-reduced-motion:reduce){.algorithm-flight-layer{display:none}}
+
+/* A selected sphere region grows beyond its canvas and hands off to the destination. */
+.algorithm-flight-cover{position:fixed;z-index:140;pointer-events:none;transform-origin:center;will-change:transform,opacity;background:radial-gradient(ellipse at 35% 28%,color-mix(in srgb,var(--flight-color) 85%,white),var(--flight-color) 48%,color-mix(in srgb,var(--flight-color) 45%,#050914));box-shadow:inset 0 0 80px #ffffff28;contain:paint}
+/* Algorithm identity is inherited on pages 2–4; data and semantic status colors stay independent. */
+:is(#algorithms,#lab,#learning){--accent:var(--algorithm-accent);--primary:var(--algorithm-accent);--primary-alt:var(--algorithm-accent);--button-neon:var(--algorithm-accent);--neon-ink:var(--algorithm-accent)}
+:is(#algorithms,#lab,#learning) button:not(.stop):not(.algorithm-card){--liquid-text:var(--algorithm-accent);border-color:color-mix(in srgb,var(--algorithm-accent) 42%,transparent)!important;text-shadow:0 0 12px color-mix(in srgb,var(--algorithm-accent) 38%,transparent)}
+:is(#algorithms,#lab,#learning) button:focus-visible{outline-color:var(--algorithm-accent)}
+:is(#algorithms,#lab,#learning) :is(h4,.eyebrow){color:var(--algorithm-accent)}
+:is(#lab,#learning) :is(.card,.controls,app-header .bar){border-color:color-mix(in srgb,var(--algorithm-accent) 23%,transparent)!important}
+:is(#lab,#learning) input[type=range]{accent-color:var(--algorithm-accent)}
+.learning-section{background:radial-gradient(ellipse at 20% 30%,color-mix(in srgb,var(--algorithm-accent) 5%,transparent),transparent 65%)}
+@media(prefers-reduced-motion:reduce){.algorithm-flight-cover{display:none}}

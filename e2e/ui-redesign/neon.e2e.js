@@ -12,9 +12,8 @@ async(page)=>{
  await page.locator('.spatial-host[data-star-count="1000"]').waitFor();
  const phase=await page.locator('.spatial-host').getAttribute('data-twinkle-phase');await page.waitForTimeout(300);
  check(await page.locator('.spatial-host').getAttribute('data-twinkle-phase')!==phase,'Star brightness must animate');
- await page.mouse.move(150,350);await page.waitForFunction(()=>document.querySelector('.cursor-glow').style.opacity==='1');
- check(await page.locator('.cursor-ring').evaluate(el=>getComputedStyle(el).display!=='none'),'Cursor ring visible');
- await page.mouse.down();check(await page.locator('.cursor-glow').evaluate(el=>el.classList.contains('rippling')),'Click ripple');await page.mouse.up();
+ await page.mouse.move(150,350);
+ check(await page.locator('.cursor-glow,.cursor-ring,.cursor-ripple').count()===0,'Custom cursor decoration removed');
  await page.screenshot({path:'output/playwright/neon-welcome-desktop.png'});
  await page.locator('.guest-button').click();await wait('algorithms');
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await wait('lab');
@@ -37,9 +36,9 @@ async(page)=>{
  await page.screenshot({path:'output/playwright/neon-learning-desktop.png'});
  const canvas=page.locator('#learning app-viewport3d canvas');const fps=await canvas.evaluate(async el=>{const before=Number(el.dataset.renderCount),start=performance.now();await new Promise(resolve=>setTimeout(resolve,1500));return (Number(el.dataset.renderCount)-before)*1000/(performance.now()-start);});
  check(fps>0&&fps<=62,'Render must remain capped at 60 FPS');
- await page.emulateMedia({reducedMotion:'reduce'});check(await page.locator('.cursor-glow').evaluate(el=>getComputedStyle(el).display)==='none','Reduced motion hides cursor');
- await page.waitForTimeout(200);const ambient=page.locator('app-spatial-backdrop canvas');const count=await ambient.getAttribute('data-render-count');await page.waitForTimeout(300);check(await ambient.getAttribute('data-render-count')===count,'Reduced motion stops star layer');
+ await page.emulateMedia({reducedMotion:'reduce'});check(await page.locator('.cursor-glow').count()===0,'Native cursor only');
+ await page.waitForTimeout(200);const ambient=page.locator('.spatial-host');const phaseStopped=await ambient.getAttribute('data-twinkle-phase');await page.waitForTimeout(300);check(await ambient.getAttribute('data-twinkle-phase')===phaseStopped,'Reduced motion freezes star animation (resize may redraw)');
  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(350);check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile no horizontal overflow');
  await page.screenshot({path:'output/playwright/neon-learning-mobile.png'});
- return {suite:'liquid-neon',performance:{labFps,learningFps:fps},passed:['old background removed','universe base','Times titles and body','transparent glass buttons','1000 stars and twinkle animation','visible cursor and click ripple','liquid controls and Times numbers','lab train/test palette','chart palette and orange curve','transparent viewport','learning shared palette','60 FPS cap','reduced motion cursor/stars','mobile no overflow']};
+ return {suite:'liquid-neon',performance:{labFps,learningFps:fps},passed:['old background removed','universe base','Times titles and body','transparent glass buttons','1000 stars and twinkle animation','native cursor without circle','liquid controls and Times numbers','lab train/test palette','chart palette and orange curve','transparent viewport','learning shared palette','60 FPS cap','reduced motion cursor/stars','mobile no overflow']};
 }

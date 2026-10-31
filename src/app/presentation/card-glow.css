@@ -1,0 +1,10 @@
+/* Lucian UX/UI Prompt #228 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#228 */
+.regression-card-glow{position:fixed;inset:0;pointer-events:none!important;z-index:30;opacity:0;contain:layout style;overflow:hidden}
+.regression-card-glow *, .regression-card-glow *::before{pointer-events:none!important;box-sizing:border-box}
+.regression-card-glow__card{position:fixed;isolation:isolate;pointer-events:none;--cg-x:-500px;--cg-y:-500px}
+.regression-card-glow__card[hidden]{display:none!important}
+.regression-card-glow__border,.regression-card-glow__wash{position:absolute;inset:0;border-radius:inherit;display:block}
+.regression-card-glow__border{padding:1.5px;background:radial-gradient(160px circle at var(--cg-x) var(--cg-y),var(--cg-color),color-mix(in srgb,var(--cg-secondary) 50%,transparent) 40%,transparent 70%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude}
+.regression-card-glow__wash{background:radial-gradient(220px circle at var(--cg-x) var(--cg-y),color-mix(in srgb,var(--cg-color) 14%,transparent),transparent 60%)}
+.regression-card-glow[data-theme=light] .regression-card-glow__wash{opacity:.5}
+@media(prefers-reduced-motion:reduce),(hover:none),(pointer:coarse){.regression-card-glow{display:none!important}}

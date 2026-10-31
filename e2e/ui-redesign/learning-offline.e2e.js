@@ -9,17 +9,16 @@ async (page) => {
  stage='navigate';
  await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();
  await page.waitForFunction(()=>!document.querySelector('#learning').hidden && !document.querySelector('.experience').dataset.transition);
- const begin=page.getByRole('button',{name:'Bắt đầu bước học',exact:true});
- stage='begin';await begin.click();
- await page.locator('app-learning-walkthrough [aria-current=step]').waitFor();
+ await page.locator('.lesson-options>summary').click();
+ await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');
+ await page.locator('.lesson-options>summary').click();
+ stage='begin';await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
  const progress=page.locator('#lab [role=progressbar]');
- check(await progress.getAttribute('aria-valuenow')==='0','Prepare must not apply model');
- for(let i=1;i<=5;i++){
-  await page.getByRole('button',{name:'Pha tiếp theo',exact:true}).click();
-  await page.waitForFunction(i=>document.querySelectorAll('.phases li')[i]?.getAttribute('aria-current')==='step',i);
-  if(i<5)check(await progress.getAttribute('aria-valuenow')==='0','A-E must retain old model');
+ for(let i=0;i<=5;i++){
+  await page.waitForFunction(i=>document.querySelectorAll('app-learning-route li')[i]?.getAttribute('aria-current')==='step',i);
+  check(await progress.getAttribute('aria-valuenow')===(i<5?'0':'1'),'Only F commits');
  }
- check(await progress.getAttribute('aria-valuenow')==='1','F must apply exactly once');
+ await page.getByRole('button',{name:'Học từng bước',exact:true}).waitFor();
  await page.getByRole('button',{name:'Về thực nghiệm',exact:false}).click();
  await page.waitForFunction(()=>!document.querySelector('#lab').hidden && !document.querySelector('.experience').dataset.transition);
  stage='offline';await page.context().setOffline(true);

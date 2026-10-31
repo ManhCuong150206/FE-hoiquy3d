@@ -4,40 +4,17 @@
       <h2 id="lesson-title" class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h6a3 3 0 0 1 3 3v13a4 4 0 0 0-4-3H4ZM13 8a3 3 0 0 1 3-3h4v13h-3a4 4 0 0 0-4 3"/></svg>Giải thích từng bước học</h2>
       <p>Nhìn dữ liệu trở thành một lần cập nhật mô hình.</p>
     </div>
-    <button type="button" (click)="lab.toggleExpanded()" [attr.aria-expanded]="lab.expanded()"
-      aria-controls="lesson-content">{{ lab.expanded() ? 'Thu gọn' : 'Mở giải thích' }}</button>
   </div>
-  @if (lab.expanded()) {
   <div id="lesson-content">
-    @if (!lab.snapshot()) {
-      <ol class="phase-preview" aria-label="Lộ trình sáu pha học">
-        @for (title of phases; track title; let i = $index) { <li><strong>{{ title }}</strong><span>{{ previews[i] }}</span></li> }
-      </ol>
-      <p class="subtle">Đây là lộ trình giải thích; mô hình chỉ thực hiện bước học khi bạn bấm nút.</p>
-    }
-    @if (lab.mode() === 'normal') {
-    <p>Chuyển sang học từng bước để xem sáu pha của cùng một iteration.</p>
-    <button type="button" (click)="lab.setMode('learn')" [disabled]="lab.switching()">Bật học từng bước</button>
-    } @else {
-    <div class="toolbar">
-      <button class="primary" type="button" (click)="lab.auto() ? lab.pausePresentation() : lab.play()"
-        [disabled]="lab.switching() || (!lab.auto() && lab.busy()) || lab.status() === 'error'">{{ lab.auto() ? 'Tạm
-        dừng trình diễn' : lab.status() === 'done' ? 'Học lại từ đầu' : 'Phát các pha' }}</button>
-      <button type="button" (click)="lab.nextPhase()"
-        [disabled]="lab.busy() || lab.switching() || lab.status() === 'done' || lab.status() === 'error'">{{
-        lab.snapshot() ? 'Pha tiếp theo' : 'Bắt đầu bước học' }}</button>
-      <label>Thời lượng mỗi pha
-        <select aria-label="Thời lượng mỗi pha" [value]="lab.phaseSeconds()"
-          (change)="lab.setPhaseSeconds(number($event))">
-          @for (v of [0.5, 1, 2, 3, 5]; track v) { <option [value]="v" [selected]="v === lab.phaseSeconds()">{{ v }}
-            giây</option> }
-        </select>
-      </label>
+    <div class="lesson-command">
+      <button class="primary run-iteration" type="button" (click)="runIteration()" [disabled]="lab.busy() || lab.switching() || lab.status() === 'done' || lab.status() === 'error'">{{ lab.auto() ? 'Tạm dừng' : lab.snapshot() && lab.phase() < 5 ? 'Tiếp tục học' : 'Học từng bước' }}</button>
+      <span class="iteration-badge">Iteration {{ lab.iteration() }} · {{ lab.auto() ? 'Đang trình diễn A–F' : 'Sẵn sàng xem kết quả' }}</span>
+      <button type="button" class="notes-link" (click)="notes()">Đến ghi chú ↓</button>
     </div>
-    <p class="subtle">Đây là thời gian minh họa, không phải thời gian tính toán. Mỗi iteration dùng {{
-      lab.trainX().length }} mẫu train; {{ lab.testX().length }} mẫu test chỉ đánh giá.</p>
-    @if (lab.switching() || lab.busy()) { <p role="status">{{ lab.switching() ? 'Đang dừng tại một iteration hoàn
-      chỉnh…' : 'Đang tính / xác nhận bước học…' }}</p> }
+    <details class="lesson-options">
+      <summary>Tùy chọn · mẫu train và tốc độ</summary>
+      <label>Thời lượng mỗi pha <select aria-label="Thời lượng mỗi pha" [value]="lab.phaseSeconds()" (change)="lab.setPhaseSeconds(number($event))">@for (v of [0.5,1,2,3,5]; track v) { <option [value]="v" [selected]="v === lab.phaseSeconds()">{{v}} giây</option> }</select></label>
+      <p class="subtle">Mỗi bước dùng {{ lab.trainX().length }} mẫu train; test chỉ để đánh giá. Thời lượng pha là thời gian minh họa.</p>
     <div class="sample-picker">
       <label>Mẫu train đang theo dõi <input aria-label="Mẫu train đang theo dõi" type="number" min="1"
           [max]="lab.trainX().length" [value]="lab.selectedSample() + 1"
@@ -67,18 +44,18 @@
         </table>
       </div>
     </details>
-    @if (lab.snapshot(); as s) {
-    <p class="iteration">Iteration {{ s.before.iteration }} → {{ s.after.iteration }} · {{ lab.phase() === 5 ? 'Đã áp
-      dụng mô hình mới' : 'Đang hiển thị mô hình trước cập nhật' }}</p>
-    <ol class="phases" aria-label="Sáu pha học">
-      @for (title of phases; track title; let i = $index) { <li [class.current]="lab.phase() === i"
-        [class.complete]="lab.phase() > i" [attr.aria-current]="lab.phase() === i ? 'step' : null">{{ title }}</li> }
-    </ol>
-    <h3 aria-live="polite">{{ phases[lab.phase()] }}</h3>
-    <p class="explanation">{{ explanations[lab.phase()] }}</p>
+    </details>
+    <app-learning-route [active]="active()" [phase]="lab.snapshot() ? lab.phase() : null" [cycle]="lab.snapshot()" [resultTemplate]="stageResults" [locked]="lab.auto() || lab.busy()" [phaseDuration]="lab.phaseSeconds()" [summaries]="phaseSummaries()" (phaseViewed)="viewStage($event)" />
+    <ng-template #stageResults let-view="phase">
+      <p class="explanation">{{ lab.snapshot() && view <= lab.phase() ? explanations[view] : previews[view] }}</p>
+      @if (lab.snapshot(); as s) {
+      @if (view <= lab.phase()) {
     @if (selected(); as sample) {
-    @switch (lab.phase()) {
+    @switch (view) {
     @case (0) {
+    <p class="result-summary">Dữ liệu mẫu đang theo dõi: {{ labels().join(', ') }} → y = {{ fmt(sample.y) }}.</p>
+    <details class="result-details" (toggle)="toggleDetails($event)"><summary>Xem chi tiết</summary>
+    @if (detailsOpen()) {
     <div class="table-wrap">
       <table>
         <thead>
@@ -108,8 +85,13 @@
       đã ghi nhận riêng.</p>
     } @else { <p>Không áp dụng z-score. Phép co điểm cho vừa khung 3D chỉ thay đổi cách hiển thị, không đổi dữ liệu học.
     </p> }
+        }
+    </details>
     }
     @case (1) {
+    <p class="result-summary">Dự đoán trước cập nhật: ŷ = {{ fmt(sample.before) }}.</p>
+    <details class="result-details" (toggle)="toggleDetails($event)"><summary>Xem chi tiết</summary>
+    @if (detailsOpen()) {
     <p class="formula">ŷ = b + tổng (trọng số × đặc trưng) ≈ {{ fmt(sample.before) }}</p>
     <p>Intercept trước cập nhật: b = {{ fmt(s.before.b) }}.</p>
     @if (s.algorithm === 'polynomial') { <p>Polynomial mở rộng X thành lũy thừa và tích chéo. Bảng dùng đúng thứ tự đặc
@@ -135,8 +117,13 @@
       </table>
     </div>
     <p class="formula">{{ substitution() }}</p>
+        }
+    </details>
     }
     @case (2) {
+    <p class="result-summary">Sai số mẫu: ŷ − y = {{ signed(sample.residual) }}.</p>
+    <details class="result-details" (toggle)="toggleDetails($event)"><summary>Xem chi tiết</summary>
+    @if (detailsOpen()) {
     <dl class="figures">
       <div>
         <dt>y thật</dt>
@@ -154,8 +141,13 @@
     <p>{{ sample.residual < 0 ? 'Mô hình dự đoán thấp hơn giá trị thật.' : sample.residual> 0 ? 'Mô hình dự đoán cao hơn
         giá trị thật.' : 'Dự đoán trùng với giá trị thật của mẫu này.' }}</p>
     <p>Trong 3D: cầu viền là điểm thật đang chọn; khối vuông là dự đoán; đoạn nối thể hiện sai số theo chiều y.</p>
+        }
+    </details>
     }
     @case (3) {
+    <p class="result-summary">MSE train = {{ fmt(s.before.trainLoss) }} · phần phạt = {{ fmt(s.penaltyBefore) }}.</p>
+    <details class="result-details" (toggle)="toggleDetails($event)"><summary>Xem chi tiết</summary>
+    @if (detailsOpen()) {
     <p class="formula">Sai số bình phương mẫu: ({{ fmt(sample.residual) }})² ≈ {{ fmt(sample.squared) }}</p>
     <p class="formula">Đóng góp vào MSE: {{ fmt(sample.squared) }} / {{ s.trainCount }} ≈ {{ fmt(sample.contribution) }}
     </p>
@@ -177,8 +169,13 @@
       </div>
     </dl>
     <p>Test MSE trước: {{ fmt(s.before.testLoss) }}. Con số này không được dùng để cập nhật trọng số.</p>
+        }
+    </details>
     }
     @case (4) {
+    <p class="result-summary">{{ parameters().length }} hệ số được đề xuất; chưa áp dụng cho đến pha F.</p>
+    <details class="result-details" (toggle)="toggleDetails($event)"><summary>Xem chi tiết</summary>
+    @if (detailsOpen()) {
     <p class="formula">α = {{ s.lr }} · gⱼ(MSE) = (2 / {{ s.trainCount }}) × tổng [(ŷᵢ − yᵢ) × đặc trưngᵢⱼ]</p>
     <p class="formula">gᵦ = (2 / {{ s.trainCount }}) × tổng (ŷᵢ − yᵢ); b mới = b cũ − α × gᵦ.</p>
     @if (s.algorithm === 'lasso') {
@@ -210,8 +207,13 @@
         </tbody>
       </table>
     </div>
+        }
+    </details>
     }
     @case (5) {
+    <p class="result-summary">MSE train: {{ fmt(s.before.trainLoss) }} → {{ fmt(s.after.trainLoss) }} · iteration {{ s.after.iteration }} đã được áp dụng.</p>
+    <details class="result-details" (toggle)="toggleDetails($event)"><summary>Xem chi tiết</summary>
+    @if (detailsOpen()) {
     <div class="table-wrap">
       <table>
         <thead>
@@ -262,14 +264,16 @@
         : 'MSE train không đổi ở bước này.' }}</p>
         @if (s.done) { <p>Đã dừng: đạt số iteration tối đa hoặc thay đổi MSE nhỏ hơn ngưỡng dừng. Bấm “Học lại từ đầu”
           để chạy lại.</p> }
+            }
+    </details>
         }
         }
         }
         <p class="subtle">Số hiển thị được làm tròn; phép tính giữ đầy đủ độ chính xác. Không có iteration trung gian
           giữa hai mô hình.</p>
-        } @else { <p>Bấm “Bắt đầu bước học” để xem pha A, hoặc “Phát các pha” để trình diễn tự động.</p> }
-        @if (lab.errorMsg(); as error) { <p role="alert" class="warning">{{ error }}</p> }
-        }
+      } @else { <p class="pending-result">Chặng này chưa thực hiện trong iteration hiện tại. Bấm “Tiếp tục học” để hoàn tất iteration rồi xem kết quả thật.</p> }
+      } @else { <p class="pending-result">Chưa có kết quả. Bấm “Học từng bước” để chạy qua A–F.</p> }
+    </ng-template>
+    @if (lab.errorMsg(); as error) { <p role="alert" class="warning">{{ error }}</p> }
   </div>
-  }
 </section>

@@ -11,7 +11,7 @@ async (page) => {
  await page.screenshot({path:'output/playwright/welcome-mobile.png'});
  await page.getByRole('button',{name:'Tham gia với tư cách Guest',exact:true}).click();
  await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden && !document.querySelector('.experience').dataset.transition);
- check(await page.locator('.cursor-glow').evaluate(el=>getComputedStyle(el).display)==='none','Reduced motion cursor must hide');
+ check(await page.locator('.cursor-glow').count()===0,'Native cursor only');
  await page.getByRole('button',{name:'Khám phá Polynomial',exact:true}).focus();await page.keyboard.press('Enter');
  await page.locator('#selected-algorithm').waitFor();
  check(await page.locator('#selected-algorithm').getAttribute('data-value')==='polynomial','Keyboard algorithm choice');

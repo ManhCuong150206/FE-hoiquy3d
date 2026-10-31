@@ -92,4 +92,22 @@ describe('six-phase learning flow', () => {
     expect(lab.phase()).toBe(5); expect(lab.status()).toBe('done'); expect(lab.auto()).toBe(false);
     vi.advanceTimersByTime(10000); flush(); expect(lab.iteration()).toBe(1);
   });
+  it('runs exactly one iteration and remains at F until another explicit request', () => {
+    lab.playIteration(); flush();
+    expect(lab.phase()).toBe(0);
+    for(let i=0;i<5;i++){vi.advanceTimersByTime(1000);flush();}
+    expect(lab.phase()).toBe(5);expect(lab.iteration()).toBe(1);expect(lab.auto()).toBe(false);
+    vi.advanceTimersByTime(20000);flush();expect(lab.iteration()).toBe(1);
+    lab.playIteration();flush();expect(lab.phase()).toBe(0);
+    for(let i=0;i<5;i++){vi.advanceTimersByTime(1000);flush();}
+    expect(lab.iteration()).toBe(2);expect(lab.auto()).toBe(false);
+  });
+  it('pauses and resumes one-iteration presentation without applying duplicate updates', () => {
+    lab.playIteration();flush();vi.advanceTimersByTime(1000);flush();
+    lab.pausePresentation();vi.advanceTimersByTime(5000);flush();expect(lab.phase()).toBe(1);
+    lab.playIteration();
+    for(let i=0;i<4;i++){vi.advanceTimersByTime(1000);flush();}
+    expect(lab.iteration()).toBe(1);expect(lab.auto()).toBe(false);
+  });
+
 });

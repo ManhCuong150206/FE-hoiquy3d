@@ -1,3 +1,4 @@
+import { prepareFlightCover, removeFlightCover } from './algorithm-flight';
 import { DestroyRef, Directive, ElementRef, NgZone, afterNextRender, effect, inject, input, signal, untracked } from '@angular/core';
 import type { gsap } from 'gsap';
 
@@ -23,7 +24,7 @@ export class JourneyMotion {
       this.media = window.matchMedia('(prefers-reduced-motion: reduce)');
       this.media.addEventListener('change', this.preferenceChanged); this.loaded.set(true);
     });
-    inject(DestroyRef).onDestroy(() => { this.destroyed = true; this.timeline?.kill(); this.media?.removeEventListener('change', this.preferenceChanged); });
+    inject(DestroyRef).onDestroy(() => { this.destroyed = true; this.timeline?.kill(); this.media?.removeEventListener('change', this.preferenceChanged);removeFlightCover(); });
   }
 
   private preferenceChanged = () => {
@@ -33,7 +34,7 @@ export class JourneyMotion {
 
   settle() { this.finish?.(); }
 
-  switchPage(from: HTMLElement | null, target: HTMLElement, algorithm: string, swap: () => void, done: () => void): void {
+  switchPage(from: HTMLElement | null, target: HTMLElement, algorithm: string, swap: () => void, done: () => void, handoff=false): void {
     this.finish?.();
     const engine = this.engine;
     const veil = this.host.querySelector<HTMLElement>('.scene-wipe');
@@ -57,7 +58,18 @@ export class JourneyMotion {
       this.zone.run(done);
     };
     this.finish = finish;
-    if (!engine || !veil || !this.motionEnabled() || this.media?.matches || from === target) { finish(); return; }
+    if (!engine || !veil || !this.motionEnabled() || this.media?.matches || from === target) { removeFlightCover();finish(); return; }
+    if(handoff){
+      this.zone.runOutsideAngular(()=>{
+        this.host.dataset['transition']='exit';
+        const reverse=target.id==='algorithms';
+        const cover=prepareFlightCover(algorithm);
+        const t=engine.timeline({onComplete:()=>{if(!reverse)removeFlightCover();finish();}});this.timeline=t;
+        // Swap behind an opaque, viewport-sized region. The reverse flight then shrinks it.
+        t.call(change,[],.02).fromTo(target,{opacity:0},{opacity:1,duration:.3},.04);
+        if(!reverse)t.to(cover,{opacity:0,duration:.32,ease:'power2.out'},.02);
+      });return;
+    }
     this.zone.runOutsideAngular(() => {
       this.host.dataset['transition'] = 'exit';
       veil.style.setProperty('--wipe-color', getComputedStyle(document.documentElement).getPropertyValue(`--color-${algorithm}`).trim() || '#35e6ff');

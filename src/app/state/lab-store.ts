@@ -17,6 +17,7 @@ export class LabStore {
     private requestId = 0;
     private phaseTimer?: ReturnType<typeof setTimeout>;
     private committing = false;
+    private singleIteration = false;
     mode = signal<'normal' | 'learn'>('normal');
     switching = signal(false);
     busy = signal(false);
@@ -269,7 +270,14 @@ export class LabStore {
         this.phaseSeconds.set(seconds);
         this.schedulePhase();
     }
-    pausePresentation() { this.auto.set(false); clearTimeout(this.phaseTimer); }
+    /** Runs/resumes the current teaching iteration and stops on its F acknowledgement. */
+    playIteration() {
+        if (this.mode() !== 'learn' || this.switching() || this.busy() || this.lrError() || this.status() === 'error' || this.status() === 'done') return;
+        if (!this.initialized) this.initWorker();
+        this.singleIteration = true; this.auto.set(true); this.expanded.set(true);
+        if (!this.snapshot() || this.phase() === 5) this.prepare(); else this.schedulePhase();
+    }
+    pausePresentation() { this.singleIteration = false; this.auto.set(false); clearTimeout(this.phaseTimer); }
     nextPhase() { this.pausePresentation(); this.advancePhase(); }
     private schedulePhase() {
         clearTimeout(this.phaseTimer);
@@ -330,7 +338,7 @@ export class LabStore {
                 if (data.done) this.status.set('done');
                 if (this.committing && this.snapshot()?.after.iteration === data.iteration) {
                     this.committing = false; this.busy.set(false); this.phase.set(5);
-                    if (data.done) this.pausePresentation(); else this.schedulePhase();
+                    if (this.singleIteration || data.done) this.pausePresentation(); else this.schedulePhase();
                 }
             } else if (data.type === 'error') {
                 this.pausePresentation(); this.busy.set(false); this.committing = false; this.switching.set(false);
