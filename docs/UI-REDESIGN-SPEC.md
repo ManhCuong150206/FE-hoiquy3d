@@ -82,7 +82,7 @@ Giữ màu chủ đạo đen/xanh đậm. Làm chữ nổi bật bằng tương 
 
 ### Nền vũ trụ
 
-Bỏ nền ảnh toán học và các công thức trôi nổi. Thay bằng bầu trời sao có chiều sâu, trôi chậm và sáng tối nhẹ ở từng ngôi sao. Không cho cả nền nháy đồng loạt.
+Thay bằng bầu trời sao có chiều sâu, trôi chậm và sáng tối nhẹ ở từng ngôi sao. Không cho cả nền nháy đồng loạt.
 
 Nền chỉ dùng để trang trí, không mang dữ liệu của mô hình và không chặn thao tác chuột. Khi bật giảm chuyển động hoặc tab bị ẩn, hãy ngừng chuyển động. Có nền sao tĩnh dự phòng khi không tạo được WebGL.
 
