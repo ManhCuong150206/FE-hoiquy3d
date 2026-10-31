@@ -21,7 +21,7 @@ async(page)=>{
   await wait('lab');timings.push(Date.now()-started);
   check(await page.locator('#selected-algorithm').getAttribute('data-value')===id,'Correct destination');
   const colors=await page.locator('#lab').evaluate(el=>{const s=getComputedStyle(el);return {accent:s.getPropertyValue('--algorithm-accent').trim(),train:s.getPropertyValue('--color-train').trim(),test:s.getPropertyValue('--color-test').trim()};});
-  check(colors.train.toLowerCase()==='#ff922e'&&colors.test.toLowerCase()==='#42a5ff','Train/test unchanged in experiment');
+  check(colors.train.toLowerCase()==='#ff405c'&&colors.test.toLowerCase()==='#ffe45c','Train/test unchanged in experiment');
   await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#lab .lesson-entry button').click();await wait('learning');
   const lessonColors=await page.locator('#learning').evaluate(el=>{const s=getComputedStyle(el);return {accent:s.getPropertyValue('--algorithm-accent').trim(),train:s.getPropertyValue('--color-train').trim(),test:s.getPropertyValue('--color-test').trim()};});
   check(JSON.stringify(colors)===JSON.stringify(lessonColors),'Same algorithm and data palette in pages 3 and 4');
@@ -58,5 +58,5 @@ async(page)=>{
  check(await page.getByRole('button',{name:'Khám phá Lasso',exact:true}).evaluate(el=>getComputedStyle(el).visibility)==='visible','Resized return restores original card');
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Resized animated trip no overflow');
  check(timings.every(t=>t>=1500&&t<6000),'Flight must be visible and bounded in duration');
- return {suite:'algorithm-flight',timingsMs:timings,passed:['full viewport fly-in and return','algorithm palette consistent across pages 2–4','train orange/test blue preserved on pages 3–4','sphere click disabled','hover two directions','dragged sphere uses actual sector','four correct destinations','four stars return to cards','no leftover overlays or ghost borders','confirmation before flight','cancel preserves iteration','reduced motion fallback','mobile layout','animated mobile trip and resized return','roughly two second sequences']};
+ return {suite:'algorithm-flight',timingsMs:timings,passed:['full viewport fly-in and return','algorithm palette consistent across pages 2–4','train red/test yellow preserved on pages 3–4','sphere click disabled','hover two directions','dragged sphere uses actual sector','four correct destinations','four stars return to cards','no leftover overlays or ghost borders','confirmation before flight','cancel preserves iteration','reduced motion fallback','mobile layout','animated mobile trip and resized return','roughly two second sequences']};
 }

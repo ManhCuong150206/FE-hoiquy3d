@@ -80,18 +80,44 @@ Trên desktop, khung học cuộn riêng và có thanh điều khiển sticky (g
 | --- | --- |
 | Nền | Đen/xanh đậm, bầu trời sao trôi chậm và nhấp nháy nhẹ từng sao |
 | Font toàn web | Times New Roman, có Times/serif dự phòng |
-| Linear | Cyan #35E6FF |
-| Polynomial | Hồng #FF63B6 |
-| Ridge | Tím #A78BFA |
+| Linear | Gold #FFD166 |
+| Polynomial | Beige #E8D8B5 |
+| Ridge | Xanh biển #397BFF |
 | Lasso | Bạc #D7E0EE |
-| Train | Cam neon #FF922E, thống nhất điểm/chú giải/biểu đồ/MSE |
-| Test | Xanh lam neon #42A5FF, thống nhất như Train |
+| Train | Đỏ neon #FF405C, thống nhất điểm/chú giải/biểu đồ/MSE |
+| Test | Vàng neon #FFE45C, thống nhất như Train |
 | Nút/khung | Kính trong vừa, viền phản chiếu, chữ rõ; Stop có màu cảnh báo |
 | Con trỏ | Con trỏ hệ thống; đã bỏ vòng/chấm/đuôi/gợn bám theo chuột |
 
 Không dùng màu làm dấu hiệu duy nhất. Giữ nhãn, biểu tượng, focus bàn phím, trạng thái disabled. Không làm toàn bộ chữ glow quá mạnh.
 
-Màu nhấn của thuật toán được dùng thống nhất ở trang chọn, thực nghiệm và học từng bước: tiêu đề, viền, nút và trạng thái chọn dùng cùng tông. Các thẻ vẫn giữ bốn màu riêng để dễ nhận biết. Train luôn cam neon `#FF922E`, Test luôn xanh lam neon `#42A5FF` trên cả trang 3 và 4; màu dữ liệu không đổi theo thuật toán. Ví dụ chọn Ridge thì nút/tiêu đề tím, điểm train vẫn cam và điểm test vẫn xanh.
+Tiêu đề và phụ đề chung trang 1–2 dùng bạc neon `#D7E0EE`, gồm cả chữ nhấn trong tiêu đề; tên từng thẻ giữ màu thuật toán. Khối cầu WebGL và cầu dự phòng lấy đúng bốn màu thuật toán từ palette. Vật liệu có emissive (tự phát sáng); hover tăng sáng, không thêm bộ hậu xử lý nặng.
+
+Màu nhấn của thuật toán được dùng thống nhất ở trang chọn, thực nghiệm và học từng bước: tiêu đề, viền, nút và trạng thái chọn dùng cùng tông. Các thẻ vẫn giữ bốn màu riêng để dễ nhận biết. Train luôn đỏ neon `#FF405C`, Test luôn vàng neon `#FFE45C` trên cả trang 3 và 4; màu dữ liệu không đổi theo thuật toán. Ví dụ chọn Ridge thì nút/tiêu đề xanh biển, điểm train vẫn đỏ và điểm test vẫn vàng.
+
+### Bộ màu dùng chung trong Angular
+
+Bảng màu nằm ở [`src/styles/palette.css`](../src/styles/palette.css), được Angular nạp toàn cục sau `src/styles.css` qua danh sách `styles` trong `angular.json`. Không cần tải lên dịch vụ hay cài thêm thư viện. Đây là **design tokens**: các tên màu dùng chung; ví dụ `--color-train` luôn có nghĩa là màu tập train.
+
+Khi thiết kế component, dùng tên màu thay vì tự nhập mã màu mới:
+
+```css
+.panel-title { color: var(--algorithm-accent); }
+.panel { background: var(--color-surface-glass); }
+.description { color: var(--color-muted); }
+.train-dot { background: var(--color-train); }
+.test-dot { background: var(--color-test); }
+```
+
+`var(...)` là cách lấy giá trị một biến CSS. Ví dụ chọn Polynomial thì `--algorithm-accent` nhận màu beige, nhưng `--color-train` vẫn đỏ. Các cảnh Three.js hiện đọc bảng màu bằng `getComputedStyle`, nên điểm dữ liệu và cầu tiếp tục dùng cùng nguồn màu với giao diện.
+
+Quy tắc phối: nền và phần lớn khung dùng màu tối trung tính; nội dung dài dùng trắng/xám; neon dành cho tiêu đề, nút đang tương tác và điểm cần chú ý. Mỗi trang thực nghiệm/học dùng một màu thuật toán làm điểm nhấn. Màu trạng thái thành công/lỗi dùng đúng ý nghĩa, không dùng để trang trí. Các mức sáng/phản chiếu và màu của light theme vẫn do lớp giao diện hiện có điều khiển; đây không phải cam kết mọi tổ hợp màu đều tự động đạt độ tương phản.
+
+Muốn đổi màu, sửa giá trị trong `palette.css`; Angular rebuild khi đang chạy dev. Sau đó kiểm tra cả giao diện lẫn cảnh 3D (tải lại trang để các cảnh khởi tạo lại màu). Giữ màu train/test nhất quán giữa trang 3 và 4.
+
+Kiểm tra sau khi tách palette: production build đạt; kiểm tra browser cho đủ bốn thuật toán trên trang thực nghiệm và trang học đạt, train/test giữ nguyên. Log: `output/playwright/palette-build.log`, `palette-browser.log`. Không chạy lại toàn bộ unit/E2E cho lần tổ chức lại bảng màu này.
+
+Kiểm tra bảng màu bạc/gold/beige/xanh biển mới (31/10/2026): 94 unit test đạt, production build đạt. Kiểm tra browser gồm 7 tiêu chí palette/tiêu đề và 2 nhóm E2E neon (14 tiêu chí), chuyến bay (15 tiêu chí) đạt; không chạy lại toàn bộ bộ E2E. Log: `silver-palette-unit.log`, `silver-palette-build.log`, `silver-palette-browser.log`, `silver-neon-e2e.log`, `silver-flight-e2e.log` trong `output/playwright`. Ảnh cầu: `silver-gold-sphere.png`. Lượt đo ngắn scene thực nghiệm khoảng 59,2 FPS, scene học khoảng 58,6 FPS trên máy thử; không phải cam kết mọi thiết bị luôn 60 FPS.
 
 ## 7. Danh mục hiệu ứng và file phụ trách
 

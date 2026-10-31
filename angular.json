@@ -25,7 +25,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"],
+            "styles": ["src/styles.css", "src/styles/palette.css"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "serviceWorker": "ngsw-config.json",

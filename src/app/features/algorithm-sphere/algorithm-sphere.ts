@@ -9,12 +9,12 @@ const SECTORS: Algorithm[] = ['linear', 'polynomial', 'ridge', 'lasso'];
 
 @Component({
   selector: 'app-algorithm-sphere',
-  template: `<div class="sphere-host" #host role="img" aria-label="Khối cầu bốn vùng màu: Linear cyan, Polynomial hồng, Ridge tím, Lasso bạc. Kéo để xoay, rê để phát sáng. Chọn thuật toán bằng các thẻ bên dưới. Các nút bên dưới hỗ trợ bàn phím.">
+  template: `<div class="sphere-host" #host role="img" aria-label="Khối cầu bốn vùng màu: Linear gold, Polynomial beige, Ridge xanh biển, Lasso bạc. Kéo để xoay, rê để phát sáng. Chọn thuật toán bằng các thẻ bên dưới. Các nút bên dưới hỗ trợ bàn phím.">
     @if (!ready()) { <div class="fallback-orb" aria-hidden="true"></div> }
     @if (failed()) { <p class="fallback-note">Chọn một thuật toán bên dưới để tiếp tục.</p> }
     <span class="orb-caption" aria-hidden="true">{{ hovered() ? hovered() + ' · Chọn thẻ bên dưới' : 'Kéo xoay · Rê để phát sáng · Chọn bằng thẻ' }}</span>
     </div>`,
-  styles: [`:host{display:block;height:100%}.sphere-host{position:relative;height:100%;width:100%;display:grid;place-items:center}.sphere-host canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.fallback-orb{width:65%;max-width:300px;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 30deg,#35e6ff,#ff63b6,#a78bfa,#d7e0ee,#35e6ff);box-shadow:inset -35px -40px 60px #000b,inset 18px 20px 40px #fff4,0 0 70px #a78bfa15}.orb-caption{position:absolute;bottom:22px;font-size:8px;letter-spacing:.22em;color:var(--muted);pointer-events:none}.fallback-note{position:absolute;bottom:40px;font-size:10px;color:var(--muted);text-align:center}`],
+  styles: [`:host{display:block;height:100%}.sphere-host{position:relative;height:100%;width:100%;display:grid;place-items:center}.sphere-host canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.fallback-orb{width:65%;max-width:300px;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 30deg,var(--color-linear),var(--color-polynomial),var(--color-ridge),var(--color-lasso),var(--color-linear));box-shadow:inset -35px -40px 60px #000b,inset 18px 20px 40px #fff4,0 0 70px color-mix(in srgb,var(--algorithm-accent) 12%,transparent)}.orb-caption{position:absolute;bottom:22px;font-size:8px;letter-spacing:.22em;color:var(--muted);pointer-events:none}.fallback-note{position:absolute;bottom:40px;font-size:10px;color:var(--muted);text-align:center}`],
 })
 export class AlgorithmSphere implements OnDestroy {
   readonly active = input<Algorithm>('linear');
@@ -58,7 +58,7 @@ export class AlgorithmSphere implements OnDestroy {
     effect(() => {
       const active = this.active(), attention=this.attention();
       this.departing();
-      this.meshes.forEach(mesh => mesh.material.emissiveIntensity = mesh.userData['algorithm'] === active ? (attention ? .45 : .2) : .035);
+      this.meshes.forEach(mesh => mesh.material.emissiveIntensity = mesh.userData['algorithm'] === active ? (attention ? .45 : .2) : .09);
       if(this.renderer)this.renderer.domElement.dataset['previewAlgorithm']=attention?active:'';
       this.draw();
     });
@@ -107,7 +107,7 @@ export class AlgorithmSphere implements OnDestroy {
         SECTORS.forEach((sector, index) => {
           const color = new THREE.Color(palette.getPropertyValue(`--color-${sector}`).trim());
           const geometry = new THREE.SphereGeometry(1.58, 36, 48, index * Math.PI / 2, Math.PI / 2);
-          const material = new THREE.MeshPhysicalMaterial({ color, metalness: 0.65, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.12, emissive: color, emissiveIntensity: sector === this.active() ? 0.2 : 0.035 });
+          const material = new THREE.MeshPhysicalMaterial({ color, metalness: 0.65, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.12, emissive: color, emissiveIntensity: sector === this.active() ? 0.2 : 0.09 });
           const mesh = new THREE.Mesh(geometry, material); mesh.userData['algorithm'] = sector;
           this.meshes.push(mesh); group.add(mesh);
         });
@@ -237,7 +237,7 @@ export class AlgorithmSphere implements OnDestroy {
   };
   private applyGlow() {
     const hovered = this.hovered();
-    this.meshes.forEach(mesh => { const id = mesh.userData['algorithm']; mesh.material.emissiveIntensity = id === hovered ? .6 : id === this.active() ? .2 : .035; });
+    this.meshes.forEach(mesh => { const id = mesh.userData['algorithm']; mesh.material.emissiveIntensity = id === hovered ? .6 : id === this.active() ? .2 : .09; });
     const canvas = this.renderer?.domElement;
     if (canvas) { canvas.dataset['hoveredAlgorithm'] = hovered ?? ''; canvas.dataset['dragging'] = String(Boolean(this.drag?.moved)); }
     this.draw();

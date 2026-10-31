@@ -260,7 +260,7 @@ export class Viewport3d implements OnDestroy {
     const mesh = new THREE.InstancedMesh(
       // Scene-space radius: equivalent to .14 / dataScale in source units, also legible for raw CSV.
       new THREE.SphereGeometry(0.14, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, metalness: 0.08, emissive: new THREE.Color(color), emissiveIntensity: .32 }),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, metalness: 0.08, emissive: new THREE.Color(color), emissiveIntensity: .45 }),
       X.length,
     );
     const m = new THREE.Matrix4();
@@ -298,8 +298,8 @@ export class Viewport3d implements OnDestroy {
       m.dispose();
     }
     this.pointMeshes = [
-      this.makePoints(trX, trY, this.trainColor, scale), // train: xanh lá
-      this.makePoints(teX, teY, this.testColor, scale), // test: đỏ hồng
+      this.makePoints(trX, trY, this.trainColor, scale), // train: đỏ neon, lấy từ bảng màu chung
+      this.makePoints(teX, teY, this.testColor, scale), // test: vàng neon, lấy từ bảng màu chung
     ];
     this.scene.add(...this.pointMeshes);
   }

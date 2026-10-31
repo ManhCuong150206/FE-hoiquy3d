@@ -1,0 +1,52 @@
+/* Shared palette: Angular loads this AFTER styles.css. No runtime dependency. */
+:root {
+  /* Neutral foundation: use for large surfaces and readable text. */
+  --color-bg: #07090e;
+  --color-surface: #10141d;
+  --color-surface-glass: rgba(24, 29, 42, .62);
+  --color-border: rgba(205, 220, 255, .16);
+  --color-text: #f4f7ff;
+  --color-muted: #a3aec2;
+  --color-silver: #d7e0ee;
+  --color-primary: #8b7cff;
+
+  /* Algorithm identity: keep the same mapping on the sphere and pages 2–4. */
+  --color-linear: #ffd166;
+  --color-polynomial: #e8d8b5;
+  --color-ridge: #397bff;
+  --color-lasso: #d7e0ee;
+
+  /* Data identity: independent of the selected algorithm. */
+  --color-train: #ff405c;
+  --color-test: #ffe45c;
+
+  /* Semantic feedback: retain labels/icons as well as color. */
+  --color-success: #43f5b0;
+  --color-danger: #ff5478;
+  --color-warning: #ffc857;
+  --success: var(--color-success);
+  --danger: var(--color-danger);
+}
+
+[data-algorithm='linear'] { --algorithm-accent: var(--color-linear); }
+[data-algorithm='polynomial'] { --algorithm-accent: var(--color-polynomial); }
+[data-algorithm='ridge'] { --algorithm-accent: var(--color-ridge); }
+[data-algorithm='lasso'] { --algorithm-accent: var(--color-lasso); }
+
+/* Compatibility aliases for existing Angular components. */
+:is(#algorithms, #lab, #learning) {
+  --accent: var(--algorithm-accent);
+  --primary: var(--algorithm-accent);
+  --primary-alt: var(--algorithm-accent);
+  --button-neon: var(--algorithm-accent);
+  --neon-ink: var(--algorithm-accent);
+}
+
+/* Silver editorial headings on entry/selection; algorithm cards keep their identity. */
+:is(#welcome,#algorithms) :is(h1,h2,h3,h4,.eyebrow,.section-index,.auth-top,.auth-description,.description,.algorithm-copy>p,.stage-caption,.orb-caption){
+  color:var(--color-silver)!important;
+  text-shadow:0 0 10px #d7e0ee55,0 0 24px #d7e0ee22!important;
+}
+:is(#welcome,#algorithms) :is(h1,h2,h3,h4) :is(span,em){color:var(--color-silver)!important;text-shadow:inherit!important}
+#algorithms .algorithm-card strong{color:var(--algorithm-accent);text-shadow:0 0 10px color-mix(in srgb,var(--algorithm-accent) 65%,transparent),0 0 24px color-mix(in srgb,var(--algorithm-accent) 30%,transparent)}
+:is(#lab,#learning) :is(h1,h2,h3,h4,.card-title){color:var(--algorithm-accent)!important;text-shadow:0 0 12px color-mix(in srgb,var(--algorithm-accent) 40%,transparent)}
