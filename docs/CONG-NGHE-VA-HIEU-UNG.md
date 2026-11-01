@@ -1,6 +1,6 @@
 # Công nghệ, công cụ và hiệu ứng — Hồi quy 3D
 
-Cập nhật: 31/10/2026. Đây là tài liệu chính về giao diện, hiệu ứng, luồng học và kiểm thử frontend. Nội dung đã được gộp và biên tập theo các quyết định mới nhất, thay cho năm file giao diện/học từng bước trước đây. [README](../README.md) chỉ giữ cách cài đặt và chạy nhanh.
+Cập nhật: 01/11/2026. Đây là tài liệu chính về giao diện, hiệu ứng, luồng học và kiểm thử frontend. Nội dung đã được gộp và biên tập theo các quyết định mới nhất, thay cho năm file giao diện/học từng bước trước đây. [README](../README.md) chỉ giữ cách cài đặt và chạy nhanh.
 
 Mã nguồn là căn cứ kiểm tra hành vi thực tế. Các con số kiểm thử bên dưới ghi theo lần chạy cụ thể, không tự động thay đổi khi code thay đổi.
 
@@ -17,7 +17,7 @@ Frontend hiện tại nằm ở `FE/FE-hoiquy3d`, là một Git repository riên
 - **Hiệu ứng** là kết quả người dùng nhìn thấy: kính trong, viền neon theo chuột, nền sao, chuyển cảnh… Một hiệu ứng có thể kết hợp nhiều công nghệ.
 - **Skill của trợ lý** là hướng dẫn làm việc như GSAP/Three.js/Playwright; không phải thư viện tự động cài vào web. Chỉ các dependency/import và mã nguồn thực tế mới chứng minh một thư viện có trong ứng dụng.
 
-Ví dụ: Three.js là thư viện; khối cầu bốn vùng màu là thành phần 3D; kéo xoay cầu và phát sáng khi rê chuột là hành vi/hiệu ứng của thành phần đó.
+Ví dụ: Three.js là thư viện; hành tinh bốn lục địa là thành phần 3D; kéo xoay cầu và phát sáng khi rê chuột là hành vi/hiệu ứng của thành phần đó.
 
 ## 3. Công nghệ đang có và công dụng
 
@@ -68,17 +68,58 @@ Mỗi lúc chỉ hiện một trang; chuyển bằng nút hoặc chọn thẻ th
 | Trang | Nội dung và hành vi chính |
 | --- | --- |
 | 1. Đăng nhập/đăng ký | Email, mật khẩu, đăng ký có tên hiển thị, nút Guest. Đây là demo kiểm tra form, chưa phải xác thực thật; không gửi/lưu/log credential. Không còn nút Khám phá trùng Guest |
-| 2. Chọn thuật toán | Cầu đặc bốn vùng màu, hover liên kết với thẻ, kéo xoay; chọn bằng thẻ (không bấm chọn trực tiếp trên cầu). Thẻ dùng được bằng bàn phím/fallback. Footer là Đăng xuất demo: tạm dừng, xóa form, về trang đầu; không xóa dataset hay thí nghiệm |
+| 2. Chọn thuật toán | Hành tinh giả tưởng: đại dương xanh đen, bốn lục địa có hình dạng riêng và màu thuật toán. Nhấp nháy nhẹ chu kỳ 1 giây, chọn thì sáng ổn định; hover liên kết với thẻ, kéo xoay; chọn bằng thẻ (không bấm chọn trực tiếp trên cầu). Thẻ dùng được bằng bàn phím/fallback. Footer là Đăng xuất demo: tạm dừng, xóa form, về trang đầu; không xóa dataset hay thí nghiệm |
 | 3. Thực nghiệm | Dữ liệu, thí nghiệm, 3D, metric. Thanh điều khiển gồm chế độ, Reset/Chạy/Step/Stop, iteration và tham số. Ô thuật toán chỉ hiện lựa chọn; nút đổi chỉ ở header. Đổi thuật toán khi có tiến trình cần xác nhận |
 | 4. Học từng bước | Mô hình trái, chặng học phải, ghi chú bên dưới. “Học từng bước” chạy một iteration A–F rồi dừng. “Tạm dừng” và “Tiếp tục học” giữ iteration đang dở. Không còn nút Pha tiếp theo |
 
 Trên desktop, khung học cuộn riêng và có thanh điều khiển sticky (giữ tại đầu vùng đọc). Đến cuối khung có thể cuộn tiếp xuống trang, hoặc dùng “Đến ghi chú”. Không buộc đọc hết sáu chặng. Mobile xếp dọc và cuộn trang bình thường. Chọn mẫu/tốc độ và hướng dẫn 3D nằm trong các mục thu gọn.
 
+Trang đầu dùng duy nhất tiêu đề **Hệ thống thực nghiệm và trực quan hóa quá trình học của mô hình hồi quy**, chữ bạc neon và tự chia dòng theo màn hình. Giữ ba mục minh họa 04 thuật toán / 3D trực quan / ∞ khám phá; bỏ dòng tiếng Anh và đoạn mô tả cũ bên trái. Ô tài khoản dùng tiêu đề ngắn Đăng nhập / Đăng ký theo chế độ, bỏ YOUR NEXT DISCOVERY.
+
+### Trang 3 xuất hiện nối tiếp camera tiến vào
+
+Khi chọn thuật toán ở trang 2, giữ nguyên đoạn sao bay vào lục địa và camera tiến sâu. Ở lúc bàn giao từ hành tinh sang phòng thực nghiệm, khung 3D xuất hiện trước; thanh điều khiển, thí nghiệm, dữ liệu và kết quả hiện lần lượt, cách nhau khoảng 90 ms. Tiêu đề, header và phần còn lại xuất hiện sau. Các khung đi từ 96% lên 101% rồi về 100%, kết hợp trượt lên 14 px và mờ dần thành rõ. Toàn bộ nhịp xuất hiện khoảng 1,2 giây, chồng vào đoạn lớp camera mờ đi; không có khoảng trống giữa hai cảnh.
+
+Chỉ animate component host bằng transform/opacity trong GSAP, chạy ngoài Angular change detection. Không nảy từng dòng chữ hoặc từng điểm dữ liệu, không đổi bố cục, không gọi API hay tự chạy iteration. Giữ khóa thao tác tới khi khung ổn định. Khi quay lại chọn thuật toán, các khung thu nhẹ và mờ đi trước đoạn camera lùi ra. Giảm chuyển động/hiệu ứng thấp bỏ qua nảy; thay đổi tùy chọn giữa chừng kết thúc an toàn và xóa style tạm.
+
+Mã thực hiện: `src/app/presentation/journey-motion.ts`. Kiểm thử trình duyệt: `e2e/ui-redesign/lab-arrival.e2e.js`, được thêm vào runner chung. Kiểm tra thứ tự xuất hiện, nảy nhẹ, giao nhau với camera, khóa thao tác, không thay đổi iteration, dọn style, chiều quay lại, ngắt chuyển động và bố cục mobile. Không coi ticker 60 FPS là cam kết FPS thực tế trên mọi máy.
+
+Xác nhận sau thay đổi này (01/11/2026): production build đạt; 101 unit test/22 file đạt; ba nhóm E2E `lab-arrival`, `algorithm-flight`, `motion` đạt tổng 36 tiêu chí. Đây là kiểm tra chức năng và chuyển động; chưa đo benchmark FPS trên thiết bị người dùng.
+
+### Cùng một hành tinh giữa trang 1 và trang 2
+
+Thứ tự cột trái trang đăng nhập là **tên đề tài → hành tinh → ba mục minh họa**. Hành tinh xuất hiện trên trang đầu bằng lazy loading khi trình duyệt rảnh; không dựng thêm một bản sao cho trang chọn.
+
+Đăng nhập/đăng ký demo hợp lệ hoặc bấm Guest: hành tinh di chuyển từ cột trái sang vị trí bên phải trang chọn trong khoảng 4 giây; đăng xuất chạy ngược. Cùng component Angular và cùng canvas WebGL được giữ lại, nên bản đồ/góc xoay không bị đặt lại. Nội dung trang đích hiện dần sau khi hành tinh gần tới chỗ để tránh chồng lên đối tượng đang bay. Chuyển động dùng transform vị trí và scale đồng đều, không kéo méo hình cầu.
+
+Hai vị trí nhận hành tinh là `welcome-planet-slot` và `algorithm-planet-slot`. JourneyMotion tạm đưa component ra một lớp fixed trong lúc di chuyển, rồi trả về vị trí đích; ResizeObserver cập nhật renderer. Khóa thao tác trong chuyển cảnh, dọn lớp tạm khi kết thúc/hủy. Mobile giữ thứ tự dọc; reduced motion/low effects hoặc khi tài nguyên chưa sẵn sàng dùng chuyển trang ngắn/dock trực tiếp. Bấm gửi form sai không di chuyển hành tinh.
+
+Lục địa được mở rộng khoảng 14–19% theo các tỉ lệ tạo hình; mỗi khu vực có thêm tối đa 14 đảo nhỏ, giữ khoảng nước giữa đảo/bờ chính và tránh vùng lân cận. Bản đồ và seed giữ cố định. Các đảo dùng chung màu thuật toán với đất liền. Nhịp sáng, bốn màu thuật toán, camera 4,6 giây và train đỏ/test vàng giữ nguyên.
+
+Code chính: `welcome-panel.html/css`, `algorithm-picker.ts/html`, `algorithm-sphere.ts`, `planet-geometry.ts`, `journey-motion.ts`. Test `shared-planet.e2e.js` kiểm tra đúng thứ tự bố cục, danh tính component/canvas, Guest/login/register, chuyển ngược, form sai, reduced motion, mobile và resize.
+
+Kiểm tra ngày 01/11/2026: production build đạt; 101 unit test trong 22 file đạt; bộ E2E 16 nhóm/163 tiêu chí đạt. Sau khi chỉnh riêng lời hướng dẫn trên trang đăng nhập, đã chạy lại build, 101 unit test và 12 tiêu chí shared-planet, đều đạt. Chuyển cảnh Guest/login/register và chiều quay lại đo khoảng 4,04–4,08 giây; đây là thời lượng chuyển cảnh, không phải số đo FPS.
+
+### Form trang 1: dẫn người dùng đến lỗi
+
+Áp dụng ý tưởng Lucian UX/UI Prompt #244 vào form Angular hiện có. `entry-form.ts/html/css` là component con của `welcome-panel`; không thêm số điện thoại/điều khoản demo từ mẫu. Luồng Đăng nhập/Đăng ký/Guest và kiểm tra mật khẩu tối thiểu 8 ký tự được giữ lại. Chưa có xác thực API thật.
+
+- Bấm Đăng nhập/Đăng ký khi sai: hiện số mục cần kiểm tra và danh sách liên kết; ô lỗi có viền đỏ, gợi ý mở ra và rung 0,4 giây.
+- Sau 0,2 giây, cuộn nhẹ 0,52 giây tới ô sai đầu tiên và đặt con trỏ vào đó. Bấm hoặc Enter trên một liên kết lỗi để đến đúng ô. Nếu người dùng bắt đầu gõ, hủy cuộn/focus đang chờ để không giành con trỏ.
+- Sửa hợp lệ: bỏ mục khỏi danh sách, gấp gợi ý và hiện dấu tích; không chuyển trang cho đến khi bấm nút gửi form hợp lệ.
+- Chữ form/nút dùng bạc neon; thông báo lỗi vẫn đỏ, dấu tích xanh để rõ trạng thái. Riêng thẻ đăng nhập và ô nhập giữ nền tối ở cả light/dark theme để bạc dễ đọc. Nhãn nút nằm chính giữa, mũi tên trang trí đặt riêng bên phải.
+- Giữ label, autocomplete, `aria-invalid`, `aria-describedby`, danh sách lỗi có `role="alert"` và hỗ trợ bàn phím. Đây là thuộc tính giúp trình đọc màn hình hiểu ô nào sai và thông báo liên quan; chưa kiểm tra bằng trình đọc màn hình thực tế.
+- Reduced motion: bỏ rung/chuyển động cuộn, vẫn hiện lỗi và focus đúng ô. Component chỉ giữ ID/thông báo lỗi; không lưu credential vào Signals, localStorage hoặc gửi mạng. Form được xóa trước khi tiếp tục demo và khi vào Guest.
+
+`entry-form.spec.ts` kiểm tra lỗi rỗng, email sai/mật khẩu ngắn, sửa lỗi, tên đăng ký, chuyển chế độ và xóa dữ liệu trước khi tiếp tục. `e2e/ui-redesign/entry-validation.e2e.js` kiểm tra trên browser, đã thêm vào runner chung. Styles được giới hạn trong hai component trang 1; không thay bảng màu/cảnh 3D ở trang khác.
+
+Kiểm chứng 01/11/2026: 99/99 unit test (21 file), build production đạt và không tăng giới hạn CSS/bundle. Hai nhóm browser entry/entry-validation đạt 21 tiêu chí; đã xem ảnh dark/light và kiểm tra mobile, bàn phím, reduced motion. Luồng entry cũ từng timeout khi thiết lập motion sau tải trang; đã cấu hình viewport/motion trước navigation, đưa browser lên foreground và chạy lại đạt. Không chạy lại toàn bộ bộ E2E, không kiểm chứng xác thực backend/MongoDB hay trình đọc màn hình thực tế trong đợt này. Log: `entry-validation-unit.log`, `entry-validation-build.log`, `entry-validation-browser.log`, `entry-after-validation.log`; ảnh `entry-validation-dark.png`, `entry-validation-light.png`, `entry-validation-mobile.png` trong `output/playwright`.
+
 ## 6. Quy chuẩn hình thức
 
 | Thành phần | Quy định hiện tại |
 | --- | --- |
-| Nền | Đen/xanh đậm, bầu trời sao trôi chậm và nhấp nháy nhẹ từng sao |
+| Nền | Đen/xanh đậm, sao trôi chậm/nhấp nháy; sao băng bạc nhẹ, 1 lượt khoảng 1,8 giây mỗi 10 giây |
 | Font toàn web | Times New Roman, có Times/serif dự phòng |
 | Linear | Gold #FFD166 |
 | Polynomial | Beige #E8D8B5 |
@@ -126,7 +167,7 @@ Kiểm tra bảng màu bạc/gold/beige/xanh biển mới (31/10/2026): 94 unit 
 | Chuyển trang theo lớp | GSAP: trang cũ rời đi → đổi trang → trang mới xuất hiện; có tiến/lùi, scale/xoay nhẹ và stagger (hiện lần lượt) | [journey-motion.ts](../src/app/presentation/journey-motion.ts) |
 | Nền vũ trụ | 1.000 sao trong một Three.Points; shader điều khiển sáng/tối, xoay/drift chậm; có nền tĩnh dự phòng | [spatial-backdrop.ts](../src/app/presentation/spatial-backdrop.ts) |
 | Liquid Glass | CSS gradient, nền alpha, backdrop-filter và viền phản chiếu; mô phỏng phong cách kính, không nhúng SDK Apple | [styles.css](../src/styles.css) |
-| Cầu bốn vùng màu | MeshPhysicalMaterial, đèn và glow khi hover hai chiều; cầu chỉ hover/kéo, thẻ dùng để chọn | [algorithm-sphere.ts](../src/app/features/algorithm-sphere/algorithm-sphere.ts) |
+| Hành tinh bốn lục địa | Đại dương PBR, địa hình nổi tạo bằng BufferGeometry, bờ biển và pulse; hành tinh chỉ hover/kéo, thẻ dùng để chọn | [algorithm-sphere.ts](../src/app/features/algorithm-sphere/algorithm-sphere.ts) |
 | Điểm dữ liệu neon | InstancedMesh + MeshStandardMaterial emissive; nhiều điểm dùng chung mesh/material để giảm draw call | [viewport3d.ts](../src/app/features/viewport3d/viewport3d.ts) |
 | Lộ trình A–F | SVG path, stroke-dashoffset để vẽ/thu đường; chấm sáng theo vị trí đọc; đường đo lại theo kích thước thẻ | [learning-route.ts](../src/app/features/learning-route/learning-route.ts) |
 | Chuyển chặng mượt | Giữ các thẻ ổn định, chỉ cuộn khi thẻ sắp ra ngoài vùng đọc; ease-out 140–320 ms, không dùng animation để quyết định commit | [learning-route.ts](../src/app/features/learning-route/learning-route.ts) |
@@ -134,17 +175,36 @@ Kiểm tra bảng màu bạc/gold/beige/xanh biển mới (31/10/2026): 94 unit 
 | Giới hạn render | FrameBudget tối đa 60 FPS, kể cả màn hình 144 Hz | [frame-budget.ts](../src/app/presentation/frame-budget.ts) |
 
 
-### Chọn thuật toán bằng ngôi sao — hai chiều
+### Hành tinh và chuyến bay tới lục địa — bản đồ hologram cố định 01/11/2026
 
-- Chiều đi: thẻ thu thành sao đúng màu → sao bay theo đường cong vào vùng tương ứng → camera tiến vào bề mặt, vùng màu lan ra phủ kín toàn màn hình → trang thực nghiệm xuất hiện dần. GSAP nối các đoạn có chồng thời gian, mục tiêu khoảng hai giây; không đổi kích thước thẻ gốc làm xô bố cục.
-- Chiều về từ thực nghiệm/trang học: bắt đầu bằng màu thuật toán phủ toàn màn hình → vùng màu thu về cầu khi camera lùi → sao tách ra và bay về vị trí thẻ → thẻ hiện đầy đủ; hướng cầu trước chuyến đi được khôi phục. Vị trí thẻ và điểm đáp được tính lại theo kích thước màn hình.
-- Lớp màu phủ màn hình nằm ngoài canvas của cầu, không bị giới hạn bởi khung 3D. Bán kính tính đủ tới bốn góc màn hình và cập nhật khi resize; giữ lớp phủ trong lúc đổi trang để không lóe nền hoặc hở cạnh. Các frame chuyển động chỉ thay transform/opacity, kích thước lớp phủ tính khi bắt đầu/resize.
-- Hover thẻ làm sáng vùng cầu; hover cầu làm sáng thẻ tương ứng. Vẫn kéo xoay nhưng không click chọn trên cầu. Cầu xoay bằng quaternion theo đường ngắn để đưa vùng đích ra trước; điểm bay tới lấy từ hình học thật, kiểm tra bằng raycasting sau phép chiếu ra màn hình.
-- Khóa chọn/điều hướng trong chuyến bay để tránh chồng animation. Nếu đổi thuật toán cần reset tiến trình, xác nhận trước rồi mới bay; hủy giữ model và không tạo sao. Quay về chỉ tạm dừng, không xóa dữ liệu hoặc iteration.
-- Reduced motion/low effects/WebGL fallback dùng chuyển trang đơn giản. Overlay và bản sao thẻ chỉ trang trí, không nhận input và không được screen reader đọc. Có cleanup khi hủy, đổi chế độ chuyển động, tab ẩn hoặc mất context trong chuyến bay.
-- Giữ lazy loading Three.js: query sphere bằng template reference, không tham chiếu class component ở runtime ngoài defer. Gói đầu build sau mở rộng chuyển cảnh khoảng 356,59 kB; phần lab được tải trước khi sao đang bay nhưng chưa hiển thị/chạy huấn luyện.
+- Bốn lục địa giả tưởng có đường bờ riêng, vịnh/bán đảo/đảo nhỏ và phân bố quanh toàn cầu. Vị trí chính cố định theo bản đồ thiết kế; đường bờ và đảo dùng seed cố định 81427 (giá trị giúp sinh lại cùng một hình dạng sau mỗi lần tải trang). Có lục địa ở mặt sau, nên không yêu cầu nhìn thấy đủ bốn màu cùng lúc. Địa hình dùng lưới tam giác đều, thay bố cục bốn đĩa dạng cánh hoa ở mặt trước. Linear gold, Polynomial beige, Ridge xanh biển, Lasso bạc, cùng bảng màu với thẻ. Tạo hình bằng code cục bộ trong `planet-geometry.ts`, không tải bản đồ hay ảnh từ mạng.
+- Độ tự phát sáng của lục địa dao động nhẹ theo chu kỳ 1 giây, không tắt sáng đột ngột. Lục địa đang được chọn sáng ổn định; hover làm sáng và liên kết với thẻ tương ứng. Khi giảm chuyển động/hiệu ứng, dùng ánh sáng tĩnh. Có SVG hành tinh dự phòng khi không có WebGL.
+- Đại dương xanh đen ít phản chiếu, viền bờ phát sáng theo màu thuật toán, lưới kinh/vĩ tuyến mảnh, viền khí quyển xanh nhẹ; ba quỹ đạo và sáu điểm kết nối. Không thêm đế hologram hay biểu tượng bay. Màu dùng chung giữ nguyên với thẻ; phong cách lấy cảm hứng từ ảnh tham khảo, không phải bản đồ Trái Đất thật.
+- Chiều đi: thẻ thu thành sao → hành tinh xoay đưa lục địa ra trước → sao đáp vào đúng địa hình → canvas Three.js được chuyển ra lớp toàn viewport → camera thực sự di chuyển đến gần địa hình → trang thực nghiệm hiện dần. Không dùng đĩa màu phóng ra che toàn màn hình.
+- Chiều về: hiện lại góc nhìn sát địa hình toàn màn hình → camera lùi → cảnh thu về vị trí hành tinh → sao bay về thẻ → khôi phục hướng xoay trước chuyến đi. Cùng một renderer/canvas được dùng và trả về component, tránh tạo thêm WebGL context cho mỗi lần chọn.
+- Riêng camera tiến vào địa hình chạy 4,6 giây, điểm cuối cách tâm bề mặt khoảng 0,10 đơn vị cảnh (trước là 0,24). Đoạn cuối tăng exposure (độ sáng khi render) và một lớp sáng bạc mỏng, tối đa 20% opacity, để nối sang trang thực nghiệm trong khi vẫn thấy địa hình. Chiều ngược đảo nhịp sáng trước khi lùi ra.
+- Timeline chiều đi khoảng 6,8 giây cộng 0,49 giây nối trang; chiều về 6,35 giây cộng khoảng 0,5 giây nối trang. Thời gian nhìn thấy có thể dài hơn khi tải lần đầu hoặc máy bận. Khóa chọn/điều hướng trong chuyến bay để tránh chồng animation.
+- Framebuffer (ảnh nội bộ GPU vẽ trước khi hiển thị) trong chuyến bay được giới hạn pixel ratio 1, tối đa 1600×1000 và giữ đúng tỉ lệ. Canvas vẫn phủ viewport; giảm tải màn hình lớn thay vì yêu cầu GPU vẽ framebuffer 4K. Khi trả canvas về trang chọn, khôi phục chất lượng theo thiết bị/chế độ.
+- Camera thay đổi vị trí 3D và phép chiếu theo kích thước màn hình; không scale DOM của hành tinh để giả chuyển động đến bề mặt. Điểm đáp lấy từ tâm địa hình thật và kiểm tra raycasting, gồm cả mặt đại dương để tránh chọn vùng đất bị che ở phía sau.
+- Nếu đổi thuật toán cần reset tiến trình, xác nhận trước rồi mới bay; hủy giữ model và không tạo sao. Quay về chỉ tạm dừng, không xóa dataset/iteration. Train đỏ và test vàng trên trang 3–4 giữ nguyên.
+- Reduced motion/low effects/WebGL fallback dùng chuyển trang đơn giản, không có chuyến bay. Cleanup xử lý resize, tab ẩn, đổi chế độ chuyển động, mất context và component bị hủy. Bản sao thẻ/canvas chuyển cảnh chỉ trang trí, không nhận input hoặc được đọc bởi screen reader.
+- Giữ lazy loading Three.js bằng template reference cho component hành tinh. Phần lab được tải trước trong khi sao bay nhưng chưa hiển thị/chạy huấn luyện.
 
-Mã nguồn điều phối chuyến bay: [algorithm-flight.ts](../src/app/presentation/algorithm-flight.ts), [algorithm-picker.ts](../src/app/features/algorithm-picker/algorithm-picker.ts), [algorithm-sphere.ts](../src/app/features/algorithm-sphere/algorithm-sphere.ts) và App/JourneyMotion. Không thay API, MongoDB hoặc phép tính hồi quy.
+Sao băng dùng một đường nhỏ và một điểm sáng trong cảnh nền hiện có: trôi chéo nhẹ, hiện/mờ dần, không chiếm input và không ảnh hưởng dữ liệu mô hình. Dừng khi tab ẩn, giảm hiệu ứng hoặc reduced motion. Nền sao vẫn có 1.000 điểm.
+
+Mã nguồn chính: `planet-geometry.ts`, `algorithm-sphere.ts`, `algorithm-flight.ts`, `algorithm-picker.ts`, App/JourneyMotion và `spatial-backdrop.ts`. Engine/worker/schema/API không thay đổi trong đợt này.
+
+Kiểm chứng bản atlas hologram cố định: **101/101 unit test (22 file), 15 nhóm E2E headless/151 tiêu chí và build production đạt**. Unit kiểm tra bản đồ sinh lại giống hệt, có lục địa ở cả hai bán cầu, hình học hữu hạn và raycast đáp đúng từng lục địa trước mặt đại dương. Browser kiểm tra vùng đất nhìn thấy, xoay đưa vùng ở mặt sau ra trước, giữ màu thuật toán, camera tiến sâu/tăng sáng, quay lại và resize/mobile. Bài kiểm tra cũ yêu cầu cả bốn vùng nằm phía trước đã được thay bằng yêu cầu đúng của atlas: chỉ phần bán cầu đang nhìn thấy được hover; bốn thuật toán đều được kiểm tra qua chuyến bay riêng.
+
+Log mới: `atlas-unit.log`, `atlas-build.log`, `atlas-browser.log`, `atlas-full-e2e.log` trong `output/playwright`; ảnh cập nhật `planet-selection.png`, `planet-flight-closeup.png`, `planet-landing.png`. Bộ browser chạy trên dev-server, production đã build nhưng chưa chạy lại bộ E2E trên production. Không coi kết quả này là kiểm chứng MongoDB/SSL hoặc đảm bảo FPS trên mọi thiết bị. Sau lượt chạy chỉ sửa nhãn mô tả kết quả của testcase slides cho đúng ý nghĩa bán cầu, không thay assertion hay logic.
+
+Kiểm chứng bản hành tinh ban đầu 01/11/2026 (trước khi sửa atlas và kéo dài camera): **100/100 unit test (22 file), 15 nhóm E2E/149 tiêu chí và build production đạt**, bundle đầu khoảng 367,37 kB. Các kiểm tra gồm raycast tâm bốn lục địa trước mặt đại dương, camera tới gần địa hình, không còn đĩa màu phủ màn hình, canvas trả về đúng component, chuỗi đi/về bốn thuật toán, viewport 1920/mobile/resize, form, học A–F và offline với API giả lập. Không xác nhận tích hợp MongoDB/HTTPS hay FPS mọi thiết bị trong đợt này.
+
+Lượt E2E headed ban đầu có timeout ở màn hình lớn; đã giới hạn framebuffer, kiểm tra riêng điều hướng 1920 px đạt. Một lượt headed chung còn timeout ở nhóm cuối; chạy riêng nhóm chuyến bay đạt, sau đó chạy lại toàn bộ headless đạt. Chưa kết luận nguyên nhân chính xác của timeout headed. Runner hiện mặc định headless (browser không hiện cửa sổ) để giảm ảnh hưởng focus/tab nền; thêm `-Headed` khi muốn quan sát: `powershell -ExecutionPolicy Bypass -File e2e/run-ui-redesign.ps1 -Headed`. Không tăng timeout hay bỏ các điều kiện kiểm tra camera để báo đạt.
+
+Log cuối: `planet-unit.log`, `planet-build.log`, `planet-e2e-headless.log` và các `*-result.log` trong `output/playwright`. Ảnh: `planet-meteor-welcome.png`, `planet-selection.png`, `planet-flight-closeup.png`, `planet-landing.png`. E2E browser chạy trên dev-server; build production đã kiểm tra nhưng chưa chạy lại browser suite trên bản production. Lượt đo ngắn ở browser thử nghiệm đạt khoảng 59–60 FPS; không phải cam kết tốc độ trên mọi phần cứng.
+
+Các kết quả dưới đây là **lịch sử của phiên bản cầu bốn mảng/lớp phủ màu**, đã được thay bằng hành tinh và camera thật; không dùng làm bằng chứng kiểm thử phiên bản hiện tại.
 
 Kiểm chứng bản sao bay trước khi mở rộng toàn màn hình (31/10/2026): 92 unit test, 13 nhóm E2E/120 tiêu chí và production build đạt. Timeline thiết kế 1,65 giây cho sao/cầu và khoảng 0,35 giây nối trang. Lượt browser cuối đo chiều đi khoảng 2,32–2,42 giây, chiều về 2,03–2,04 giây (bao gồm việc công cụ chờ click/khung đích). Không cam kết thời lượng thực tế bằng nhau trên mọi máy; lần tải đầu có thể lâu hơn. Bundle đầu khoảng 354 kB, không nâng budget để che cảnh báo.
 
@@ -310,6 +370,7 @@ Khi thêm hiệu ứng hoặc đổi yêu cầu, sửa ngay mục tương ứng 
 ## 18. Nguồn tham khảo và ghi công
 
 - Lucian UX/UI Prompt #318: ý tưởng đường vẽ theo cuộn, chuyển thành lộ trình học A–F.
+- Lucian UX/UI Prompt #244: tóm tắt lỗi form, chuyển focus và thông báo theo từng ô; giữ ghi công MIT trong entry-form.ts.
 - Lucian UX/UI Prompt #228: viền thẻ sáng theo con trỏ.
 - Giữ comment ghi công MIT hiện có ở source áp dụng; không đưa dữ liệu thành phố/thẻ demo vào sản phẩm.
 - robinpayot.com là định hướng cảm giác chuyển cảnh đã trao đổi, không phải mã nguồn được xác nhận đã sao chép.

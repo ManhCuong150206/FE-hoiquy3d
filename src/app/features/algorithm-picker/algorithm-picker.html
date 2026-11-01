@@ -1,8 +1,8 @@
   <div class="section-heading"><p class="eyebrow">02 / CHỌN GÓC NHÌN CỦA BẠN</p><span class="section-index">FOUR WAYS TO FIND A PATTERN</span></div>
   <div class="algorithm-stage">
-    <div class="algorithm-copy"><h2 id="algorithm-heading">Mỗi dữ liệu,<br>một <em>khả năng.</em></h2><p>Bốn cách tiếp cận. Một không gian để thử.<br>Kéo xoay cầu · Rê vùng màu để phát sáng · Chọn thẻ để bắt đầu.</p><div class="preview-label" [attr.data-algorithm]="highlighted()"><span></span>{{ labels[highlighted()] }} Regression <b aria-hidden="true">↗</b></div></div>
-    <div class="sphere-container" [class.departing]="departing()">
-      @defer (on viewport) { <app-algorithm-sphere #sphere [active]="highlighted()" [departing]="departing()" [lowEffects]="lowEffects()" [attention]="hovering()" (hoveredChange)="preview($event)" /> } @placeholder { <div class="sphere-placeholder" aria-label="Đang chuẩn bị khối cầu 3D"><div></div></div> }
+    <div class="algorithm-copy"><h2 id="algorithm-heading">Mỗi dữ liệu,<br>một <em>khả năng.</em></h2><p>Bốn cách tiếp cận. Một không gian để thử.<br>Kéo xoay hành tinh · Rê lục địa để phát sáng · Chọn thẻ để bắt đầu.</p><div class="preview-label" [attr.data-algorithm]="highlighted()"><span></span>{{ labels[highlighted()] }} Regression <b aria-hidden="true">↗</b></div></div>
+    <div id="algorithm-planet-slot" class="sphere-container" [class.departing]="departing()">
+      @defer (on idle) { <app-algorithm-sphere #sphere [intro]="planetScreen() === 'welcome'" [active]="highlighted()" [departing]="departing()" [lowEffects]="lowEffects()" [attention]="hovering()" (hoveredChange)="preview($event)" /> } @placeholder { <div class="sphere-placeholder" aria-label="Đang chuẩn bị hành tinh 3D"><div></div></div> }
     </div>
     <div class="stage-caption"><span>EXPLORE THE SURFACE</span><span aria-hidden="true">✦</span><span>CHỌN ĐỂ BẮT ĐẦU</span></div>
   </div>

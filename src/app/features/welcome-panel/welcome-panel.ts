@@ -1,7 +1,9 @@
-import { Component, ElementRef, output, signal, viewChild } from '@angular/core';
+import { EntryForm } from './entry-form';
+import { Component, output, signal, viewChild } from '@angular/core';
 
 @Component({
   selector: 'app-welcome-panel',
+  imports: [EntryForm],
   templateUrl: './welcome-panel.html',
   styleUrl: './welcome-panel.css',
 })
@@ -10,17 +12,13 @@ export class WelcomePanel {
   readonly registering = signal(false);
   readonly message = signal('');
 
-  private readonly entryForm = viewChild<ElementRef<HTMLFormElement>>('entryForm');
-  resetEntry() { this.entryForm()?.nativeElement.reset(); this.registering.set(false); this.message.set(''); }
+  private readonly entryForm = viewChild(EntryForm);
+  resetEntry() { this.entryForm()?.reset(); this.registering.set(false); this.message.set(''); }
   guest() { this.resetEntry(); this.explore.emit(); }
 
   toggleMode() { this.registering.update(value => !value); this.message.set(''); }
 
-  submit(event: Event) {
-    event.preventDefault();
-    const form = event.target as HTMLFormElement;
-    if (!form.reportValidity()) return;
-    form.reset();
+  enteredDemo() {
     this.message.set('Bạn đang trải nghiệm giao diện demo. Tài khoản chưa được xác thực.');
     this.explore.emit();
   }

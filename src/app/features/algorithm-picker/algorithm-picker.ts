@@ -1,5 +1,5 @@
 import { AlgorithmFlight } from '../../presentation/algorithm-flight';
-import { Component, effect, input, output, signal, ElementRef, inject, viewChild, DestroyRef } from '@angular/core';
+import { Component, effect, input, output, signal, ElementRef, inject, viewChild, DestroyRef, Injector, afterNextRender } from '@angular/core';
 import { Algorithm, ALGORITHM_LABELS } from '../../core/models/experiment';
 import { AlgorithmSphere } from '../algorithm-sphere/algorithm-sphere';
 
@@ -10,6 +10,8 @@ export class AlgorithmPicker {
   private readonly flight=new AlgorithmFlight();
   readonly hovering=signal(false);
   readonly flying=signal(false);
+  private readonly injector=inject(Injector);
+  readonly planetScreen=input('welcome');
   readonly active = input<Algorithm>('linear');
   readonly departing = input(false);
   readonly lowEffects = input(false);
@@ -30,6 +32,19 @@ export class AlgorithmPicker {
     this.flying.set(true);
     try{return await this.flight.run(this.host,this.sphere(),algorithm,back);}finally{this.flying.set(false);}
   }
+  prepareReturn(algorithm:Algorithm){
+    if(this.lowEffects()||typeof matchMedia==='undefined'||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    const sphere=this.sphere();if(sphere?.beginJourney(algorithm,true)&&sphere.beginCinema(true))document.querySelector<HTMLElement>('.planet-cinema')!.style.opacity='0';
+  }
   restoreFlight(){this.flight.restore();this.sphere()?.restoreJourney();}
-  constructor() { inject(DestroyRef).onDestroy(()=>this.flight.restore()); effect(() => this.highlighted.set(this.active())); }
+  constructor() {
+    inject(DestroyRef).onDestroy(()=>this.flight.restore());effect(()=>this.highlighted.set(this.active()));
+    effect(()=>{
+      const sphere=this.sphere(),screen=this.planetScreen();
+      if(sphere&&(screen==='welcome'||screen==='algorithms'))afterNextRender(()=>{
+        const slot=document.getElementById(screen==='welcome'?'welcome-planet-slot':'algorithm-planet-slot');
+        if(slot)sphere.dockAt(slot);
+      },{injector:this.injector});
+    });
+  }
 }

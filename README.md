@@ -17,7 +17,7 @@ Mở http://127.0.0.1:4300. Trên môi trường khác có thể dùng npm thay 
 
 ## Cách sử dụng
 
-1. Vào bằng form demo hoặc Guest, chọn thuật toán bằng thẻ; khối cầu hỗ trợ rê chuột và kéo xoay.
+1. Vào bằng form demo hoặc Guest, chọn thuật toán bằng thẻ; hành tinh bốn lục địa hỗ trợ rê chuột và kéo xoay.
 2. Sinh dữ liệu hoặc nhập CSV; cấu hình tham số và chạy ở trang thực nghiệm.
 3. Mở trang học, bấm **Học từng bước** để chạy đúng một iteration A–F rồi dừng.
 4. Chọn chặng để xem lại số liệu/minh họa; dùng **Đến ghi chú** để đọc công thức.

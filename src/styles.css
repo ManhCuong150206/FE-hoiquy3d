@@ -310,10 +310,9 @@ html,body,.experience,.experience *{font-family:'Times New Roman',Times,serif!im
 #lab app-training-controls .field label{font-size:12px;letter-spacing:.035em;white-space:normal;line-height:1.25}
 @media(max-width:700px){#lab app-training-controls .field label{white-space:normal}}
 
-.algorithm-flight-layer{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden}.algorithm-flight-layer *{pointer-events:none!important}.algorithm-flight-star{position:fixed;left:0;top:0;width:36px;height:36px;background:var(--flight-color);clip-path:polygon(50% 0,61% 36%,100% 50%,61% 64%,50% 100%,39% 64%,0 50%,39% 36%);filter:drop-shadow(0 0 8px var(--flight-color));will-change:transform,opacity}.algorithm-flight-card{will-change:transform,opacity}.algorithm-flight-layer[data-phase=zoom]{background:radial-gradient(circle,transparent 30%,color-mix(in srgb,var(--flight-color) 6%,transparent))}@media(prefers-reduced-motion:reduce){.algorithm-flight-layer{display:none}}
+.algorithm-flight-layer{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden}.algorithm-flight-layer *{pointer-events:none!important}.algorithm-flight-star{position:fixed;left:0;top:0;width:36px;height:36px;background:var(--flight-color);clip-path:polygon(50% 0,61% 36%,100% 50%,61% 64%,50% 100%,39% 64%,0 50%,39% 36%);filter:drop-shadow(0 0 8px var(--flight-color));will-change:transform,opacity}.algorithm-flight-card{will-change:transform,opacity}@media(prefers-reduced-motion:reduce){.algorithm-flight-layer{display:none}}
 
 /* A selected sphere region grows beyond its canvas and hands off to the destination. */
-.algorithm-flight-cover{position:fixed;z-index:140;pointer-events:none;transform-origin:center;will-change:transform,opacity;background:radial-gradient(ellipse at 35% 28%,color-mix(in srgb,var(--flight-color) 85%,white),var(--flight-color) 48%,color-mix(in srgb,var(--flight-color) 45%,#050914));box-shadow:inset 0 0 80px #ffffff28;contain:paint}
 /* Algorithm identity is inherited on pages 2–4; data and semantic status colors stay independent. */
 :is(#algorithms,#lab,#learning) button:not(.stop):not(.algorithm-card){--liquid-text:var(--algorithm-accent);border-color:color-mix(in srgb,var(--algorithm-accent) 42%,transparent)!important;text-shadow:0 0 12px color-mix(in srgb,var(--algorithm-accent) 38%,transparent)}
 :is(#algorithms,#lab,#learning) button:focus-visible{outline-color:var(--algorithm-accent)}
@@ -321,4 +320,17 @@ html,body,.experience,.experience *{font-family:'Times New Roman',Times,serif!im
 :is(#lab,#learning) :is(.card,.controls,app-header .bar){border-color:color-mix(in srgb,var(--algorithm-accent) 23%,transparent)!important}
 :is(#lab,#learning) input[type=range]{accent-color:var(--algorithm-accent)}
 .learning-section{background:radial-gradient(ellipse at 20% 30%,color-mix(in srgb,var(--algorithm-accent) 5%,transparent),transparent 65%)}
-@media(prefers-reduced-motion:reduce){.algorithm-flight-cover{display:none}}
+
+/* One real WebGL canvas is promoted to the viewport during the flight, then returned. */
+.planet-cinema{position:fixed;inset:0;width:100vw;height:100vh;z-index:160;pointer-events:none;overflow:hidden;background:#02040b;contain:paint}
+.planet-cinema canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.algorithm-flight-layer{z-index:180}
+@media(prefers-reduced-motion:reduce){.planet-cinema{display:none}}
+
+.planet-cinema::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,#f4f7ff,#d7e0ee 70%);opacity:var(--arrival-glow,0);will-change:opacity}
+
+/* A single Angular planet instance travels between the two layout slots. */
+.planet-transfer-stage{z-index:160;pointer-events:none;will-change:transform;contain:layout style}
+.planet-transfer-stage app-algorithm-sphere{width:100%;height:100%;display:block}
+.planet-transfer-stage .orb-caption{opacity:0}
+.experience[data-planet-transfer] [data-screen]{pointer-events:none}

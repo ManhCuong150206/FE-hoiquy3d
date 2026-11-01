@@ -5,7 +5,7 @@
 <a href="#algorithms" class="skip-link" (click)="$event.preventDefault(); navigate('algorithms')">Đến phần chọn thuật toán</a>
 <section id="welcome" [hidden]="activeScreen() !== 'welcome'" data-screen class="journey-section welcome-section" aria-label="Chào mừng"><app-welcome-panel (explore)="navigate('algorithms', true)" /></section>
 <section [attr.data-algorithm]="preview()" id="algorithms" [hidden]="activeScreen() !== 'algorithms'" data-screen class="journey-section algorithm-section" aria-labelledby="algorithm-heading">
-  <app-algorithm-picker [active]="preview()" [departing]="transitioning() || pageBusy()" [lowEffects]="lowEffects()" (selected)="chooseAlgorithm($event)" (back)="logout()" />
+  <app-algorithm-picker [planetScreen]="activeScreen()" [active]="preview()" [departing]="transitioning() || pageBusy()" [lowEffects]="lowEffects()" (selected)="chooseAlgorithm($event)" (back)="logout()" />
 </section>
 @if (opened()) {
 <section id="lab" [hidden]="activeScreen() !== 'lab'" data-screen class="lab-section" aria-labelledby="lab-title" [attr.data-algorithm]="lab.algorithm()">

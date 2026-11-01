@@ -1,12 +1,13 @@
 async (page) => {
+ await page.bringToFront();
  page.setDefaultTimeout(15000); page.setDefaultNavigationTimeout(30000);
  const check = (ok, message) => { if (!ok) throw new Error(message); };
- await page.goto('http://127.0.0.1:4300/');
  await page.setViewportSize({width:1440,height:1000});
  await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.goto('http://127.0.0.1:4300/');
  await page.evaluate(async () => { localStorage.clear(); await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase('hoiquy3d');request.onsuccess=resolve;request.onerror=()=>reject(request.error);}); });
  await page.reload();
- await page.getByRole('heading', {name:'Chào mừng trở lại.'}).waitFor();
+ await page.getByRole('heading', {name:'Đăng nhập'}).waitFor();
  await page.evaluate(() => window.scrollTo({top:0,behavior:'instant'}));
  check(await page.locator('#lab').count() === 0, 'Lab must not mount before a selection');
  check(await page.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'Default theme must be dark');

@@ -1,0 +1,17 @@
+<form #form class="entry-validation" [class.has-errors]="issues().length>0" novalidate [attr.aria-label]="registering()?'Đăng ký demo':'Đăng nhập demo'" (submit)="submit($event)" (input)="revalidate()">
+  <div class="validation-summary" [attr.aria-hidden]="issues().length===0" role="alert" aria-atomic="true"><div>
+    @if (issues().length) {
+      <div class="summary-box"><strong><span aria-hidden="true">!</span> {{ issues().length }} mục cần kiểm tra</strong>
+        <ul>@for (issue of issues(); track issue.id) {<li><a [href]="'#'+issue.id" (click)="goTo(issue.id,$event)">{{ issue.label }}: {{ issue.hint }}</a></li>}</ul>
+      </div>
+    }
+  </div></div>
+  @for (field of fields(); track field.id) {
+    <div class="entry-field" [class.is-bad]="checked()&&invalid(field.id)" [class.is-good]="checked()&&!invalid(field.id)">
+      <label [for]="field.id">{{ field.label }}</label>
+      <div class="input-box"><input [id]="field.id" [name]="field.name" [type]="field.type" [placeholder]="field.placeholder" [attr.autocomplete]="field.id==='entry-password'?(registering()?'new-password':'current-password'):field.autocomplete" required [attr.minlength]="field.id==='entry-password'?8:null" [attr.maxlength]="field.id==='display-name'?80:null" [attr.aria-invalid]="checked()?invalid(field.id):null" [attr.aria-describedby]="invalid(field.id)?field.id+'-error':null"><span class="field-check" aria-hidden="true">✓</span></div>
+      <div class="field-hint"><div><span [id]="field.id+'-error'">{{ hint(field.id) }}</span></div></div>
+    </div>
+  }
+  <button class="primary auth-submit" type="submit">{{ registering()?'Đăng ký':'Đăng nhập' }}<span class="submit-icon" aria-hidden="true">↗</span></button>
+</form>

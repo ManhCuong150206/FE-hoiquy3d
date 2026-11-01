@@ -20,7 +20,7 @@ async(page)=>{
   await page.mouse.move(bounds.x+bounds.width*x,bounds.y+bounds.height*y);
   const id=await canvas.getAttribute('data-hovered-algorithm');if(id)hits.set(id,{x:bounds.x+bounds.width*x,y:bounds.y+bounds.height*y});
  }
- check(hits.size===4,'All four colored regions must be visible and hoverable at initial orientation: '+[...hits.keys()]);
+ check(hits.size>=1&&hits.size<4,'Visible hemisphere has hoverable continents, with remaining regions on the back: '+[...hits.keys()]);
  await page.screenshot({path:'output/playwright/sphere-four-colors.png'});
  const point=[...hits.values()][0];await page.mouse.move(point.x,point.y);await page.mouse.down();await page.mouse.move(point.x+75,point.y+45,{steps:12});await page.mouse.up();
  check(Boolean(await canvas.getAttribute('data-rotation')),'Drag must rotate sphere');check(await page.locator('#lab').count()===0,'Drag must not select algorithm');
@@ -52,5 +52,5 @@ async(page)=>{
  await page.evaluate(()=>document.querySelector('#learning').scrollIntoView({behavior:'instant'}));await page.waitForTimeout(650);
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Learning mobile overflow');
  await page.screenshot({path:'output/playwright/learning-mobile.png'});
- return {suite:'cinematic-slides',passed:['login glow transition','registration glow transition','guest glow transition','four initial regions hoverable','drag rotates without selection','selected algorithm cinematic transition','separate learning page with 3D and notes','six phases visible before training','shared model survives navigation','scroll neither navigates nor trains','buttons drive learning phases','learning mobile no overflow']};
+ return {suite:'cinematic-slides',passed:['login glow transition','registration glow transition','guest glow transition','visible hemisphere hoverable with other regions on the back','drag rotates without selection','selected algorithm cinematic transition','separate learning page with 3D and notes','six phases visible before training','shared model survives navigation','scroll neither navigates nor trains','buttons drive learning phases','learning mobile no overflow']};
 }

@@ -10,7 +10,7 @@ async(page)=>{
  check(await page.locator('#algorithms').isHidden(),'Wheel must not change pages');
  await page.getByRole('button',{name:'Tham gia với tư cách Guest',exact:true}).click();await page.locator('.experience[data-transition=exit]').waitFor();
  await page.locator('.experience[data-transition=enter]').waitFor();
- await page.waitForFunction(()=>document.querySelector('.experience').dataset.transition==='enter' && getComputedStyle(document.querySelector('.sphere-container')).transform!=='none');
+ await page.waitForFunction(()=>document.querySelector('.experience').dataset.transition==='enter' && document.querySelector('.planet-transfer-stage') && getComputedStyle(document.querySelector('.planet-transfer-stage')).transform!=='none');
  check(await page.locator('#welcome').isHidden(),'Old page must hide at swap');
  await wait('algorithms');check(await visible()===1,'Only selector visible');
  check(await page.locator('#algorithms').getAttribute('data-entered')==='complete','Destination entrance must complete');
@@ -31,5 +31,5 @@ async(page)=>{
  await page.locator('#lab .change-algorithm').click();await wait('algorithms');
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await wait('lab');
  check(await visible()===1,'Reduced motion must show exactly one page');
- return {suite:'page-motion/readonly',performance:sample,passed:['one visible page','wheel cannot navigate','outgoing animation','incoming 3D animation verified','lab render capped at 60 FPS','readonly algorithm','dropdown removed','back preserves model','hidden sphere stops rendering','reduced-motion navigation']};
+ return {suite:'page-motion/readonly',performance:sample,passed:['one visible page','wheel cannot navigate','outgoing animation','shared planet entrance animation verified','lab render capped at 60 FPS','readonly algorithm','dropdown removed','back preserves model','hidden sphere stops rendering','reduced-motion navigation']};
 }

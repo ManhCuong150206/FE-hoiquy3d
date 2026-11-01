@@ -28,6 +28,9 @@ export class SpatialBackdrop implements OnDestroy {
   private orbit: [number, number] = [1, 0];
   private readonly clock = new THREE.Vector2(1, 0);
   private twinkle: [number, number] = [1, 0];
+  private meteor?:THREE.Line<THREE.BufferGeometry,THREE.LineBasicMaterial>;
+  private meteorHead?:THREE.Mesh<THREE.SphereGeometry,THREE.MeshBasicMaterial>;
+  private meteorTime=0;
   private stars?: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
 
   constructor() {
@@ -38,7 +41,7 @@ export class SpatialBackdrop implements OnDestroy {
         try {
           this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'low-power' });
           this.renderer.setPixelRatio(1); this.camera.position.z = 8;
-          this.createStars(); this.scene.add(this.group);
+          this.createStars();this.createMeteor(); this.scene.add(this.group);
           this.host().nativeElement.appendChild(this.renderer.domElement);
           this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)'); this.reduced.addEventListener('change', this.restart);
           this.resize = new ResizeObserver(this.fit); this.resize.observe(this.host().nativeElement); this.fit();
@@ -95,6 +98,28 @@ export class SpatialBackdrop implements OnDestroy {
     this.host().nativeElement.dataset['starCount'] = String(count);
   }
 
+  private createMeteor(){
+    const positions:number[]=[],colors:number[]=[];
+    for(let i=0;i<24;i++){const t=i/23;positions.push(t*1.1,t*.35,0);const fade=(1-t)*(1-t);colors.push(fade*.8,fade*.9,fade);}
+    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+    this.meteor=new THREE.Line(geometry,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false}));
+    this.meteorHead=new THREE.Mesh(new THREE.SphereGeometry(.014,6,4),new THREE.MeshBasicMaterial({color:0xd7e0ee,transparent:true,opacity:.45,depthWrite:false,depthTest:false}));
+    this.meteor.visible=this.meteorHead.visible=false;this.group.add(this.meteor,this.meteorHead);
+  }
+  private updateMeteor(delta:number){
+    if(!this.meteor||!this.meteorHead)return;
+    const paused=this.lowEffects()||this.reduced?.matches;
+    if(!paused)this.meteorTime+=delta;
+    const time=(this.meteorTime%10000-3000)/1800,active=!paused&&time>=0&&time<=1;
+    this.meteor.visible=this.meteorHead.visible=active;
+    if(active){
+      const fade=Math.max(0,Math.min(1,time/.15,(1-time)/.2));
+      this.meteor.position.set(3-time*6,3.2-time*1.9,0);this.meteorHead.position.copy(this.meteor.position);
+      this.meteor.material.opacity=fade*.32;this.meteorHead.material.opacity=fade*.6;
+    }
+    this.host().nativeElement.dataset['meteorActive']=String(active);
+    this.host().nativeElement.dataset['meteorCycle']=String(Math.floor(this.meteorTime/10000));
+  }
   private fit = () => {
     if (!this.renderer) return;
     const host = this.host().nativeElement;
@@ -111,6 +136,7 @@ export class SpatialBackdrop implements OnDestroy {
       this.group.quaternion.set(0, 0, this.orbit[1], this.orbit[0]).normalize();
       this.clock.set(...this.twinkle);
     }
+    this.updateMeteor(delta);
     this.camera.position.x += (this.pointer.x - this.camera.position.x) * .04; this.camera.position.y += (this.pointer.y - this.camera.position.y) * .04;
     this.renderer.render(this.scene, this.camera); recordRender(this.renderer.domElement, started);
     this.host().nativeElement.dataset['twinklePhase'] = this.twinkle[1].toFixed(4);
@@ -128,6 +154,7 @@ export class SpatialBackdrop implements OnDestroy {
     cancelAnimationFrame(this.frame); this.resize?.disconnect(); this.reduced?.removeEventListener('change', this.restart);
     document.removeEventListener('visibilitychange', this.restart); window.removeEventListener('pointermove', this.move);
     this.renderer?.domElement.removeEventListener('webglcontextlost', this.contextLost);
+    this.meteor?.geometry.dispose();this.meteor?.material.dispose();this.meteorHead?.geometry.dispose();this.meteorHead?.material.dispose();
     this.stars?.geometry.dispose(); this.stars?.material.dispose(); this.renderer?.dispose(); this.renderer?.domElement.remove();
   }
 }

@@ -5,7 +5,7 @@ async (page) => {
  await page.goto('http://127.0.0.1:4300/');
  await page.setViewportSize({width:390,height:844});
  await page.emulateMedia({reducedMotion:'reduce'});
- await page.getByRole('heading',{name:'Chào mừng trở lại.'}).waitFor();
+ await page.getByRole('heading',{name:'Đăng nhập'}).waitFor();
  await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile horizontal overflow');
  await page.screenshot({path:'output/playwright/welcome-mobile.png'});

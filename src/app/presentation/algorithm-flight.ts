@@ -6,17 +6,11 @@ export function curvedFlight(a:FlightPoint,b:FlightPoint,t:number):FlightPoint {
   const u=1-t,control={x:(a.x+b.x)/2,y:Math.min(a.y,b.y)-65};
   return {x:u*u*a.x+2*u*t*control.x+t*t*b.x,y:u*u*a.y+2*u*t*control.y+t*t*b.y};
 }
-/** Radius reaches every viewport corner, even after a resize or off-center landing. */
-export function viewportRadius(point:FlightPoint,width:number,height:number):number {
-  return Math.hypot(Math.max(Math.abs(point.x),Math.abs(width-point.x)),Math.max(Math.abs(point.y),Math.abs(height-point.y)))+2;
-}
-export function removeFlightCover(){if(typeof document!=='undefined')document.querySelector('.algorithm-flight-cover')?.remove();}
-export function prepareFlightCover(algorithm:string):HTMLElement {
-  const cover=document.querySelector<HTMLElement>('.algorithm-flight-cover')??document.createElement('div');
-  cover.className='algorithm-flight-cover';cover.dataset['algorithm']=algorithm;cover.setAttribute('aria-hidden','true');
-  cover.style.setProperty('--flight-color',getComputedStyle(document.documentElement).getPropertyValue('--color-'+algorithm).trim()||'#35e6ff');
-  cover.style.cssText+=';position:fixed;inset:0;width:100vw;height:100vh;border-radius:0;transform:none;opacity:1;';
-  document.body.appendChild(cover);return cover;
+/** Close the transient WebGL stage, reattaching its canvas to its Angular owner. */
+export function closePlanetCinema(){
+ if(typeof document==='undefined')return;
+ document.querySelector('.algorithm-flight-cover')?.remove();
+ document.querySelector('.planet-cinema')?.dispatchEvent(new Event('hoiquy:close-cinema'));
 }
 /** Owns ephemeral visual copies only. Domain/model changes remain in App. */
 export class AlgorithmFlight {
@@ -24,10 +18,11 @@ export class AlgorithmFlight {
   private timeline?: gsap.core.Timeline;
   private finish?: ()=>void;
   private hiddenCard?: HTMLElement;
+  private host?:HTMLElement;
   cancel(){this.revision++;this.finish?.();}
-  restore(){this.cancel();removeFlightCover();if(this.hiddenCard)this.hiddenCard.style.removeProperty('visibility');this.hiddenCard=undefined;}
+  restore(){this.cancel();closePlanetCinema();this.host?.style.removeProperty('opacity');if(this.hiddenCard)this.hiddenCard.style.removeProperty('visibility');this.hiddenCard=undefined;}
   async run(host:HTMLElement,sphere:AlgorithmSphere|undefined,algorithm:Algorithm,back:boolean):Promise<boolean>{
-    this.cancel();const revision=this.revision;
+    this.cancel();this.host=host;const revision=this.revision;
     const card=host.querySelector<HTMLElement>(`.algorithm-card[data-algorithm="${algorithm}"]`);
     if(!card||!sphere||!sphere.beginJourney(algorithm,back)) {this.restore();return false;}
     const {gsap:engine}=await import('gsap');if(revision!==this.revision||matchMedia('(prefers-reduced-motion: reduce)').matches){sphere.restoreJourney();return false;}engine.ticker.fps(60);
@@ -42,61 +37,51 @@ export class AlgorithmFlight {
     portal.append(clone,star);document.body.appendChild(portal);card.style.visibility='hidden';this.hiddenCard=card;
     host.dataset['flight']=back?'return':'depart';
     const others=Array.from(host.querySelectorAll<HTMLElement>('.algorithm-card')).filter(el=>el!==card);
-    const state={align:back?1:0,zoom:back?1:0,t:0,cover:back?1:0};let origin=center();
-    const cover=prepareFlightCover(algorithm);
-    let landing=sphere.journeyAnchor()??center();
-    const sizeCover=()=>{
-      const radius=viewportRadius(landing,innerWidth,innerHeight);
-      cover.style.inset='auto';cover.style.left=(landing.x-radius)+'px';cover.style.top=(landing.y-radius)+'px';
-      cover.style.width=cover.style.height=(radius*2)+'px';cover.style.borderRadius='50%';
-    };
-    const updateCover=()=>{
-      cover.style.transform=`scale(${state.cover})`;
-      cover.dataset['coverage']=state.cover>=.999?'full':'partial';
-    };
-    sizeCover();updateCover();
-    const resized=()=>{sizeCover();updateCover();};window.addEventListener('resize',resized);
+    const state={align:back?1:0,zoom:back?1:0,t:0,cinema:back?1:0};let origin=center();
+    if(back){sphere.beginCinema(true);sphere.refreshCinemaFrame();}
     const locate=(point:FlightPoint)=>{star.style.transform=`translate3d(${point.x-18}px,${point.y-18}px,0)`;};
     const updateSphere=()=>sphere.setJourney(state.align,state.zoom);
     return await new Promise<boolean>(resolve=>{
       let completed=false;
       const cleanup=()=>{
         if(completed)return;completed=true;this.timeline?.kill();this.timeline=undefined;
-        portal.remove();window.removeEventListener('resize',resized);if(back)removeFlightCover();delete host.dataset['flight'];engine.set(others,{clearProps:'opacity'});
+        portal.remove();delete host.dataset['flight'];engine.set(others,{clearProps:'opacity'});if(back){closePlanetCinema();engine.set(host,{clearProps:'opacity'});}
         if(back){card.style.removeProperty('visibility');this.hiddenCard=undefined;sphere.restoreJourney();}
         document.removeEventListener('visibilitychange',skip);media.removeEventListener('change',skip);canvas?.removeEventListener('webglcontextlost',lost);this.finish=undefined;resolve(true);
       };
       const media=matchMedia('(prefers-reduced-motion: reduce)');
-      const canvas=host.querySelector('app-algorithm-sphere canvas');
+      const canvas=document.querySelector('.planet-cinema canvas')??host.querySelector('app-algorithm-sphere canvas');
       const lost=()=>cleanup();canvas?.addEventListener('webglcontextlost',lost);
-      const skip=()=>{if(document.hidden||media.matches){if(!back){sphere.setJourney(1,1);state.cover=1;updateCover();}cleanup();}};
+      const skip=()=>{if(document.hidden||media.matches){if(!back){sphere.setJourney(1,1);sphere.beginCinema();sphere.setCinema(1);}cleanup();}};
       this.finish=cleanup;document.addEventListener('visibilitychange',skip);media.addEventListener('change',skip);
       const timeline=engine.timeline({onComplete:cleanup});this.timeline=timeline;
       if(!back){
         locate(origin);engine.set(star,{opacity:0,scale:.7});
         timeline.call(()=>{portal.dataset['phase']='gather';},[],0)
-          .to(others,{opacity:.35,duration:.25},0)
-          .to(clone,{scale:.04,opacity:0,duration:.35,ease:'power2.inOut'},0)
-          .to(star,{opacity:1,scale:1,duration:.18},.2)
-          .to(state,{align:1,duration:.45,ease:'power2.inOut',onUpdate:updateSphere},0)
-          .call(()=>{portal.dataset['phase']='fly';},[],.45)
-          .to(state,{t:1,duration:.65,ease:'power2.inOut',onUpdate:()=>{const end=sphere.journeyAnchor();if(end)locate(curvedFlight(origin,end,state.t));}},.45)
-          .call(()=>{portal.dataset['phase']='zoom';landing=sphere.journeyAnchor()??landing;sizeCover();updateCover();},[],1.1)
-          .to(star,{opacity:0,scale:.2,duration:.18},1.05)
-          .to(state,{zoom:1,duration:.55,ease:'power2.in',onUpdate:updateSphere},1.1)
-          .to(state,{cover:1,duration:.45,ease:'power2.inOut',onUpdate:updateCover},1.2);
+          .to(others,{opacity:.35,duration:.3},0)
+          .to(clone,{scale:.04,opacity:0,duration:.45,ease:'power2.inOut'},0)
+          .to(star,{opacity:1,scale:1,duration:.2},.25)
+          .to(state,{align:1,duration:1.1,ease:'power2.inOut',onUpdate:updateSphere},0)
+          .call(()=>{portal.dataset['phase']='fly';},[],.95)
+          .to(state,{t:1,duration:.9,ease:'power2.inOut',onUpdate:()=>{const end=sphere.journeyAnchor();if(end)locate(curvedFlight(origin,end,state.t));}},.95)
+          .to(star,{opacity:0,scale:.25,duration:.2},1.8)
+          .call(()=>{portal.dataset['phase']='approach';sphere.beginCinema();},[],1.85)
+          .to(host,{opacity:0,duration:.55},1.9)
+          .to(state,{cinema:1,duration:.8,ease:'power2.inOut',onUpdate:()=>sphere.setCinema(state.cinema)},1.85)
+          .to(state,{zoom:1,duration:4.6,ease:'power2.inOut',onUpdate:updateSphere},2.2);
       }else{
-        engine.set(clone,{scale:.04,opacity:0});engine.set(star,{opacity:0});
+        engine.set(host,{opacity:0});engine.set(clone,{scale:.04,opacity:0});engine.set(star,{opacity:0});
         timeline.call(()=>{portal.dataset['phase']='pullback';},[],0)
-          .to(state,{zoom:0,duration:.5,ease:'power2.out',onUpdate:updateSphere},0)
-          .to(state,{cover:0,duration:.5,ease:'power2.inOut',onUpdate:updateCover},0)
-          .call(()=>{origin=sphere.journeyAnchor()??center();locate(origin);portal.dataset['phase']='return-star';const box=card.getBoundingClientRect();if(box.bottom>innerHeight||box.top<0)card.scrollIntoView({block:'center',behavior:'smooth'});},[],.5)
-          .to(star,{opacity:1,scale:1,duration:.12},.5)
-          .to(state,{t:1,duration:.7,ease:'power2.inOut',onUpdate:()=>locate(curvedFlight(origin,center(),state.t))},.55)
-          .call(()=>{portal.dataset['phase']='restore-card';const box=card.getBoundingClientRect();clone.style.left=box.left+'px';clone.style.top=box.top+'px';},[],1.25)
-          .to(star,{opacity:0,scale:.3,duration:.18},1.25)
-          .to(clone,{scale:1,opacity:1,duration:.4,ease:'power2.out'},1.25)
-          .to(state,{align:0,duration:.35,ease:'power2.inOut',onUpdate:updateSphere},1.3);
+          .to(state,{zoom:0,duration:4.6,ease:'power2.inOut',onUpdate:updateSphere},0)
+          .to(state,{cinema:0,duration:.85,ease:'power2.inOut',onUpdate:()=>sphere.setCinema(state.cinema)},4.15)
+          .to(host,{opacity:1,duration:.6},4.2)
+          .call(()=>{sphere.endCinema();origin=sphere.journeyAnchor()??center();locate(origin);portal.dataset['phase']='return-star';const box=card.getBoundingClientRect();if(box.bottom>innerHeight||box.top<0)card.scrollIntoView({block:'center',behavior:'smooth'});},[],5)
+          .to(star,{opacity:1,scale:1,duration:.15},5)
+          .to(state,{t:1,duration:.9,ease:'power2.inOut',onUpdate:()=>locate(curvedFlight(origin,center(),state.t))},5.05)
+          .call(()=>{portal.dataset['phase']='restore-card';const box=card.getBoundingClientRect();clone.style.left=box.left+'px';clone.style.top=box.top+'px';},[],5.95)
+          .to(star,{opacity:0,scale:.3,duration:.2},5.95)
+          .to(clone,{scale:1,opacity:1,duration:.4,ease:'power2.out'},5.95)
+          .to(state,{align:0,duration:.6,ease:'power2.inOut',onUpdate:updateSphere},5.75);
       }
     });
   }

@@ -1,4 +1,4 @@
-import { removeFlightCover } from './presentation/algorithm-flight';
+import { closePlanetCinema } from './presentation/algorithm-flight';
 import { CardGlow } from './presentation/card-glow';
 import { Component, DestroyRef, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
 import { Header } from './layout/header/header';
@@ -48,12 +48,12 @@ export class App {
     const target = document.getElementById(screen); if (!target) { this.activeScreen.set(screen); return; }
     const previous=this.activeScreen();
     const reverse=screen==='algorithms' && (previous==='lab'||previous==='learning') && !!this.picker();
-    if(reverse){this.lab.pause();this.transitioning.set(true);}
+    if(reverse){this.lab.pause();this.transitioning.set(true);this.picker()?.prepareReturn(this.preview());}
     const from = document.getElementById(previous);
     if (screen === this.activeScreen() && !this.pageBusy()) { this.transitioning.set(false); return; }
     this.pageBusy.set(true);
     const swap = () => this.activeScreen.set(screen);
-    const release=()=>{removeFlightCover();this.pageBusy.set(false);this.transitioning.set(false);};
+    const release=()=>{closePlanetCinema();this.pageBusy.set(false);this.transitioning.set(false);};
     const done=()=>{
       if(reverse){void this.picker()!.animate(this.preview(),true).catch(()=>this.picker()?.restoreFlight()).finally(release);}
       else release();
