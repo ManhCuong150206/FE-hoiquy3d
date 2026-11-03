@@ -7,10 +7,20 @@
   </div>
   <div id="lesson-content">
     <div class="lesson-command">
-      <button class="primary run-iteration" type="button" (click)="runIteration()" [disabled]="lab.busy() || lab.switching() || lab.status() === 'done' || lab.status() === 'error'">{{ lab.auto() ? 'Tạm dừng' : lab.snapshot() && lab.phase() < 5 ? 'Tiếp tục học' : 'Học từng bước' }}</button>
+      <button class="primary run-iteration" type="button" (click)="runIteration()" [disabled]="lab.busy() || lab.switching() || !!lab.lrError()" aria-describedby="lesson-run-status">{{ runLabel() }}</button>
       <span class="iteration-badge">Iteration {{ lab.iteration() }} · {{ lab.auto() ? 'Đang trình diễn A–F' : 'Sẵn sàng xem kết quả' }}</span>
       <button type="button" class="notes-link" (click)="notes()">Đến ghi chú ↓</button>
     </div>
+    <p id="lesson-run-status" role="status" class="subtle">
+      @if (lab.switching()) { Đang chuyển sang chế độ học từng bước, vui lòng chờ. }
+      @else if (lab.busy()) { Đang tính toán bước học, vui lòng chờ. }
+      @else if (lab.lrError(); as error) { {{ error }} Quay về thực nghiệm để chỉnh tốc độ học. }
+      @else if (restartRequired()) {
+        {{ lab.status() === 'done' ? 'Mô hình đã kết thúc ở iteration ' + lab.iteration() + '.' : 'Phiên học gặp lỗi.' }}
+        Bấm “Học lại từ đầu” để chạy một vòng A–F với cùng dữ liệu và thuật toán. Tiến trình hiện tại sẽ được đặt lại; các bản đã lưu vẫn được giữ.
+      }
+      @else { Bấm nút học để chạy đúng một iteration qua A–F, rồi dừng để xem kết quả. }
+    </p>
     <details class="lesson-options">
       <summary>Tùy chọn · mẫu train và tốc độ</summary>
       <label>Thời lượng mỗi pha <select aria-label="Thời lượng mỗi pha" [value]="lab.phaseSeconds()" (change)="lab.setPhaseSeconds(number($event))">@for (v of [0.5,1,2,3,5]; track v) { <option [value]="v" [selected]="v === lab.phaseSeconds()">{{v}} giây</option> }</select></label>
@@ -263,7 +273,7 @@
       tăng ở bước này. Hãy cân nhắc giảm learning rate; loss không được bảo đảm luôn giảm.' : s.after.trainLoss <
         s.before.trainLoss ? 'MSE train giảm ở bước này. Các bước tiếp theo vẫn có thể tăng hoặc phân kỳ.'
         : 'MSE train không đổi ở bước này.' }}</p>
-        @if (s.done) { <p>Đã dừng: đạt số iteration tối đa hoặc thay đổi MSE nhỏ hơn ngưỡng dừng. Bấm “Học lại từ đầu”
+        @if (s.done) { <p>Đã dừng: đạt số iteration tối đa hoặc thay đổi hàm mục tiêu nhỏ hơn ngưỡng dừng. Bấm “Học lại từ đầu”
           để chạy lại.</p> }
             }
     </details>

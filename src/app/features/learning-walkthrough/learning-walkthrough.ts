@@ -9,6 +9,8 @@ export class LearningWalkthrough {
   readonly active = input(true);
   readonly viewPhase = output<number | null>();
   readonly detailsOpen = signal(false);
+  readonly restartRequired = computed(() => this.lab.status() === 'done' || this.lab.status() === 'error');
+  readonly runLabel = computed(() => this.lab.auto() ? 'Tạm dừng' : this.restartRequired() ? 'Học lại từ đầu' : this.lab.snapshot() && this.lab.phase() < 5 ? 'Tiếp tục học' : 'Học từng bước');
   readonly phaseSummaries = computed(() => {
     const s=this.lab.snapshot(), sample=this.selected();
     if(!s || !sample)return [];
@@ -35,6 +37,8 @@ export class LearningWalkthrough {
   }
   runIteration() {
     if (this.lab.auto()) { this.lab.pausePresentation(); return; }
+    if (this.lab.busy() || this.lab.switching() || this.lab.lrError()) return;
+    if (this.restartRequired()) this.lab.reset();
     if (this.lab.mode() !== 'learn') { this.startPending.set(true); this.lab.setMode('learn'); }
     else this.lab.playIteration();
   }

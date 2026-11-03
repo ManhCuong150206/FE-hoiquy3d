@@ -438,3 +438,12 @@ Năm file giao diện/học cũ được thay bằng tài liệu này. ZIP chứ
 | PWA production | 8/8 tiêu chí đạt | Service Worker/Worker cache đủ → reload offline → học/lưu → reload/khôi phục → online đồng bộ MongoDB qua SSR proxy |
 
 Log/ảnh nằm trong `FE/FE-hoiquy3d/output/playwright` (bị Git ignore): `persistence-unit-final.log`, `persistence-build-final.log`, `backend-build-final.log`, `backend-unit-final.log`, `backend-e2e-final.log`, `persistence-ui-final.log`, `persistence-ui-remaining.log`, `final-*.log`, `persistence-live-final.log`, `pwa-persistence.log`, `pwa-persistence-complete.png`. Test UI đầu có lỗi kỳ vọng logout cũ; không ghi nhận lần đó là toàn bộ pass. Các nhóm còn lại và các nhóm ảnh hưởng đã chạy lại như bảng trên.
+
+## 20. Nút học ở trang 4 sau khi mô hình kết thúc - 04/11/2026
+
+- Nguyên nhân đã tái hiện: mô hình trang 3 có `status = done`; nút trang 4 vẫn ghi “Học từng bước” nhưng bị disabled. Khi rê chuột, CSS hiện dấu cấm; người dùng không có thao tác khởi động lại ngay ở trang 4.
+- Đã sửa: khi phiên hoàn tất hoặc gặp lỗi, đổi nút thành **Học lại từ đầu** và cho bấm. Đây là thao tác đặt lại tiến trình/model chưa lưu rồi chạy đúng một iteration A–F, giữ nguyên tập dữ liệu, thuật toán và cấu hình; các bản thí nghiệm đã lưu không bị xóa. Phiên đang chạy bình thường không bị reset khi bấm tiếp tục.
+- Khi Worker bận/chuyển chế độ hoặc learning rate không hợp lệ, nút vẫn được khóa để tránh gửi thao tác chồng nhau, kèm thông báo lý do liên kết bằng `aria-describedby`.
+- File sửa: `learning-walkthrough.ts`, `learning-walkthrough.html`; thêm `learning-walkthrough.spec.ts` và `e2e/ui-redesign/lesson-restart.e2e.js`; runner E2E có thêm nhóm `lesson-restart`.
+- Kiểm thử: **131/131 unit test (26 file), build production đạt**. Browser: `lesson-restart` **8 tiêu chí**, `learning-route` **14 tiêu chí**, `smooth-learning` **9 tiêu chí** đều đạt. Browser dùng Worker thật và API fixture, không phải đợt kiểm chứng MongoDB mới; không chạy lại toàn bộ nhóm E2E.
+- Log/ảnh: `lesson-disabled-before.log`, `lesson-disabled-before.png`, `lesson-restart-unit.log`, `lesson-restart-build.log`, `lesson-restart-e2e.log`, `lesson-restart-fixed.png`, `lesson-fix-learning-route.log`, `lesson-fix-smooth-learning.log` trong `output/playwright` (Git ignore).
