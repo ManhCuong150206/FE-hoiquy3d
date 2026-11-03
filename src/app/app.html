@@ -1,8 +1,9 @@
 <div class="experience" appCardGlow [glowScreen]="activeScreen()" [glowReduced]="lowEffects()" appJourneyMotion [motionEnabled]="!lowEffects()" [attr.aria-busy]="pageBusy()">
 <div class="starfield-base" aria-hidden="true"></div>
 @defer (on idle) { <app-spatial-backdrop [lowEffects]="lowEffects()" [screen]="activeScreen()" /> }
+@if(authError()){<p role="alert" class="session-error">{{ authError() }}</p>}
 <div class="scene-wipe" aria-hidden="true"></div>
-<a href="#algorithms" class="skip-link" (click)="$event.preventDefault(); navigate('algorithms')">Đến phần chọn thuật toán</a>
+<a href="#algorithms" class="skip-link" (click)="$event.preventDefault(); enterGuest()">Tiếp tục với tư cách Guest</a>
 <section id="welcome" [hidden]="activeScreen() !== 'welcome'" data-screen class="journey-section welcome-section" aria-label="Chào mừng"><app-welcome-panel (explore)="navigate('algorithms', true)" /></section>
 <section [attr.data-algorithm]="preview()" id="algorithms" [hidden]="activeScreen() !== 'algorithms'" data-screen class="journey-section algorithm-section" aria-labelledby="algorithm-heading">
   <app-algorithm-picker [planetScreen]="activeScreen()" [active]="preview()" [departing]="transitioning() || pageBusy()" [lowEffects]="lowEffects()" (selected)="chooseAlgorithm($event)" (back)="logout()" />

@@ -1,6 +1,7 @@
+import { AuthSession } from './state/auth-session';
 import { closePlanetCinema } from './presentation/algorithm-flight';
 import { CardGlow } from './presentation/card-glow';
-import { Component, DestroyRef, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
+import { Component, effect, untracked, DestroyRef, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
 import { Header } from './layout/header/header';
 import { TrainingControls } from './features/training-controls/training-controls';
 import { ExperimentsPanel } from './features/experiments-panel/experiments-panel';
@@ -24,6 +25,10 @@ import { LabStore } from './state/lab-store';
 })
 export class App {
   readonly lab = inject(LabStore);
+  private readonly auth=inject(AuthSession);
+  readonly authError=this.auth.error;
+  private sessionScope=this.auth.scope();
+  private loggingOut=false;
   private readonly injector = inject(Injector);
   readonly lessonPhase = signal<number | null>(null);
   readonly opened = signal(false);
@@ -40,7 +45,11 @@ export class App {
   private readonly confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirmDialog');
   readonly pageBusy = signal(false);
 
-  constructor(){inject(DestroyRef).onDestroy(()=>{this.destroyed=true;this.picker()?.restoreFlight();});}
+  constructor(){
+    effect(()=>{const scope=this.auth.scope();if(scope===this.sessionScope)return;this.sessionScope=scope;
+      if(!this.loggingOut&&!this.auth.migration()&&(this.opened()||this.activeScreen()!=='welcome'))untracked(()=>this.clearSessionView());});
+    inject(DestroyRef).onDestroy(()=>{this.destroyed=true;this.picker()?.restoreFlight();});}
+  enterGuest(){void this.welcome()?.guest();}
   navigate(screen: string, _cinematic = false, handoff=false) {
     if(this.pageBusy())return;
     if (!['welcome', 'algorithms', 'lab', 'learning'].includes(screen) || ((screen === 'lab' || screen === 'learning') && !this.opened())) return;
@@ -63,9 +72,17 @@ export class App {
     else { swap(); done(); }
   }
 
-  logout() {
+  async logout() {
+    if(this.loggingOut)return;this.loggingOut=true;
     this.lab.pause(); this.cancelChange(); this.welcome()?.resetEntry();
-    this.navigate('welcome', true);
+    try { await this.auth.logout(); this.sessionScope=this.auth.scope();this.clearSessionView(false);this.navigate('welcome', true); }
+    catch(error){this.auth.error.set(error instanceof Error?error.message:'Không đăng xuất được.');}
+    finally{this.loggingOut=false;}
+  }
+
+  private clearSessionView(returnWelcome=true){
+    this.motion()?.settle();this.picker()?.restoreFlight();this.lab.resetSession();this.opened.set(false);
+    this.lessonPhase.set(null);if(returnWelcome)this.activeScreen.set('welcome');this.preview.set('linear');this.pageBusy.set(false);
   }
 
   chooseAlgorithm(algorithm: Algorithm) {

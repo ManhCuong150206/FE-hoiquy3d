@@ -67,8 +67,8 @@ Mỗi lúc chỉ hiện một trang; chuyển bằng nút hoặc chọn thẻ th
 
 | Trang | Nội dung và hành vi chính |
 | --- | --- |
-| 1. Đăng nhập/đăng ký | Email, mật khẩu, đăng ký có tên hiển thị, nút Guest. Đây là demo kiểm tra form, chưa phải xác thực thật; không gửi/lưu/log credential. Không còn nút Khám phá trùng Guest |
-| 2. Chọn thuật toán | Hành tinh giả tưởng: đại dương xanh đen, bốn lục địa có hình dạng riêng và màu thuật toán. Nhấp nháy nhẹ chu kỳ 1 giây, chọn thì sáng ổn định; hover liên kết với thẻ, kéo xoay; chọn bằng thẻ (không bấm chọn trực tiếp trên cầu). Thẻ dùng được bằng bàn phím/fallback. Footer là Đăng xuất demo: tạm dừng, xóa form, về trang đầu; không xóa dataset hay thí nghiệm |
+| 1. Đăng nhập/đăng ký | Email, mật khẩu, đăng ký có tên hiển thị, nút Guest. Gửi yêu cầu đăng ký/đăng nhập thật đến API; chỉ chuyển cảnh khi máy chủ xác nhận. Cookie HttpOnly giữ phiên; không lưu mật khẩu hoặc token trong localStorage. Không còn nút Khám phá trùng Guest |
+| 2. Chọn thuật toán | Hành tinh giả tưởng: đại dương xanh đen, bốn lục địa có hình dạng riêng và màu thuật toán. Nhấp nháy nhẹ chu kỳ 1 giây, chọn thì sáng ổn định; hover liên kết với thẻ, kéo xoay; chọn bằng thẻ (không bấm chọn trực tiếp trên cầu). Thẻ dùng được bằng bàn phím/fallback. Footer là Đăng xuất: thu hồi phiên, tạm dừng, xóa dữ liệu đang hiển thị và form, chuyển về trang đầu; bản ghi đã lưu vẫn ở vùng dữ liệu riêng |
 | 3. Thực nghiệm | Dữ liệu, thí nghiệm, 3D, metric. Thanh điều khiển gồm chế độ, Reset/Chạy/Step/Stop, iteration và tham số. Ô thuật toán chỉ hiện lựa chọn; nút đổi chỉ ở header. Đổi thuật toán khi có tiến trình cần xác nhận |
 | 4. Học từng bước | Mô hình trái, chặng học phải, ghi chú bên dưới. “Học từng bước” chạy một iteration A–F rồi dừng. “Tạm dừng” và “Tiếp tục học” giữ iteration đang dở. Không còn nút Pha tiếp theo |
 
@@ -90,7 +90,7 @@ Xác nhận sau thay đổi này (01/11/2026): production build đạt; 101 unit
 
 Thứ tự cột trái trang đăng nhập là **tên đề tài → hành tinh → ba mục minh họa**. Hành tinh xuất hiện trên trang đầu bằng lazy loading khi trình duyệt rảnh; không dựng thêm một bản sao cho trang chọn.
 
-Đăng nhập/đăng ký demo hợp lệ hoặc bấm Guest: hành tinh di chuyển từ cột trái sang vị trí bên phải trang chọn trong khoảng 4 giây; đăng xuất chạy ngược. Cùng component Angular và cùng canvas WebGL được giữ lại, nên bản đồ/góc xoay không bị đặt lại. Nội dung trang đích hiện dần sau khi hành tinh gần tới chỗ để tránh chồng lên đối tượng đang bay. Chuyển động dùng transform vị trí và scale đồng đều, không kéo méo hình cầu.
+Đăng nhập/đăng ký được API xác nhận hoặc bấm Guest (offline dùng phiên cục bộ): hành tinh di chuyển từ cột trái sang vị trí bên phải trang chọn trong khoảng 4 giây; đăng xuất chạy ngược. Cùng component Angular và cùng canvas WebGL được giữ lại, nên bản đồ/góc xoay không bị đặt lại. Nội dung trang đích hiện dần sau khi hành tinh gần tới chỗ để tránh chồng lên đối tượng đang bay. Chuyển động dùng transform vị trí và scale đồng đều, không kéo méo hình cầu.
 
 Hai vị trí nhận hành tinh là `welcome-planet-slot` và `algorithm-planet-slot`. JourneyMotion tạm đưa component ra một lớp fixed trong lúc di chuyển, rồi trả về vị trí đích; ResizeObserver cập nhật renderer. Khóa thao tác trong chuyển cảnh, dọn lớp tạm khi kết thúc/hủy. Mobile giữ thứ tự dọc; reduced motion/low effects hoặc khi tài nguyên chưa sẵn sàng dùng chuyển trang ngắn/dock trực tiếp. Bấm gửi form sai không di chuyển hành tinh.
 
@@ -102,14 +102,14 @@ Kiểm tra ngày 01/11/2026: production build đạt; 101 unit test trong 22 fil
 
 ### Form trang 1: dẫn người dùng đến lỗi
 
-Áp dụng ý tưởng Lucian UX/UI Prompt #244 vào form Angular hiện có. `entry-form.ts/html/css` là component con của `welcome-panel`; không thêm số điện thoại/điều khoản demo từ mẫu. Luồng Đăng nhập/Đăng ký/Guest và kiểm tra mật khẩu tối thiểu 8 ký tự được giữ lại. Chưa có xác thực API thật.
+Áp dụng ý tưởng Lucian UX/UI Prompt #244 vào form Angular hiện có. `entry-form.ts/html/css` là component con của `welcome-panel`; không thêm số điện thoại/điều khoản demo từ mẫu. Luồng Đăng nhập/Đăng ký/Guest và kiểm tra mật khẩu tối thiểu 8 ký tự được giữ lại. Đã nối AuthSession với API phiên thật; lỗi từ máy chủ hiện tại form và không chuyển cảnh.
 
 - Bấm Đăng nhập/Đăng ký khi sai: hiện số mục cần kiểm tra và danh sách liên kết; ô lỗi có viền đỏ, gợi ý mở ra và rung 0,4 giây.
 - Sau 0,2 giây, cuộn nhẹ 0,52 giây tới ô sai đầu tiên và đặt con trỏ vào đó. Bấm hoặc Enter trên một liên kết lỗi để đến đúng ô. Nếu người dùng bắt đầu gõ, hủy cuộn/focus đang chờ để không giành con trỏ.
 - Sửa hợp lệ: bỏ mục khỏi danh sách, gấp gợi ý và hiện dấu tích; không chuyển trang cho đến khi bấm nút gửi form hợp lệ.
 - Chữ form/nút dùng bạc neon; thông báo lỗi vẫn đỏ, dấu tích xanh để rõ trạng thái. Riêng thẻ đăng nhập và ô nhập giữ nền tối ở cả light/dark theme để bạc dễ đọc. Nhãn nút nằm chính giữa, mũi tên trang trí đặt riêng bên phải.
 - Giữ label, autocomplete, `aria-invalid`, `aria-describedby`, danh sách lỗi có `role="alert"` và hỗ trợ bàn phím. Đây là thuộc tính giúp trình đọc màn hình hiểu ô nào sai và thông báo liên quan; chưa kiểm tra bằng trình đọc màn hình thực tế.
-- Reduced motion: bỏ rung/chuyển động cuộn, vẫn hiện lỗi và focus đúng ô. Component chỉ giữ ID/thông báo lỗi; không lưu credential vào Signals, localStorage hoặc gửi mạng. Form được xóa trước khi tiếp tục demo và khi vào Guest.
+- Reduced motion: bỏ rung/chuyển động cuộn, vẫn hiện lỗi và focus đúng ô. Mật khẩu được lấy tạm khi gửi API rồi xóa khỏi ô nhập; không lưu mật khẩu/token vào Signals, localStorage hoặc log. Form được xóa sau khi xác thực thành công và khi vào Guest. Chỉ thông tin định danh công khai được cache để chọn vùng dữ liệu offline.
 
 `entry-form.spec.ts` kiểm tra lỗi rỗng, email sai/mật khẩu ngắn, sửa lỗi, tên đăng ký, chuyển chế độ và xóa dữ liệu trước khi tiếp tục. `e2e/ui-redesign/entry-validation.e2e.js` kiểm tra trên browser, đã thêm vào runner chung. Styles được giới hạn trong hai component trang 1; không thay bảng màu/cảnh 3D ở trang khác.
 
@@ -269,20 +269,39 @@ Không phạt intercept/bias b. MSE là trung bình bình phương sai số; RMS
 
 Worker nhận init gồm Xtr/ytr/Xte/yte, lr, maxIter, tol, speed, algorithm, degree và lambda. Các message prepare/commit phục vụ chế độ học; runId loại phản hồi cũ sau Reset/Stop. Đổi thuật toán/tham số/dataset hủy snapshot không còn phù hợp.
 
-## 12. Offline, API và dữ liệu
+## 12. Offline, API, xác thực và dữ liệu
 
-- Lưu cục bộ: IndexedDB qua idb; nếu không dùng được IndexedDB, fallback bộ nhớ không bảo đảm tồn tại sau reload.
-- Cache giao diện: Service Worker chỉ bật ở production theo app.config.ts; mở offline cần app shell đã được cache. Không coi npm start là bằng chứng PWA offline hoàn chỉnh.
-- Đồng bộ FE hiện gọi **POST /api/v1/experiments/bulk**, xem [experiments-store.ts](../src/app/state/experiments-store.ts). Khi lỗi, giữ dữ liệu/chưa đồng bộ theo logic hiện có.
-- Luồng tổng quát: giao diện → API backend → MongoDB. Không đưa model TypeScript hoặc file source trực tiếp vào MongoDB.
-- E2E có mock API để kiểm tra giao diện đồng bộ; mock không chứng minh MongoDB đã ghi thật.
-- Đăng nhập/đăng xuất vẫn là demo; xác thực và bảo mật thật cần công việc riêng.
+### Lưu đủ kết quả và khôi phục
+
+Frontend gửi snapshot gồm cấu hình thuật toán/dataset, `w`, `b`, iteration, metric train/test và cấu hình bộ sinh. Schema Experiment khai báo rõ các trường tương ứng; không còn dựa vào việc spread dữ liệu FE vào một schema thiếu trường. Khi đọc lại, client chuyển cấu trúc algorithm phía server sang kiểu FE, dùng clientCreatedAt cho thời điểm lưu, chuyển R² null thành trạng thái không xác định trong ứng dụng. Snapshot bị sai kích thước trọng số, giá trị không hữu hạn hoặc cấu trúc CSV không hợp lệ bị từ chối.
+
+CSV mới lưu cả trainX/trainY/testX/testY/trainIndices và provenance đã tiền xử lý. Khôi phục dùng đúng split, thống kê, trọng số và iteration, không cần chọn lại tệp. Engine đánh giá lại metric từ trọng số và dữ liệu được khôi phục. Đây không phải bản sao byte-for-byte của tệp CSV gốc. Bản lưu CSV cũ không có csvData vẫn giữ thông báo chỉ áp dụng cấu hình lên dữ liệu đang có. Snapshot tối đa 8 MiB (tính theo UTF-8); quá giới hạn thì báo lỗi trước khi lưu, không thay đổi mô hình đang chạy. JSON API tối đa 10 MiB; upload tệp là luồng riêng, không tự giải quyết snapshot lớn.
+
+### Đồng bộ hai chiều và xóa offline
+
+IndexedDB là nơi lưu cục bộ; không dùng được IndexedDB thì fallback bộ nhớ không bền qua reload. Bản ghi có scopeId riêng của tài khoản/Guest, mutationId cho mỗi thay đổi, serverVersion đã được xác nhận. Chỉ đánh dấu synced sau khi API trả items khớp ID, mutation và phiên bản cho từng bản ghi. HTTP 200 đơn thuần hoặc count tổng không đủ xác nhận.
+
+`POST /api/v1/experiments/bulk` gửi các lô nhỏ theo số lượng và dung lượng; retry cùng mutation không làm tăng phiên bản hay tạo bản sao. Backend dùng cập nhật có điều kiện phiên bản và chủ sở hữu. `GET /api/v1/experiments?includeDeleted=true&page=...&limit=100` kéo đủ trang, kể cả khi client không có thay đổi mới. Dữ liệu server không ghi đè hàng đợi cục bộ chưa xác nhận. Xóa tạo tombstone bền trong IndexedDB, ẩn khỏi danh sách và gửi lên khi có mạng; bản cũ không được làm bản ghi đã xóa sống lại.
+
+409 hiển thị lựa chọn Dùng bản máy chủ hoặc Giữ bản cục bộ thành bản sao có ID mới. Không tự chọn mất dữ liệu. Header X-Expected-User chỉ đối chiếu với phiên server để tránh đổi tài khoản ở tab khác làm gửi nhầm hàng đợi; nó không dùng để xác thực. Khi đổi scope phải chờ lần đọc IndexedDB mới nhất, không chờ promise cũ. Yêu cầu lưu/sync đến trong lúc đang kéo dữ liệu được xếp để chạy lại, không bị bỏ qua.
+
+### Đăng nhập thật và ranh giới phiên
+
+NestJS có AuthModule với register/login/guest/session/logout. Mật khẩu dùng scrypt và salt ngẫu nhiên; token phiên ngẫu nhiên chỉ lưu hash trên server, cookie HttpOnly/SameSite=Lax ở trình duyệt. Khi NODE_ENV=production, cookie có Secure và cần HTTPS. Không chấp nhận x-user-id hoặc Bearer chứa ID tự khai. Có giới hạn thử đăng nhập và giới hạn tạo Guest theo IP. API lọc chủ sở hữu ở danh sách, chi tiết, thay đổi, tải tệp và sync; metadata không được gán storage key của tệp server.
+
+Guest có ID riêng. Guest offline lưu vào scope cục bộ; khi có mạng, tạo phiên Guest thật rồi chuyển chính hàng đợi cục bộ đó sang phiên mới trước khi đẩy lên. Không tự chuyển dữ liệu tài khoản này sang tài khoản khác. Đăng xuất hoặc chuyển danh tính xóa dữ liệu/mô hình đang xem, hủy component nhập CSV; dữ liệu đã lưu của từng scope còn nguyên. Đăng xuất offline báo không thể thu hồi phiên, không giả báo thành công. Guest là phiên tạm gắn với cookie; nên dùng tài khoản cho dữ liệu cần truy cập lâu dài. Chưa có xác minh email, quên mật khẩu hoặc 2FA.
+
+### Chạy và kiểm thử
+
+Angular dev proxy chuyển /api tới NestJS 127.0.0.1:3000. FE SSR production có cùng proxy qua BACKEND_ORIGIN; lỗi API trả JSON, không rơi vào HTML của Angular. Backend .env dùng CORS_ORIGINS đúng origin triển khai và NODE_ENV=production khi chạy HTTPS. Cache app shell/JS qua Service Worker chỉ bật production; cần cache trước khi offline, không coi npm start là kiểm chứng PWA production.
+
+Bộ UI/chuyển cảnh dùng api-fixture.e2e.js để giả lập auth và ack, tách khỏi persistence-live.e2e.js chạy không mock trên Backend/MongoDB thật. Test API ở repo Backend tạo database regression_test ngẫu nhiên, kiểm tra trực tiếp document rồi chỉ dọn database đó. Helper run-browser-backend.mjs dùng database regression_browser riêng, dọn bằng cleanup-browser-backend.mjs sau khi dừng. Tuyệt đối không dùng database ứng dụng làm nơi reset/seed cho test.
 
 ## 13. Tiền xử lý CSV và giới hạn diễn giải
 
 Đã sửa thứ tự tiền xử lý: đọc cột và loại dòng thiếu y; với chế độ drop thì loại dòng thiếu X; chia train/test một lần bằng tỉ lệ và seed; fit giá trị điền thiếu và thống kê z-score chỉ trên train; transform cả hai tập bằng cùng thống kê. `buildDataset` trả về chỉ số phân chia, `LabStore.loadDataset` nhận lại các chỉ số đó, không trộn/chia lần thứ hai. Nếu một cột train không có giá trị hợp lệ khi điền mean, dùng 0; cột hằng dùng sd = 1. Thống kê và nguồn dòng vẫn đi cùng dữ liệu để bảng A–F đối chiếu được giá trị gốc, sau điền thiếu và sau chuẩn hóa.
 
-Nếu bật chuẩn hóa, cả X và y được chuẩn hóa bằng thống kê train. MSE/RMSE/MAE hiện trên thang y đã chuẩn hóa, không phải đơn vị gốc của CSV; giao diện kết quả ghi rõ điều này. Chưa bổ sung inverse-transform metric hoặc lưu đầy đủ tệp CSV vào bản ghi thí nghiệm offline. Mở lại cấu hình CSV vẫn áp dụng lên dữ liệu đang có và có thông báo giới hạn.
+Nếu bật chuẩn hóa, cả X và y được chuẩn hóa bằng thống kê train. MSE/RMSE/MAE hiện trên thang y đã chuẩn hóa, không phải đơn vị gốc của CSV; giao diện kết quả ghi rõ điều này. Chưa bổ sung inverse-transform metric. Snapshot CSV mới giữ dữ liệu đã xử lý để khôi phục đúng mô hình; không lưu nguyên byte tệp gốc. Bản ghi cũ thiếu csvData vẫn có giới hạn áp dụng lên dữ liệu đang có.
 
 Test chống rò rỉ thay đổi riêng giá trị X/y ở test rồi kiểm tra thống kê fit, giá trị điền thiếu và dữ liệu train không đổi. Số dòng nguồn CSV vẫn là bản ghi logic tính cả header, không phải dòng vật lý nếu ô chứa xuống dòng. [learning-demo.csv](examples/learning-demo.csv) là dữ liệu mẫu kiểm tra nhập CSV.
 
@@ -298,11 +317,15 @@ Một chính sách `modelVisibility` quyết định đường/mặt phẳng/d�
 
 Polynomial dùng cùng thứ tự tên đặc trưng với engine, gồm cả tích chéo; phần ghi chú rút gọn sau tám hạng tử khi quá dài, bảng hệ số và pha E vẫn có đủ. Panel kết quả thêm thanh |w| và giá trị có dấu cho từng đặc trưng; hệ số bằng 0 được xác định bằng giá trị thật, không dùng số đã làm tròn. So sánh độ lớn hệ số cần xét thang đo đầu vào. Ridge/Lasso vẫn vẽ mặt phẳng; khác biệt thể hiện ở trọng số và tác động của λ, không đổi hình dạng một cách giả tạo.
 
-### Kết quả xác minh sửa lỗi ngày 03/11/2026
+### Lịch sử xác minh đợt sửa hiển thị/CSV ngày 03/11/2026
 
 Production build FE và build NestJS đều đạt. Unit test FE: 114/114 trong 23 file; Backend: 12/12 trong 3 file. Bộ E2E đầy đủ dev-server: 18 nhóm/185 tiêu chí đạt, gồm nhóm model-integrity mới. Sau khi hoàn thiện nhãn dataset đã lưu và chặn phiên bản bộ sinh chưa hỗ trợ trước khi thay đổi trạng thái, đã chạy lại unit/build cả hai repo và nhóm model-integrity (11 tiêu chí); nhóm này còn kiểm tra không tràn ngang trên mobile cho từng thuật toán.
 
-Bằng chứng nằm trong `output/playwright/model-fixes-full-e2e.log`, `model-fixes-unit-final.log`, `model-fixes-build-final.log`, `model-integrity-final.log` và `*-result.log`; ảnh `model-integrity-learning.png`. Kiểm tra lỗi 1D/ε=0/đổi mẫu dùng scene WebGL thật trong trình duyệt; mock API chỉ xác nhận payload đồng bộ. Backend test kiểm tra mapping bulk và schema Mongoose giữ cấu hình, chưa phải lần ghi trên MongoDB đang chạy. Chưa benchmark FPS hoặc xác minh HTTPS trong đợt này. Không thay đổi engine gradient/ISTA hoặc logic commit một iteration ở F.
+Bằng chứng nằm trong `output/playwright/model-fixes-full-e2e.log`, `model-fixes-unit-final.log`, `model-fixes-build-final.log`, `model-integrity-final.log` và `*-result.log`; ảnh `model-integrity-learning.png`. Kiểm tra lỗi 1D/ε=0/đổi mẫu dùng scene WebGL thật trong trình duyệt; mock API chỉ xác nhận payload đồng bộ. Backend test kiểm tra mapping bulk và schema Mongoose giữ cấu hình, chưa phải lần ghi trên MongoDB đang chạy. Chưa benchmark FPS hoặc xác minh HTTPS trong đợt này. Đợt đó không thay đổi engine gradient/ISTA hoặc logic commit một iteration ở F. Đợt lưu dữ liệu/xác thực sau đó bổ sung điều kiện dừng theo J và khôi phục initial model; xem mục 12.
+
+### Điều kiện dừng và tiếp tục mô hình
+
+Linear/Polynomial xét thay đổi MSE; Ridge/Lasso xét J = MSE + phần phạt tương ứng. Chuỗi prepare/commit A–F và chế độ chạy thường dùng cùng điều kiện dừng. Khi khôi phục, TrainingSession nhận initial weights/bias/iteration và tính lại metric trên split đã lưu; pha E vẫn chỉ xem trước, F mới commit một cập nhật.
 
 ## 14. Hiệu năng và khả năng tiếp cận
 
@@ -334,7 +357,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File e2e/run-ui-redesign.ps1
 - Build biên dịch/prerender; không tự chứng minh toàn bộ chức năng chạy đúng.
 - jsdom thiếu Canvas/WebGL có thể sinh cảnh báo; cần browser thật để kiểm tra hình 3D.
 
-Bản SSR sau build: đặt NG_ALLOWED_HOSTS cho localhost/127.0.0.1 theo môi trường thử rồi chạy `node dist/Hoiquy3d/server/server.mjs`, thường mở cổng 4000. Khi triển khai, cấu hình hostname thực tế, không dùng wildcard tùy tiện.
+Bản SSR sau build: dùng SSR_ALLOWED_HOSTS (mặc định localhost,127.0.0.1) theo môi trường thử rồi chạy `node dist/Hoiquy3d/server/server.mjs`, thường mở cổng 4000. Khi triển khai, cấu hình hostname thực tế, không dùng wildcard tùy tiện.
 
 ## 16. Kết quả đã xác minh và giới hạn
 
@@ -394,3 +417,24 @@ Khi thêm hiệu ứng hoặc đổi yêu cầu, sửa ngay mục tương ứng 
 - robinpayot.com là định hướng cảm giác chuyển cảnh đã trao đổi, không phải mã nguồn được xác nhận đã sao chép.
 
 Năm file giao diện/học cũ được thay bằng tài liệu này. ZIP chứa nguyên bản và README trước khi gộp được lưu ngoài repository tại `C:/Users/admin/OneDrive/Documents/ChatGPT/JS/outputs/documentation-backups/ui-docs-before-merge-20261031-163209.zip`; README/API/schema của backend giữ riêng vì phục vụ mục đích khác.
+
+## 19. Hoàn thiện lưu mô hình và PWA — 03/11/2026
+
+- `ngsw-config.json` cache thêm `index.csr.html`: Angular SSR đặt tệp này làm trang mở offline. Cache đủ JS/CSS mà thiếu tệp này vẫn có thể lỗi khi reload mất mạng.
+- Guest offline giữ lại cùng danh tính khi vào lại; chỉ chuyển dữ liệu giữa scope khi ID thay đổi. Unit test và E2E production kiểm tra không nhân đôi danh sách sau reload.
+- Kết quả kiểm thử của đợt này được ghi trong [báo cáo cập nhật từng file](https://github.com/ManhCuong150206/TS-JS/blob/main/BAO-CAO-CAP-NHAT-2026-11-03.md), gồm phạm vi thật/mô phỏng và giới hạn.
+
+### Kết quả đã hoàn tất
+
+| Kiểm tra | Kết quả | Giới hạn của kết luận |
+| --- | --- | --- |
+| Frontend unit | 126/126, 25 file | Có 2 ca mới về Guest; môi trường jsdom không render WebGL thật |
+| Backend unit | 12/12, 3 file | Kiểm tra logic/module với mock phù hợp |
+| Backend API + MongoDB thật | 12/12 | Database test riêng, tự dọn; không dùng database ứng dụng |
+| Build FE và BE | Đạt | Biên dịch thành công; không đồng nghĩa đã triển khai HTTPS |
+| UI E2E | 18 nhóm / 185 tiêu chí đạt | 9 nhóm đầu, sửa kỳ vọng logout cho auth thật rồi chạy 9 nhóm còn lại; API fixture mô phỏng |
+| Hồi quy sau chỉnh cuối | 5 nhóm / 43 tiêu chí đạt | entry, entry-validation, navigation-layout, learning-offline, mobile-fallback |
+| Browser FE → API → MongoDB thật | 13 tiêu chí đạt | Có CSV, trọng số, khôi phục sau mất cache, conflict, xóa offline và tài khoản riêng |
+| PWA production | 8/8 tiêu chí đạt | Service Worker/Worker cache đủ → reload offline → học/lưu → reload/khôi phục → online đồng bộ MongoDB qua SSR proxy |
+
+Log/ảnh nằm trong `FE/FE-hoiquy3d/output/playwright` (bị Git ignore): `persistence-unit-final.log`, `persistence-build-final.log`, `backend-build-final.log`, `backend-unit-final.log`, `backend-e2e-final.log`, `persistence-ui-final.log`, `persistence-ui-remaining.log`, `final-*.log`, `persistence-live-final.log`, `pwa-persistence.log`, `pwa-persistence-complete.png`. Test UI đầu có lỗi kỳ vọng logout cũ; không ghi nhận lần đó là toàn bộ pass. Các nhóm còn lại và các nhóm ảnh hưởng đã chạy lại như bảng trên.

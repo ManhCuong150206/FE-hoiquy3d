@@ -10,10 +10,10 @@
     <h2>{{ registering() ? 'Đăng ký' : 'Đăng nhập' }}</h2>
     <p class="auth-description">{{ registering() ? 'Một góc riêng cho những ý tưởng và thực nghiệm mới.' : 'Một ý tưởng. Một bộ dữ liệu. Vô vàn điều để khám phá.' }}</p>
     <app-entry-form [registering]="registering()" (completed)="enteredDemo()" />
-    <p class="demo-note">Bản trải nghiệm · Chưa kết nối xác thực tài khoản.</p>
+    <p class="demo-note">Phiên đăng nhập bảo vệ bằng cookie HttpOnly. Guest có vùng dữ liệu riêng.</p>
     <p class="switch-auth">{{ registering() ? 'Đã có tài khoản?' : 'Chưa có tài khoản?' }} <button type="button" (click)="toggleMode()">{{ registering() ? 'Đăng nhập' : 'Đăng ký' }}</button></p>
     <div class="divider"><span>hoặc khám phá ngay</span></div>
-    <button class="guest-button" type="button" (click)="guest()">Tham gia với tư cách Guest <span aria-hidden="true">→</span></button>
-    <p role="status" class="sr-only">{{ message() }}</p>
+    <button class="guest-button" type="button" [disabled]="entering()" (click)="guest()">Tham gia với tư cách Guest <span aria-hidden="true">→</span></button>
+    <p role="status">{{ message() }}</p>
   </div>
 </div>

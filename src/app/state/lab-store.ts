@@ -180,8 +180,8 @@ export class LabStore {
 
     /**
      * Khôi phục cấu hình từ một thí nghiệm đã lưu.
-     * Dữ liệu synthetic được sinh lại y hệt nhờ seed; dữ liệu CSV không lưu kèm
-     * nên chỉ áp dụng thuật toán + tham số huấn luyện lên dữ liệu đang có.
+     * Synthetic tái lập bằng seed; CSV mới khôi phục split đã lưu.
+     * Bản ghi CSV cũ chưa có snapshot chỉ áp dụng cấu hình lên dữ liệu hiện có.
      */
     applyConfig(c: SavedExperiment) {
         if (c.dataSource === 'synthetic' && c.synthetic && c.synthetic.version !== 1) throw new Error('Phiên bản bộ sinh dữ liệu chưa được hỗ trợ.');
@@ -199,9 +199,20 @@ export class LabStore {
             this.seed.set(saved?.seed ?? c.seed);
             this.trainRatio.set(saved?.trainRatio ?? c.trainRatio);
             this.generateData();
-        } else {
-            this.reset();
-        }
+        } else if(c.csvData) {
+            const data=structuredClone(c.csvData);
+            this.trainX.set(data.trainX);this.trainY.set(data.trainY);this.testX.set(data.testX);this.testY.set(data.testY);
+            this.trainIndices.set(data.trainIndices);this.provenance.set(data.provenance??null);this.selectedSample.set(0);
+            this.dataSource.set('csv');this.csvName.set(c.csvName);this.appliedSynthetic.set(null);
+        } else { this.reset(); return; }
+        this.initWorker({iteration:c.iterations,w:[...c.w],b:c.b,trainLoss:c.train.mse,testLoss:c.test.mse});
+    }
+
+    /** Logout/identity boundary: remove the previous user's dataset and model from live memory. */
+    resetSession() {
+        this.pausePresentation();this.mode.set('normal');this.algorithm.set('linear');this.degree.set(2);this.lambda.set(.1);
+        this.learningRate.set(.01);this.maxIterations.set(1000);this.syntheticKind.set('linear');this.sampleCount.set(500);
+        this.featureCount.set(2);this.noise.set(8);this.seed.set(42);this.trainRatio.set(.8);this.generateData();
     }
 
     // ===== điều khiển huấn luyện =====
@@ -363,7 +374,7 @@ export class LabStore {
         };
     }
 
-    private initWorker() {
+    private initWorker(initial?:Step) {
         this.pausePresentation(); this.runId++;
         this.snapshot.set(null); this.phase.set(0); this.busy.set(false);
         this.switching.set(false); this.committing = false;
@@ -373,7 +384,7 @@ export class LabStore {
         this.errorMsg.set(null);
         this.status.set('idle');
         this.send({
-            type: 'init',
+            type: 'init', initial,
             Xtr: this.trainX(), ytr: this.trainY(), Xte: this.testX(), yte: this.testY(),
             lr: this.learningRate(), maxIter: this.maxIterations(),
             tol: this.tolerance(), speed: this.speed(),

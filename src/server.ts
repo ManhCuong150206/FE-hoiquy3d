@@ -5,12 +5,23 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
+import { request as httpRequest } from 'node:http';
+import { request as httpsRequest } from 'node:https';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
+const angularApp = new AngularNodeAppEngine({allowedHosts:(process.env['SSR_ALLOWED_HOSTS']??'localhost,127.0.0.1').split(',').map(host=>host.trim()).filter(Boolean)});
+// API must reach NestJS, never Angular's HTML fallback. Preserve cookies and browser Origin.
+app.use('/api', (req,res)=>{
+  const target=new URL(req.originalUrl,process.env['BACKEND_ORIGIN']??'http://127.0.0.1:3000');
+  const request=target.protocol==='https:'?httpsRequest:httpRequest;
+  const upstream=request(target,{method:req.method,headers:req.headers},reply=>{res.writeHead(reply.statusCode??502,reply.headers);reply.pipe(res);});
+  upstream.setTimeout(15000,()=>upstream.destroy(new Error('API timeout')));
+  upstream.on('error',()=>{if(!res.headersSent)res.status(502).json({message:'Không kết nối được Backend.'});else res.end();});
+  req.on('aborted',()=>upstream.destroy());req.pipe(upstream);
+});
 
 /**
  * Example Express Rest API endpoints can be defined here.

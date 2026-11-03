@@ -55,7 +55,7 @@ export class ExperimentsPanel {
   save() {
     const saved = this.exp.save(this.name());
     if (!saved) {
-      this.note.set('Hãy chạy ít nhất một bước huấn luyện trước khi lưu.');
+      this.note.set(this.exp.syncError() ?? 'Hãy chạy ít nhất một bước huấn luyện trước khi lưu.');
       return;
     }
     this.name.set('');
@@ -66,9 +66,9 @@ export class ExperimentsPanel {
     try { this.lab.applyConfig(e); }
     catch (error) { this.note.set(error instanceof Error ? error.message : 'Không khôi phục được cấu hình.'); return; }
     this.note.set(
-      e.dataSource === 'csv'
+      e.dataSource === 'csv' && !e.csvData
         ? 'Dữ liệu CSV không được lưu kèm: chỉ áp dụng thuật toán và tham số lên dữ liệu hiện tại.'
-        : `Đã áp dụng cấu hình “${e.name}”. Bấm Play để chạy lại.`,
+        : `Đã áp dụng cấu hình “${e.name}”. Đã khôi phục dữ liệu và mô hình đã lưu.`,
     );
   }
 

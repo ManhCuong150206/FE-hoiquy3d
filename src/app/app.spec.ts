@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { vi } from 'vitest';
+import { AuthSession } from './state/auth-session';
 import { LabStore } from './state/lab-store';
 import { Algorithm } from './core/models/experiment';
 import { TestBed } from '@angular/core/testing';
@@ -33,7 +34,7 @@ describe('App algorithm navigation', () => {
     const count = signal(iteration);
     const pause = vi.fn();
     const setAlgorithm = vi.fn((value: Algorithm) => { algorithm.set(value); count.set(0); });
-    TestBed.configureTestingModule({ imports: [App], providers: [{ provide: LabStore, useValue: { algorithm, iteration: count, setAlgorithm, pause } }] });
+    TestBed.configureTestingModule({ imports: [App], providers: [{ provide: LabStore, useValue: { algorithm, iteration: count, setAlgorithm, pause, resetSession:vi.fn(()=>count.set(0)) } }] });
     TestBed.overrideComponent(App, { set: { template: '<h1>Navigation test</h1>', imports: [] } });
     const fixture = TestBed.createComponent(App); await fixture.whenStable();
     vi.spyOn(fixture.componentInstance, 'navigate').mockImplementation(() => {});
@@ -60,11 +61,12 @@ describe('App algorithm navigation', () => {
     app.chooseAlgorithm('lasso'); app.confirmChange(); await fixture.whenStable();
     expect(setAlgorithm).toHaveBeenCalledExactlyOnceWith('lasso'); expect(app.pending()).toBeNull();
   });
-  it('logs out of the demo by pausing and returning to welcome without resetting model', async () => {
+  it('revokes the session and logs out by pausing and clearing private model data before welcome', async () => {
     const { app, pause, setAlgorithm } = await setup(12);
-    app.logout(); expect(pause).toHaveBeenCalledOnce();
+    vi.spyOn(TestBed.inject(AuthSession),'logout').mockResolvedValue();
+    await app.logout(); expect(pause).toHaveBeenCalledOnce();
     expect(app.navigate).toHaveBeenCalledWith('welcome', true);
-    expect(app.lab.iteration()).toBe(12); expect(setAlgorithm).not.toHaveBeenCalled();
+    expect(app.lab.iteration()).toBe(0); expect(setAlgorithm).not.toHaveBeenCalled();
   });
   it('can clean up server-rendered views without browser animation APIs', async () => {
     const { fixture } = await setup();

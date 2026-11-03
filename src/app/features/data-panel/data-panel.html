@@ -1,6 +1,6 @@
 <section class="card">
   <h3 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg>DỮ LIỆU</h3>
-  <p class="sub">Dữ liệu tổng hợp (sinh theo seed)</p>
+  <p class="sub">{{ store.dataSource() === 'csv' ? 'Đang dùng CSV: ' + store.csvName() : 'Dữ liệu tổng hợp (sinh theo seed)' }}</p>
 
   <label for="synthetic-kind">Loại dữ liệu minh họa</label>
   <select id="synthetic-kind" [value]="store.syntheticKind()" (change)="chooseScenario($event)">

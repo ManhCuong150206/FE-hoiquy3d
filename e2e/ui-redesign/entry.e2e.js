@@ -25,7 +25,7 @@ async (page) => {
  await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden && !document.querySelector('.experience').dataset.transition);
  check(await page.getByLabel('Email',{exact:true}).inputValue() === '', 'Demo email must clear');
  check(await page.getByLabel('Mật khẩu',{exact:true}).inputValue() === '', 'Demo password must clear');
- check(outbound.length === 0, 'Demo auth must not send credentials');
+ check(outbound.length === 1 && outbound[0].endsWith('/auth/register'), 'Credentials submitted only to auth endpoint');
  page.off('request',listener);
  await page.locator('app-algorithm-sphere canvas').waitFor({state:'visible'});
  await page.screenshot({path:'output/playwright/algorithms-desktop.png'});
@@ -37,5 +37,5 @@ async (page) => {
   return {renderedFps:+((Number(canvas.dataset.renderCount)-start)*1000/(performance.now()-started)).toFixed(1),p95CpuSubmissionMs:cpu[Math.floor(cpu.length*.95)]};
  });
  check(perf.renderedFps<=62,'Actual WebGL render cap exceeded');
- return {suite:'entry',passed:['dark default','lab deferred','invalid form blocked','registration UI','credentials cleared/no auth request','button page navigation','sphere WebGL'],performance:perf};
+ return {suite:'entry',passed:['dark default','lab deferred','invalid form blocked','registration UI','credentials cleared after auth request','button page navigation','sphere WebGL'],performance:perf};
 }

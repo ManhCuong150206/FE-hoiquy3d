@@ -39,3 +39,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File e2e/run-ui-redesign.ps1
 ```
 
 Production build ở dist/Hoiquy3d. Dockerfile phục vụ SSR cổng 4000; HTTPS/443 cần cấu hình triển khai riêng. Chi tiết thư viện, thư mục code, hiệu ứng, lệnh SSR, kết quả và giới hạn xem [tài liệu chính](docs/CONG-NGHE-VA-HIEU-UNG.md).
+
+
+### Backend và phiên người dùng
+
+Chạy NestJS tại `D:/JS,TS` bằng `npm run start:dev` trước khi dùng đăng ký/đăng nhập hoặc đồng bộ. Dev proxy `/api` đã cấu hình tới `127.0.0.1:3000`. Bản SSR dùng `BACKEND_ORIGIN` nếu địa chỉ Backend khác. Guest có vùng dữ liệu riêng; chỉ Guest offline được làm cục bộ rồi chuyển hàng đợi lên phiên Guest khi có mạng. Đăng nhập tài khoản cần mạng.
+
+Bản lưu CSV giữ split đã xử lý và mô hình, tối đa 8 MiB; bản ghi cũ chưa có snapshot CSV vẫn giữ giới hạn cũ. Đồng bộ có tombstone và xử lý xung đột; xem tài liệu công nghệ mục 12. Auth thật thay thế demo, không dùng header user ID tự khai.
+
+Kiểm thử trình duyệt thật (không mock): mở API riêng bằng `node test/run-browser-backend.mjs` từ repo Backend (cổng 3000 phải trống), chạy FE cổng 4300, rồi dùng Playwright CLI với `e2e/ui-redesign/persistence-live.e2e.js`. Dừng API test và chạy helper cleanup tương ứng sau khi xong. Bộ `e2e/run-ui-redesign.ps1` vẫn dùng fixture cho auth/API để kiểm tra UI/chuyển cảnh độc lập; không coi fixture là kiểm chứng MongoDB.
+
+SSR cho phép localhost/127.0.0.1 khi chạy cục bộ. Khi triển khai, đặt `SSR_ALLOWED_HOSTS` thành danh sách hostname thực tế (phân tách bằng dấu phẩy), không dùng wildcard mở toàn bộ host.
+
+Bảng thay đổi từng file FE/BE: [Báo cáo cập nhật 03/11/2026](https://github.com/ManhCuong150206/TS-JS/blob/main/BAO-CAO-CAP-NHAT-2026-11-03.md).

@@ -24,7 +24,13 @@ export interface MetricSet {
 }
 
 /** Một lần chạy được người dùng lưu lại để so sánh / xuất / đồng bộ. */
+export interface CsvSnapshot {
+    trainX:number[][];trainY:number[];testX:number[][];testY:number[];trainIndices:number[];
+    provenance?:import('./training-step').DatasetProvenance;
+}
 export interface SavedExperiment {
+    scopeId?:string; mutationId?:string; serverVersion?:number; deletedAt?:number;
+    csvData?:CsvSnapshot;
     id: string;
     name: string;
     createdAt: number; // epoch ms

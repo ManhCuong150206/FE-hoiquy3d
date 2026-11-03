@@ -1,4 +1,4 @@
-<form #form class="entry-validation" [class.has-errors]="issues().length>0" novalidate [attr.aria-label]="registering()?'Đăng ký demo':'Đăng nhập demo'" (submit)="submit($event)" (input)="revalidate()">
+<form #form class="entry-validation" [class.has-errors]="issues().length>0" novalidate [attr.aria-label]="registering()?'Đăng ký':'Đăng nhập'" (submit)="submit($event)" (input)="revalidate()">
   <div class="validation-summary" [attr.aria-hidden]="issues().length===0" role="alert" aria-atomic="true"><div>
     @if (issues().length) {
       <div class="summary-box"><strong><span aria-hidden="true">!</span> {{ issues().length }} mục cần kiểm tra</strong>
@@ -13,5 +13,6 @@
       <div class="field-hint"><div><span [id]="field.id+'-error'">{{ hint(field.id) }}</span></div></div>
     </div>
   }
-  <button class="primary auth-submit" type="submit">{{ registering()?'Đăng ký':'Đăng nhập' }}<span class="submit-icon" aria-hidden="true">↗</span></button>
+  @if(serverError()){<p role="alert">{{ serverError() }}</p>}
+  <button class="primary auth-submit" type="submit" [disabled]="sending()" [attr.aria-busy]="sending()">{{ registering()?'Đăng ký':'Đăng nhập' }}<span class="submit-icon" aria-hidden="true">↗</span></button>
 </form>

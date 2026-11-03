@@ -33,7 +33,7 @@ async (page) => {
   db.close();return rows.find(row=>row.name==='E2E CSV offline');
  });
  check(saved?.dataSource==='csv' && saved?.iterations===1 && saved?.synced===false,'Offline run must be persisted in IndexedDB');
- stage='sync';await page.route('**/api/v1/experiments/bulk',route=>route.fulfill({json:{success:true,count:1}}));
+ stage='sync';await page.route('**/api/v1/experiments/bulk',route=>{const rows=route.request().postDataJSON();return route.fulfill({json:{success:true,count:rows.length,items:rows.map(e=>({id:e.id,mutationId:e.mutationId??e.id,syncVersion:(e.serverVersion??0)+1}))}});});
  await page.context().setOffline(false);
  await page.locator('app-experiments-panel .sync').filter({hasText:'Đã đồng bộ'}).waitFor();
  await page.locator('#learning-mode').selectOption('normal');

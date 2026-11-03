@@ -35,7 +35,7 @@ async(page)=>{
  check(persisted.synthetic.kind==='sparse'&&persisted.synthetic.version===1,'IndexedDB preserves applied profile/version');
  await page.getByRole('button',{name:'REGENERATE',exact:true}).click();await saved.getByRole('button',{name:'Áp dụng',exact:true}).click();
  check(await page.evaluate(()=>{const s=window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store;return JSON.stringify({X:s.trainX(),y:s.trainY()})===window.__modelDataset;}),'Applying saved profile reconstructs identical data');
- let payload=[];await page.route('**/api/v1/experiments/bulk',async route=>{payload=route.request().postDataJSON();await route.fulfill({json:{success:true,count:payload.length}});});
+ let payload=[];await page.route('**/api/v1/experiments/bulk',async route=>{payload=route.request().postDataJSON();await route.fulfill({json:{success:true,count:payload.length,items:payload.map(e=>({id:e.id,mutationId:e.mutationId??e.id,syncVersion:(e.serverVersion??0)+1}))}});});
  await page.context().setOffline(false);await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-experiments-panel')).exp.list().some(e=>e.name==='Integrity sparse profile'&&e.synced));
  check(payload.some(e=>e.name==='Integrity sparse profile'&&e.synthetic?.kind==='sparse'),'Sync sends generation metadata');await page.unrouteAll({behavior:'wait'});
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');await page.locator('#csv-missing').selectOption('mean');await page.getByRole('button',{name:'Dùng dữ liệu này',exact:true}).click();

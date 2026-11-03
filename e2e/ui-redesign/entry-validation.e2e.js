@@ -22,7 +22,7 @@ async(page)=>{
   await page.screenshot({path:'output/playwright/entry-validation-'+theme+'.png'});
   const sent=[];const request=req=>{if(req.method()==='POST')sent.push(req.url());};page.on('request',request);
   await page.locator('#entry-password').fill('abcdefgh');await page.locator('.auth-submit').click();await waitScreen('algorithms');
-  check(sent.length===0,'Demo does not submit credentials');page.off('request',request);
+  check(sent.length===1&&sent[0].endsWith('/auth/login'),'One authenticated login request');page.off('request',request);
   check(await page.locator('#entry-email').inputValue()===''&&await page.locator('#entry-password').inputValue()==='','Credentials cleared');
  }
  await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:390,height:844});await page.goto('http://127.0.0.1:4300/');
@@ -35,5 +35,5 @@ async(page)=>{
  await page.screenshot({path:'output/playwright/entry-validation-mobile.png'});
  await page.locator('.guest-button').click();await waitScreen('algorithms');
  check(await page.locator('#entry-email').inputValue()==='','Guest clears form');
- return {suite:'entry-validation',passed:['error summary','first error focus','keyboard jump to error','live correction and checks','centered submit label','silver auth text','dark/light themes','short password blocked','valid demo transition','no credentials sent or kept','registration validation','reduced motion','mobile layout','guest still works']};
+ return {suite:'entry-validation',passed:['error summary','first error focus','keyboard jump to error','live correction and checks','centered submit label','silver auth text','dark/light themes','short password blocked','valid authenticated transition','auth request only; credentials cleared','registration validation','reduced motion','mobile layout','guest still works']};
 }

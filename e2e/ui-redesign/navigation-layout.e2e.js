@@ -21,6 +21,6 @@ async(page)=>{
  await page.setViewportSize({width:1440,height:1000});await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>document.querySelector('[role=progressbar]').getAttribute('aria-valuenow')==='1');
  await page.locator('#lab .change-algorithm').click();await wait('algorithms');await page.getByRole('button',{name:'Đăng xuất',exact:true}).click();await wait('welcome');
  await page.locator('.guest-button').click();await wait('algorithms');await page.getByRole('button',{name:'Khám phá Ridge',exact:true}).click();await wait('lab');
- check(await page.locator('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1','Demo logout must not delete current model');
- return {suite:'navigation-layout',passed:['welcome explore removed','selector logout','entry credentials cleared','only header algorithm navigation','1920 single row','1440/1366 single row','tablet balanced parameter row','mobile no overflow','demo model preserved across logout']};
+ check(await page.locator('#lab [role=progressbar]').getAttribute('aria-valuenow')==='0','Real logout clears private live model');
+ return {suite:'navigation-layout',passed:['welcome explore removed','selector logout','entry credentials cleared','only header algorithm navigation','1920 single row','1440/1366 single row','tablet balanced parameter row','mobile no overflow','private live model cleared across logout']};
 }

@@ -1,5 +1,6 @@
 import { EntryForm } from './entry-form';
-import { Component, output, signal, viewChild } from '@angular/core';
+import { AuthSession } from '../../state/auth-session';
+import { Component, inject, output, signal, viewChild } from '@angular/core';
 
 @Component({
   selector: 'app-welcome-panel',
@@ -8,18 +9,20 @@ import { Component, output, signal, viewChild } from '@angular/core';
   styleUrl: './welcome-panel.css',
 })
 export class WelcomePanel {
+  private readonly auth=inject(AuthSession);
+  readonly entering=signal(false);
   readonly explore = output<void>();
   readonly registering = signal(false);
   readonly message = signal('');
 
   private readonly entryForm = viewChild(EntryForm);
   resetEntry() { this.entryForm()?.reset(); this.registering.set(false); this.message.set(''); }
-  guest() { this.resetEntry(); this.explore.emit(); }
+  async guest() {if(this.entering())return;this.entering.set(true);try{await this.auth.guest();this.resetEntry();this.explore.emit();}catch(error){this.message.set(error instanceof Error?error.message:'Không tạo được phiên Guest.');}finally{this.entering.set(false);}}
 
   toggleMode() { this.registering.update(value => !value); this.message.set(''); }
 
   enteredDemo() {
-    this.message.set('Bạn đang trải nghiệm giao diện demo. Tài khoản chưa được xác thực.');
+    this.message.set('Đã xác thực với máy chủ.');
     this.explore.emit();
   }
 }

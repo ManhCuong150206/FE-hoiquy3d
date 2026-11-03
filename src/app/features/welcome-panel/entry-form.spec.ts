@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { AuthSession } from '../../state/auth-session';
 import { EntryForm } from './entry-form';
 
 describe('EntryForm validation',()=>{
+ const enter=vi.fn().mockResolvedValue({userId:'test-user'});
  async function setup(registering=false){
+  enter.mockResolvedValue({userId:'test-user'});
+  TestBed.configureTestingModule({providers:[{provide:AuthSession,useValue:{enter}}]});
   const fixture=TestBed.createComponent(EntryForm);fixture.componentRef.setInput('registering',registering);await fixture.whenStable();
   const host=fixture.nativeElement as HTMLElement;
   const field=(id:string)=>host.querySelector<HTMLInputElement>('#'+id)!;
@@ -29,9 +33,9 @@ describe('EntryForm validation',()=>{
   expect(component.issues().length).toBe(2);expect(field('entry-password').value).toBe('short');
  });
  it('retains the existing 8-character rule and clears credentials before completion',async()=>{
-  const {component,field,submit}=await setup();const emit=vi.spyOn(component.completed,'emit');
+  const {fixture,component,field,submit}=await setup();const emit=vi.spyOn(component.completed,'emit');
   field('entry-email').value='learner@example.com';field('entry-password').value='abcdefgh';submit();
-  expect(emit).toHaveBeenCalledOnce();expect(field('entry-password').value).toBe('');expect(component.checked()).toBe(false);
+  await fixture.whenStable();expect(enter).toHaveBeenCalledWith({email:'learner@example.com',password:'abcdefgh',displayName:undefined},false);expect(emit).toHaveBeenCalledOnce();expect(field('entry-password').value).toBe('');expect(component.checked()).toBe(false);
  });
  it('requires a nonblank registration name and clears stale errors on mode change',async()=>{
   const {fixture,component,field,submit}=await setup(true);field('display-name').value='   ';field('entry-email').value='learner@example.com';field('entry-password').value='abcdefgh';submit();

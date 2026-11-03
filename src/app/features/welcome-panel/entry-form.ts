@@ -1,4 +1,5 @@
 // Lucian UX/UI Prompt #244 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#244
+import { AuthSession } from '../../state/auth-session';
 import { Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 
 type FieldId = 'display-name' | 'entry-email' | 'entry-password';
@@ -13,6 +14,8 @@ const NAME_FIELD:EntryField={id:'display-name',name:'displayName',label:'Tên hi
 @Component({selector:'app-entry-form',templateUrl:'./entry-form.html',styleUrl:'./entry-form.css'})
 export class EntryForm {
   readonly registering=input(false);
+  readonly sending=signal(false);readonly serverError=signal('');
+  private readonly auth=inject(AuthSession);
   readonly completed=output<void>();
   readonly fields=computed(()=>this.registering()?[NAME_FIELD,...LOGIN_FIELDS]:LOGIN_FIELDS);
   readonly checked=signal(false);
@@ -49,7 +52,7 @@ export class EntryForm {
     if(typeof window!=='undefined'){cancelAnimationFrame(this.frame);window.clearTimeout(this.timer);}
     if(cancelShakes){this.shakes.forEach(animation=>animation.cancel());this.shakes.clear();}
   }
-  private clearValidation(){this.cancelNavigation();this.checked.set(false);this.issues.set([]);}
+  private clearValidation(){this.cancelNavigation();this.checked.set(false);this.issues.set([]);this.serverError.set('');}
   reset(){this.form()?.nativeElement.reset();this.clearValidation();}
   goTo(id:FieldId,event?:Event){
     event?.preventDefault();this.cancelNavigation(false);
@@ -66,10 +69,17 @@ export class EntryForm {
     };
     this.frame=requestAnimationFrame(move);
   }
-  submit(event:Event){
+  async submit(event:Event){
     event.preventDefault();this.cancelNavigation();this.checked.set(true);
     const issues=this.collect();this.issues.set(issues);
-    if(!issues.length){this.reset();this.completed.emit();return;}
+    if(!issues.length){
+      if(this.sending())return;this.sending.set(true);this.serverError.set('');
+      const email=this.control('entry-email')?.value??'',password=this.control('entry-password')?.value??'',displayName=this.control('display-name')?.value;
+      const passwordField=this.control('entry-password');if(passwordField)passwordField.value='';
+      try{await this.auth.enter({email,password,displayName},this.registering());this.reset();this.completed.emit();}
+      catch(error){this.checked.set(false);this.serverError.set(error instanceof Error?error.message:'Không đăng nhập được.');}
+      finally{this.sending.set(false);}return;
+    }
     const revision=this.navigation;
     afterNextRender(()=>{
       if(revision!==this.navigation)return;

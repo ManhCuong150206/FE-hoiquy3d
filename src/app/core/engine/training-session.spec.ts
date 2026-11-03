@@ -60,4 +60,11 @@ describe('real training snapshots', () => {
     const p = a.prepare()!;
     expect(p.after.trainLoss).toBeGreaterThan(p.before.trainLoss);
   });
+
+  for(const algorithm of ['ridge','lasso'] as const) it(`${algorithm}: checks penalized objective and resumes saved weights`,()=>{
+    const a=new TrainingSession({...config,algorithm,Xtr:[[1],[1]],ytr:[1,1],Xte:[[1]],yte:[1],lambda:10,lr:.01,tol:.1,
+      initial:{iteration:1,w:[1],b:0,trainLoss:999,testLoss:999}});
+    expect(a.current.w).toEqual([1]);expect(a.current.iteration).toBe(1);expect(a.current.trainLoss).toBe(0);
+    const next=a.step()!;expect(next.trainLoss).toBeLessThan(.1);expect(a.done).toBe(false);
+  });
 });

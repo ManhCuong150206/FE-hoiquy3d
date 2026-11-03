@@ -25,7 +25,10 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css", "src/styles/palette.css"],
+            "styles": [
+              "src/styles.css",
+              "src/styles/palette.css"
+            ],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "serviceWorker": "ngsw-config.json",
@@ -71,7 +74,10 @@
               "buildTarget": "Hoiquy3d:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test",

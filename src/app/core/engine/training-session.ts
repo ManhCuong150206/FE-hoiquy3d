@@ -8,6 +8,7 @@ import { polynomialFeatures } from './polynomial';
 export interface TrainingConfig {
   Xtr: number[][]; ytr: number[]; Xte: number[][]; yte: number[];
   algorithm: Algorithm; degree: number; lambda: number;
+  initial?:Step;
   lr: number; maxIter: number; tol: number;
 }
 export function penalty(w: number[], algorithm: Algorithm, lambda: number) {
@@ -20,6 +21,7 @@ export class TrainingSession {
   pending: LearningSnapshot | null = null;
   done = false;
   private prev = Infinity;
+  private objective(step: Step) { return step.trainLoss + penalty(step.w,this.config.algorithm,this.config.lambda); }
   private Xtr: number[][];
   private Xte: number[][];
   constructor(readonly config: TrainingConfig) {
@@ -28,7 +30,11 @@ export class TrainingSession {
     this.Xte = c.algorithm === 'polynomial' ? polynomialFeatures(c.Xte, c.degree) : c.Xte;
     if (!this.Xtr.length || !this.Xte.length || !this.Xtr[0].length ||
         !Number.isFinite(c.lr) || c.lr <= 0) throw new Error('Dữ liệu train/test hoặc tốc độ học không hợp lệ.');
-    this.current = this.evaluate(new Array(this.Xtr[0].length).fill(0), 0, 0);
+    const initial=c.initial;
+    if(initial && (initial.w.length!==this.Xtr[0].length||!Number.isInteger(initial.iteration)||initial.iteration<0||![...initial.w,initial.b].every(Number.isFinite)))throw new Error('Trọng số đã lưu không khớp dữ liệu.');
+    this.current = initial ? this.evaluate([...initial.w],initial.b,initial.iteration) : this.evaluate(new Array(this.Xtr[0].length).fill(0),0,0);
+    this.done=this.current.iteration>=c.maxIter;
+    if(initial)this.prev=this.objective(this.current);
   }
   private evaluate(w: number[], b: number, iteration: number): Step {
     return { w, b, iteration, trainLoss: mse(this.config.ytr, predict(this.Xtr, w, b)),
@@ -46,7 +52,7 @@ export class TrainingSession {
     return after;
   }
   private isDone(after: Step) {
-    return after.iteration >= this.config.maxIter || Math.abs(this.prev - after.trainLoss) < this.config.tol;
+    return after.iteration >= this.config.maxIter || Math.abs(this.prev - this.objective(after)) < this.config.tol;
   }
   prepare() {
     if (this.pending || this.done) return this.pending;
@@ -61,14 +67,14 @@ export class TrainingSession {
   commit(iteration: number) {
     if (!this.pending || this.pending.after.iteration !== iteration) return null;
     const p = this.pending;
-    this.current = p.after; this.prev = p.after.trainLoss; this.done = p.done; this.pending = null;
+    this.current = p.after; this.prev = this.objective(p.after); this.done = p.done; this.pending = null;
     return this.current;
   }
   discard() { this.pending = null; }
   step() {
     if (this.done || this.pending) return null;
     const after = this.calculate();
-    this.done = this.isDone(after); this.current = after; this.prev = after.trainLoss;
+    this.done = this.isDone(after); this.current = after; this.prev = this.objective(after);
     return after;
   }
 }

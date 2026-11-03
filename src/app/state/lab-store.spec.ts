@@ -35,4 +35,9 @@ describe('LabStore', () => {
     const future=JSON.parse(JSON.stringify({...saved,synthetic:{...saved.synthetic,version:2}})) as SavedExperiment;
     expect(()=>service.applyConfig(future)).toThrow('Phiên bản');expect(service.trainX()).toBe(old);
   });
+
+  it('clears CSV/provenance and model at the session boundary',()=>{
+    service.loadDataset([[1,2],[2,3],[3,4]],[3,5,7],'private.csv');service.history.set([{iteration:3,w:[1,2],b:0,trainLoss:1,testLoss:1}]);
+    service.resetSession();expect(service.dataSource()).toBe('synthetic');expect(service.csvName()).toBeNull();expect(service.provenance()).toBeNull();expect(service.history()).toEqual([]);
+  });
 });
