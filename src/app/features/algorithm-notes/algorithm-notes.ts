@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { Algorithm } from '../../core/models/experiment';
+import { polynomialTermNames } from '../../core/engine/polynomial';
 import { LabStore } from '../../state/lab-store';
 
 interface Note {
@@ -49,7 +50,13 @@ const NOTES: Record<Algorithm, Note> = {
 export class AlgorithmNotes {
   store = inject(LabStore);
 
-  note = computed(() => NOTES[this.store.algorithm()]);
+  note = computed(() => {
+    const note = NOTES[this.store.algorithm()];
+    if (this.store.algorithm() !== 'polynomial') return note;
+    const terms = polynomialTermNames(this.store.dataFeatures(), this.store.degree());
+    const shown = terms.slice(0, 8).map((term, j) => `w${j + 1} × (${term})`);
+    return {...note, model: 'ŷ = b + ' + shown.join(' + ') + (terms.length > 8 ? ' + …' : '')};
+  });
 
   // Nhận xét nhanh dựa trên kết quả hiện tại
   hint = computed<{ kind: 'warn' | 'info'; text: string } | null>(() => {

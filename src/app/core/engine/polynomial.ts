@@ -52,3 +52,8 @@ export function polynomialPowers(d: number, degree: number): number[][] {
 
   return powers;
 }
+
+export function polynomialTermNames(dimension: number, degree: number, labels?: string[]): string[] {
+  return polynomialPowers(dimension, degree).map(p => p.flatMap((power, j) => power
+    ? [`${labels?.[j] ?? 'x' + (j + 1)}${power > 1 ? '^' + power : ''}`] : []).join(' × '));
+}

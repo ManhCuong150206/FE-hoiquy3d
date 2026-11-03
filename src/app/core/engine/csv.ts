@@ -1,3 +1,5 @@
+import { trainTestSplit } from './synthetic';
+
 // Đọc CSV và dựng tập dữ liệu (X, y). Không phụ thuộc Angular nên test được độc lập.
 
 export interface CsvTable {
@@ -101,9 +103,14 @@ export interface BuildOptions {
     yCol: number;
     missing: MissingStrategy;
     standardize: boolean;
+    trainRatio?: number;
+    splitSeed?: number;
 }
 
+export interface PreparedSplit { trainIndices: number[]; testIndices: number[] }
+
 export interface BuildResult {
+    split?: PreparedSplit;
     provenance?: import('../models/training-step').DatasetProvenance;
     X: number[][];
     y: number[];
@@ -152,44 +159,46 @@ export function buildDataset(t: CsvTable, o: BuildOptions): BuildResult {
         X = keepX;
         y = keepY;
         sources = keepSources;
-    } else {
-        const fill = o.xCols.map((_, j) => {
-            if (o.missing === 'zero') return 0;
-            let sum = 0;
-            let n = 0;
-            for (const row of X) if (!Number.isNaN(row[j])) { sum += row[j]; n++; }
-            return n ? sum / n : 0;
-        });
-        for (const row of X) {
-            for (let j = 0; j < k; j++) {
-                if (Number.isNaN(row[j])) { row[j] = fill[j]; filled++; }
-            }
-        }
     }
 
     if (X.length < MIN_ROWS) {
         return { ...fail(`Chỉ còn ${X.length} dòng hợp lệ, cần ít nhất ${MIN_ROWS}.`), droppedRows: dropped, filledCells: filled };
     }
 
+    const ratio = o.trainRatio ?? .8;
+    if (!Number.isFinite(ratio) || ratio <= 0 || ratio >= 1) return fail('Tỉ lệ train/test phải nằm giữa 0 và 1.');
+    const partition = trainTestSplit(X, y, ratio, o.splitSeed ?? 43);
+    const split = { trainIndices: partition.train.indices, testIndices: partition.test.indices };
+    if (!split.trainIndices.length || !split.testIndices.length) return fail('Cần có mẫu trong cả train và test.');
+    const trainRows = () => split.trainIndices.map(i => X[i]);
+    const fillValues = Array.from({length: k}, (_, j) => {
+        if (o.missing === 'zero' || o.missing === 'drop') return 0;
+        const values = trainRows().map(row => row[j]).filter(Number.isFinite);
+        return values.length ? values.reduce((a, v) => a + v, 0) / values.length : 0;
+    });
+    X.forEach(row => row.forEach((v, j) => {
+        if (!Number.isFinite(v)) { row[j] = fillValues[j]; filled++; }
+    }));
     const provenance: import('../models/training-step').DatasetProvenance = {
-        labels: o.xCols.map(c => t.headers[c]), target: t.headers[o.yCol], standardized: o.standardize, stats: [],
+        labels: o.xCols.map(c => t.headers[c]), target: t.headers[o.yCol], standardized: o.standardize,
+        stats: [], fittedOn: 'train', fillValues,
         rows: sources.map((index, i) => ({ sourceRow: index + 2,
             original: [...o.xCols, o.yCol].map(c => t.rows[index][c]), filled: [...X[i], y[i]] })),
     };
-    // 3) Giữ nguyên tiền xử lý trước khi chia train/test; xem docs/CONG-NGHE-VA-HIEU-UNG.md (mục hạn chế CSV).
     if (o.standardize) {
-        const z = (vals: number[]) => {
-            const m = vals.reduce((a, b) => a + b, 0) / vals.length;
-            const sd = Math.sqrt(vals.reduce((a, b) => a + (b - m) ** 2, 0) / vals.length) || 1;
-            provenance.stats.push({ mean: m, sd });
-            return vals.map((v) => (v - m) / sd);
+        const transform = (values: number[]) => {
+            const train = split.trainIndices.map(i => values[i]);
+            const mean = train.reduce((a, v) => a + v, 0) / train.length;
+            const sd = Math.sqrt(train.reduce((a, v) => a + (v - mean) ** 2, 0) / train.length) || 1;
+            provenance.stats.push({ mean, sd });
+            return values.map(v => (v - mean) / sd);
         };
         for (let j = 0; j < k; j++) {
-            const col = z(X.map((r) => r[j]));
-            X.forEach((r, i) => (r[j] = col[i]));
+            const column = transform(X.map(row => row[j]));
+            X.forEach((row, i) => row[j] = column[i]);
         }
-        y = z(y);
+        y = transform(y);
     }
-
-    return { X, y, total: t.rows.length, used: X.length, droppedRows: dropped, filledCells: filled, provenance };
+    if (![...X.flat(), ...y].every(Number.isFinite)) return fail('Dữ liệu vượt giới hạn số sau tiền xử lý.');
+    return { X, y, split, total: t.rows.length, used: X.length, droppedRows: dropped, filledCells: filled, provenance };
 }

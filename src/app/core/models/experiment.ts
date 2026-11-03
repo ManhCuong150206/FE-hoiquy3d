@@ -1,3 +1,12 @@
+export type SyntheticKind = 'linear' | 'curved' | 'correlated' | 'sparse';
+export const SYNTHETIC_LABELS: Record<SyntheticKind, string> = {
+    linear: 'Tuyến tính', curved: 'Bề mặt cong', correlated: 'Biến tương quan', sparse: 'Biến không liên quan',
+};
+export interface SyntheticConfig {
+    kind: SyntheticKind; version: 1;
+    sampleCount: number; featureCount: number; noise: number; seed: number; trainRatio: number;
+}
+
 export type Algorithm = 'linear' | 'polynomial' | 'ridge' | 'lasso';
 
 export const ALGORITHM_LABELS: Record<Algorithm, string> = {
@@ -29,6 +38,7 @@ export interface SavedExperiment {
 
     // cấu hình dữ liệu
     dataSource: 'synthetic' | 'csv';
+    synthetic?: SyntheticConfig;
     csvName: string | null;
     sampleCount: number;
     featureCount: number;

@@ -11,6 +11,13 @@ export function modelPredictions(rows: number[][], w: number[], b: number, algor
   return predict(features, w, b);
 }
 
+/** One policy shared by the model geometry and phase effects. */
+export function modelVisibility(features: number, lesson: boolean, phase: number, eps: number, invalid: boolean) {
+  const show = !invalid && features > 0 && (!lesson || phase > 0);
+  return { plane: show && features >= 2, line: show && features === 1,
+    bands: show && Number.isFinite(eps) && eps > 0 };
+}
+
 /** Strict residual threshold, in the same units as y (not display coordinates). */
 export function countStuck(yTrue: number[], yPred: number[], eps: number): number {
   if (yTrue.length !== yPred.length) throw new RangeError('True and predicted values must have equal length.');

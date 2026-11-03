@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output, signal, effect, untracked } from '@angular/core';
 import { LearningRoute } from '../learning-route/learning-route';
 import { LabStore } from '../../state/lab-store';
-import { polynomialFeatures, polynomialPowers } from '../../core/engine/polynomial';
+import { polynomialFeatures, polynomialTermNames } from '../../core/engine/polynomial';
 import { predict } from '../../core/engine/metrics';
 
 @Component({ imports: [LearningRoute], selector: 'app-learning-walkthrough', templateUrl: './learning-walkthrough.html', styleUrl: './learning-walkthrough.css' })
@@ -66,7 +66,7 @@ export class LearningWalkthrough {
     return this.lab.algorithm() === 'polynomial' ? polynomialFeatures([row], this.lab.degree())[0] ?? [] : row;
   });
   terms = computed(() => this.lab.algorithm() === 'polynomial'
-    ? polynomialPowers(this.lab.dataFeatures(), this.lab.degree()).map(p => p.flatMap((v, j) => v ? [`${this.labels()[j]}${v > 1 ? '^' + v : ''}`] : []).join(' × '))
+    ? polynomialTermNames(this.lab.dataFeatures(), this.lab.degree(), this.labels())
     : this.labels());
   selected = computed(() => {
     const s = this.lab.snapshot(); if (!s) return null;

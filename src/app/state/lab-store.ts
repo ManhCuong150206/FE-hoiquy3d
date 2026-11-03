@@ -2,9 +2,10 @@ import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal, DestroyRef } from '@angular/core';
 import { mae, mse, predict, r2, rmse } from '../core/engine/metrics';
 import { polynomialFeatures } from '../core/engine/polynomial';
-import { makeLinearData, trainTestSplit } from '../core/engine/synthetic';
-import { Algorithm, SavedExperiment } from '../core/models/experiment';
+import { makeSyntheticData, trainTestSplit } from '../core/engine/synthetic';
+import { Algorithm, SavedExperiment, SyntheticKind, SyntheticConfig } from '../core/models/experiment';
 import { DatasetProvenance, LearningSnapshot, Step } from '../core/models/training-step';
+import type { PreparedSplit } from '../core/engine/csv';
 import { modelPredictions } from '../core/engine/model-view';
 export type { Step } from '../core/models/training-step';
 
@@ -61,6 +62,8 @@ export class LabStore {
     lambda = signal(0.1); // Ridge / Lasso
 
     // ----- cấu hình dữ liệu tổng hợp -----
+    syntheticKind = signal<SyntheticKind>('linear');
+    appliedSynthetic = signal<SyntheticConfig | null>(null);
     sampleCount = signal(500);
     featureCount = signal(2);
     noise = signal(8); // thanh trượt 0..50 (%)
@@ -99,7 +102,7 @@ export class LabStore {
     // hệ số co dữ liệu để vừa khung nhìn 3D (±4)
     dataScale = computed(() => {
         let m = 1e-9;
-        for (const r of [...this.trainX(), ...this.testX()]) for (const v of r) m = Math.max(m, Math.abs(v));
+        for (const r of [...this.trainX(), ...this.testX()]) for (const v of r.slice(0, 2)) m = Math.max(m, Math.abs(v));
         for (const v of [...this.trainY(), ...this.testY()]) m = Math.max(m, Math.abs(v));
         return 4 / m;
     });
@@ -139,8 +142,10 @@ export class LabStore {
 
     // ===== dữ liệu =====
     generateData() {
-        const { X, y } = makeLinearData(
-            this.sampleCount(), this.featureCount(), this.noise() / 50, this.seed(),
+        this.appliedSynthetic.set({ kind: this.syntheticKind(), version: 1, sampleCount: this.sampleCount(),
+            featureCount: this.featureCount(), noise: this.noise(), seed: this.seed(), trainRatio: this.trainRatio() });
+        const { X, y } = makeSyntheticData(
+            this.sampleCount(), this.featureCount(), this.noise() / 50, this.seed(), this.syntheticKind(),
         );
         const { train, test } = trainTestSplit(X, y, this.trainRatio(), this.seed() + 1);
         this.trainX.set(train.X);
@@ -156,8 +161,11 @@ export class LabStore {
     }
 
     /** Nạp dữ liệu đã dựng từ CSV (đã xử lý thiếu / chuẩn hoá) và chia train/test. */
-    loadDataset(X: number[][], y: number[], name: string, provenance?: DatasetProvenance) {
-        const { train, test } = trainTestSplit(X, y, this.trainRatio(), this.seed() + 1);
+    loadDataset(X: number[][], y: number[], name: string, provenance?: DatasetProvenance, split?: PreparedSplit) {
+        this.appliedSynthetic.set(null);
+        const pick = (indices: number[]) => ({ X: indices.map(i => X[i]), y: indices.map(i => y[i]), indices });
+        const { train, test } = split ? { train: pick(split.trainIndices), test: pick(split.testIndices) }
+            : trainTestSplit(X, y, this.trainRatio(), this.seed() + 1);
         this.trainX.set(train.X);
         this.trainY.set(train.y);
         this.testX.set(test.X);
@@ -176,17 +184,20 @@ export class LabStore {
      * nên chỉ áp dụng thuật toán + tham số huấn luyện lên dữ liệu đang có.
      */
     applyConfig(c: SavedExperiment) {
+        if (c.dataSource === 'synthetic' && c.synthetic && c.synthetic.version !== 1) throw new Error('Phiên bản bộ sinh dữ liệu chưa được hỗ trợ.');
         this.algorithm.set(c.algorithm);
         this.degree.set(c.degree ?? 2);
         this.lambda.set(c.lambda ?? 0.1);
         this.learningRate.set(c.learningRate);
         this.maxIterations.set(c.maxIterations);
         if (c.dataSource === 'synthetic') {
-            this.sampleCount.set(c.sampleCount);
-            this.featureCount.set(c.featureCount);
-            this.noise.set(c.noise);
-            this.seed.set(c.seed);
-            this.trainRatio.set(c.trainRatio);
+            const saved = c.synthetic;
+            this.syntheticKind.set(saved?.kind ?? 'linear');
+            this.sampleCount.set(saved?.sampleCount ?? c.sampleCount);
+            this.featureCount.set(saved?.featureCount ?? c.featureCount);
+            this.noise.set(saved?.noise ?? c.noise);
+            this.seed.set(saved?.seed ?? c.seed);
+            this.trainRatio.set(saved?.trainRatio ?? c.trainRatio);
             this.generateData();
         } else {
             this.reset();

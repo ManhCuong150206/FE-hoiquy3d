@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ALGORITHM_LABELS, SavedExperiment } from '../../core/models/experiment';
+import { ALGORITHM_LABELS, SavedExperiment, SYNTHETIC_LABELS } from '../../core/models/experiment';
 import { ExperimentsStore } from '../../state/experiments-store';
 import { LabStore } from '../../state/lab-store';
 
@@ -39,7 +39,7 @@ export class ExperimentsPanel {
       plain('Thuật toán', (e) => this.labels[e.algorithm]),
       plain('Learning rate', (e) => String(e.learningRate)),
       plain('Iterations', (e) => String(e.iterations)),
-      plain('Dữ liệu', (e) => (e.dataSource === 'csv' ? (e.csvName ?? 'CSV') : `seed ${e.seed}`)),
+      plain('Dữ liệu', (e) => this.datasetLabel(e)),
       plain('Train MSE', (e) => this.fmt(e.train.mse)),
       { label: 'Test MSE', cells: c.map((e) => ({ text: this.fmt(e.test.mse), best: e.test.mse === bestMse })) },
       plain('Test RMSE', (e) => this.fmt(e.test.rmse)),
@@ -63,7 +63,8 @@ export class ExperimentsPanel {
   }
 
   apply(e: SavedExperiment) {
-    this.lab.applyConfig(e);
+    try { this.lab.applyConfig(e); }
+    catch (error) { this.note.set(error instanceof Error ? error.message : 'Không khôi phục được cấu hình.'); return; }
     this.note.set(
       e.dataSource === 'csv'
         ? 'Dữ liệu CSV không được lưu kèm: chỉ áp dụng thuật toán và tham số lên dữ liệu hiện tại.'
@@ -90,8 +91,13 @@ export class ExperimentsPanel {
     this.selected.update((s) => s.filter((x) => x !== id));
   }
 
+  datasetLabel(e: SavedExperiment) {
+    return e.dataSource === 'csv' ? (e.csvName ?? 'CSV')
+      : `${SYNTHETIC_LABELS[e.synthetic?.kind ?? 'linear']} · seed ${e.synthetic?.seed ?? e.seed} · v${e.synthetic?.version ?? 1}`;
+  }
+
   meta(e: SavedExperiment) {
-    return `${this.labels[e.algorithm]} · lr ${e.learningRate} · ${e.iterations}/${e.maxIterations} it`;
+    return `${this.labels[e.algorithm]} · ${this.datasetLabel(e)} · lr ${e.learningRate} · ${e.iterations}/${e.maxIterations} it`;
   }
 
   when(e: SavedExperiment) {

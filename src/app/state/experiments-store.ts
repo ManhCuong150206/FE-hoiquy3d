@@ -52,11 +52,12 @@ export class ExperimentsStore {
             lambda: ['ridge', 'lasso'].includes(this.lab.algorithm()) ? this.lab.lambda() : undefined,
             dataSource: this.lab.dataSource(),
             csvName: this.lab.csvName(),
+            synthetic: this.lab.appliedSynthetic() ?? undefined,
             sampleCount: this.lab.trainX().length + this.lab.testX().length,
             featureCount: this.lab.dataFeatures(),
-            noise: this.lab.noise(),
-            seed: this.lab.seed(),
-            trainRatio: this.lab.trainRatio(),
+            noise: this.lab.appliedSynthetic()?.noise ?? this.lab.noise(),
+            seed: this.lab.appliedSynthetic()?.seed ?? this.lab.seed(),
+            trainRatio: this.lab.appliedSynthetic()?.trainRatio ?? this.lab.trainRatio(),
             iterations: s.iteration,
             w: [...s.w],
             b: s.b,
@@ -110,7 +111,7 @@ export class ExperimentsStore {
         const cols = [
             'id', 'name', 'createdAt', 'algorithm', 'learningRate', 'maxIterations', 'degree', 'lambda', 'iterations',
             'dataSource', 'csvName', 'sampleCount', 'featureCount', 'noise', 'seed', 'trainRatio',
-            'w', 'b',
+            'synthetic_kind', 'synthetic_version', 'w', 'b',
             'train_mse', 'train_rmse', 'train_mae', 'train_r2',
             'test_mse', 'test_rmse', 'test_mae', 'test_r2',
         ];
@@ -121,6 +122,7 @@ export class ExperimentsStore {
         const lines = this.list().map((e) => [
             e.id, e.name, new Date(e.createdAt).toISOString(), e.algorithm, e.learningRate, e.maxIterations, e.degree ?? '', e.lambda ?? '', e.iterations,
             e.dataSource, e.csvName, e.sampleCount, e.featureCount, e.noise, e.seed, e.trainRatio,
+            e.synthetic?.kind ?? (e.dataSource === 'synthetic' ? 'linear' : ''), e.synthetic?.version ?? '',
             e.w.join(' '), e.b,
             e.train.mse, e.train.rmse, e.train.mae, e.train.r2,
             e.test.mse, e.test.rmse, e.test.mae, e.test.r2,

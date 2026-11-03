@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { polynomialTermNames } from '../../core/engine/polynomial';
 import { LabStore } from '../../state/lab-store';
 
 @Component({
@@ -9,6 +10,14 @@ import { LabStore } from '../../state/lab-store';
 export class ResultsPanel {
   store = inject(LabStore);
 
+  readonly coefficients = computed(() => {
+    const w = this.store.latest()?.w ?? [];
+    const terms = this.store.algorithm() === 'polynomial'
+      ? polynomialTermNames(this.store.dataFeatures(), this.store.degree())
+      : Array.from({length:w.length}, (_, j) => this.store.provenance()?.labels[j] ?? `x${j+1}`);
+    const max = Math.max(1e-12, ...w.map(Math.abs));
+    return w.map((value, j) => ({name: terms[j], value, width: Math.abs(value)/max*100, zero: value === 0}));
+  });
   // Tính 2 đường loss (train, test) cho SVG 300x100
   chart = computed(() => {
     const h = this.store.history();

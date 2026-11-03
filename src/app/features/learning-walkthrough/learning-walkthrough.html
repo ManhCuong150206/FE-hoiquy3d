@@ -76,6 +76,7 @@
         </tbody>
       </table>
     </div>
+    @if (lab.provenance()?.fittedOn === 'train') { <p>Giá trị điền thiếu và thống kê chuẩn hóa chỉ được tính từ train, rồi áp dụng chung cho train/test.</p> }
     @if (lab.provenance()?.standardized) {
     <p>Đã chuẩn hóa cả X và y: z = (giá trị sau xử lý thiếu − trung bình) / độ lệch chuẩn. Loss bên dưới dùng đơn vị
       chuẩn hóa.</p>

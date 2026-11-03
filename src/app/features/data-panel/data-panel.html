@@ -2,6 +2,12 @@
   <h3 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg>DỮ LIỆU</h3>
   <p class="sub">Dữ liệu tổng hợp (sinh theo seed)</p>
 
+  <label for="synthetic-kind">Loại dữ liệu minh họa</label>
+  <select id="synthetic-kind" [value]="store.syntheticKind()" (change)="chooseScenario($event)">
+    @for (scenario of scenarios; track scenario.id) { <option [value]="scenario.id">{{ scenario.label }}</option> }
+  </select>
+  <p class="sub">Bấm REGENERATE để áp dụng. Đổi thuật toán giữ nguyên dữ liệu. Ridge nên dùng ≥ 2 đặc trưng; Lasso ≥ 3.</p>
+
   <label>Số đặc trưng (≥ 3 chỉ hiện lát cắt 2 đặc trưng đầu)</label>
   <select aria-label="Số đặc trưng" (change)="store.featureCount.set(num($event))">
     @for (v of [1, 2, 3, 4, 5]; track v) {

@@ -25,6 +25,7 @@
 
   @if (store.metrics(); as m) {
     <h4>Metric</h4>
+    <p>{{ store.provenance()?.standardized ? 'y đã chuẩn hóa bằng thống kê train: các metric đang ở thang chuẩn hóa.' : 'Metric dùng thang đo y đang đưa vào mô hình.' }}</p>
     <table>
       <tr><th></th><th>Train</th><th>Test</th></tr>
       <tr><td>MSE</td><td>{{ m.train.mse.toFixed(3) }}</td><td>{{ m.test.mse.toFixed(3) }}</td></tr>
@@ -35,6 +36,17 @@
   }
 
   @if (store.latest(); as s) {
+    <h4>Ảnh hưởng của từng đặc trưng</h4>
+    <p>Độ dài thanh là |w| so với hệ số lớn nhất. @if (store.algorithm() === 'lasso') { Hệ số đúng 0 được đánh dấu; không dùng ngưỡng làm tròn. }</p>
+    <div class="coefficient-list">
+      @for (coefficient of coefficients(); track $index) {
+        <div class="coefficient-row" [class.zero-coefficient]="coefficient.zero">
+          <span>{{ coefficient.name }}: {{ coefficient.value.toPrecision(5) }} @if (coefficient.zero) { · bằng 0 }</span>
+          <div class="coefficient-track"><span [style.width.%]="coefficient.width"></span></div>
+        </div>
+      }
+    </div>
+    <p>So sánh độ lớn hệ số cần xét thang đo đầu vào. Với Ridge/Lasso, dùng cùng dữ liệu và thay λ để quan sát.</p>
     <h4>Tham số mô hình</h4>
     <div class="parameters">
     <p class="mono">w = [{{ s.w.map(v => v.toFixed(2)).join(', ') }}]</p>

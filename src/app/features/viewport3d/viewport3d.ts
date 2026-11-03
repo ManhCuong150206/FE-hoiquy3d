@@ -6,7 +6,7 @@ import {
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LabStore } from '../../state/lab-store';
-import { countStuck, modelPredictions, sliceRow } from '../../core/engine/model-view';
+import { countStuck, modelPredictions, modelVisibility, sliceRow } from '../../core/engine/model-view';
 import { Algorithm } from '../../core/models/experiment';
 import { rotatePair, unitRotation } from '../../core/engine/complex-rotation';
 
@@ -126,6 +126,11 @@ export class Viewport3d implements OnDestroy {
     });
 
 
+    effect(() => {
+      if (!this.active() || !this.ready()) return;
+      this.applyModelVisibility(this.store.dataFeatures(), this.store.stickThreshold());
+    });
+
     // Mỗi bước huấn luyện → cập nhật bề mặt mô hình
     effect(() => {
       if (!this.active()) return;
@@ -163,8 +168,7 @@ export class Viewport3d implements OnDestroy {
       this.trueMarker.visible = visible;
       this.predictedMarker.visible = visible && !!snapshot && phase >= 1 && Number.isFinite(prediction);
       this.residualLine.visible = visible && !!snapshot && phase >= 2 && Number.isFinite(prediction);
-      if(this.plane) this.plane.visible = !this.lesson() || phase > 0;
-      for(const band of this.bands) band.visible = !this.lesson() || phase > 0;
+
       const x = row[0] * scale, z = (row[1] ?? 0) * scale;
       this.trueMarker.position.set(x, y * scale, z);
       this.trueMarker.scale.setScalar(1.4 * size);
@@ -331,9 +335,7 @@ export class Viewport3d implements OnDestroy {
     const offset = eps * scale;
     const invalid = heights.some(v => !Number.isFinite(v) || !Number.isFinite(offset) || Math.abs(v) + offset > 1e30);
     this.modelClipped.set(invalid);
-    this.plane.visible = !invalid && featureCount >= 2;
-    if (this.modelLine) this.modelLine.visible = !invalid && featureCount === 1;
-    this.bands.forEach(band => band.visible = !invalid && eps > 0);
+    this.applyModelVisibility(featureCount, eps);
     if (invalid) return;
     heights.forEach((v, i) => pos.setY(i, v));
 
@@ -355,6 +357,13 @@ export class Viewport3d implements OnDestroy {
       linePos.needsUpdate = true;
       this.modelLine.geometry.computeBoundingSphere();
     }
+  }
+
+  private applyModelVisibility(features: number, eps: number) {
+    const visible = modelVisibility(features, this.lesson(), this.shownPhase(), eps, this.modelClipped());
+    if (this.plane) this.plane.visible = visible.plane;
+    if (this.modelLine) this.modelLine.visible = visible.line;
+    this.bands.forEach(band => band.visible = visible.bands);
   }
 
   setEpsilon(event: Event) { this.store.stickEpsilon.set(+(event.target as HTMLInputElement).value / 100); }

@@ -107,12 +107,13 @@ export class CsvImport {
             yCol: this.yCol(),
             missing: this.missing(),
             standardize: this.standardize(),
+            trainRatio: this.store.trainRatio(), splitSeed: this.store.seed() + 1,
         });
         if (res.error) {
             this.fail(res.error);
             return;
         }
-        this.store.loadDataset(res.X, res.y, this.fileName(), res.provenance);
+        this.store.loadDataset(res.X, res.y, this.fileName(), res.provenance, res.split);
 
         const parts = [`Đã nạp ${res.used}/${res.total} mẫu`];
         if (res.droppedRows) parts.push(`bỏ ${res.droppedRows} dòng`);

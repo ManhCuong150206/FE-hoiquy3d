@@ -18,4 +18,9 @@ describe('AlgorithmNotes', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('explains the actual multivariate polynomial basis', () => {
+    component.store.algorithm.set('polynomial');component.store.trainX.set([[1,2]]);component.store.degree.set(2);
+    expect(component.note().model).toContain('x1 × x2');expect(component.note().model).toContain('x2^2');
+  });
 });

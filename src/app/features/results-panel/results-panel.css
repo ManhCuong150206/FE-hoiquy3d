@@ -78,3 +78,5 @@ td.good { color: var(--ok-fg); background: var(--ok-bg); font-weight: 700; }
 .parameters { padding: 12px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-control); }
 
 .series.test i{background:var(--color-test)}
+
+.coefficient-list{max-height:220px;overflow:auto}.coefficient-row{margin:8px 0;overflow-wrap:anywhere}.coefficient-track{height:5px;background:var(--border);border-radius:4px}.coefficient-track span{display:block;height:100%;background:var(--algorithm-accent);border-radius:4px}.zero-coefficient{opacity:.75}

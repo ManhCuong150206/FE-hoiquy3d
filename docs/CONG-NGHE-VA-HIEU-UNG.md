@@ -1,6 +1,6 @@
 # Công nghệ, công cụ và hiệu ứng — Hồi quy 3D
 
-Cập nhật: 01/11/2026. Đây là tài liệu chính về giao diện, hiệu ứng, luồng học và kiểm thử frontend. Nội dung đã được gộp và biên tập theo các quyết định mới nhất, thay cho năm file giao diện/học từng bước trước đây. [README](../README.md) chỉ giữ cách cài đặt và chạy nhanh.
+Cập nhật: 03/11/2026. Đây là tài liệu chính về giao diện, hiệu ứng, luồng học và kiểm thử frontend. Nội dung đã được gộp và biên tập theo các quyết định mới nhất, thay cho năm file giao diện/học từng bước trước đây. [README](../README.md) chỉ giữ cách cài đặt và chạy nhanh.
 
 Mã nguồn là căn cứ kiểm tra hành vi thực tế. Các con số kiểm thử bên dưới ghi theo lần chạy cụ thể, không tự động thay đổi khi code thay đổi.
 
@@ -278,13 +278,31 @@ Worker nhận init gồm Xtr/ytr/Xte/yte, lr, maxIter, tol, speed, algorithm, de
 - E2E có mock API để kiểm tra giao diện đồng bộ; mock không chứng minh MongoDB đã ghi thật.
 - Đăng nhập/đăng xuất vẫn là demo; xác thực và bảo mật thật cần công việc riêng.
 
-## 13. Hạn chế CSV cần giữ lại trong báo cáo
+## 13. Tiền xử lý CSV và giới hạn diễn giải
 
-Mã buildDataset hiện xử lý thiếu và tính thống kê z-score trên toàn dữ liệu **trước khi chia train/test**. Nếu bật chuẩn hóa, cả X và y đều được chuẩn hóa. Đây là nguy cơ rò rỉ thông tin test vào tiền xử lý, làm đánh giá lạc quan; không được coi là đã sửa trong đợt giao diện/gộp tài liệu.
+Đã sửa thứ tự tiền xử lý: đọc cột và loại dòng thiếu y; với chế độ drop thì loại dòng thiếu X; chia train/test một lần bằng tỉ lệ và seed; fit giá trị điền thiếu và thống kê z-score chỉ trên train; transform cả hai tập bằng cùng thống kê. `buildDataset` trả về chỉ số phân chia, `LabStore.loadDataset` nhận lại các chỉ số đó, không trộn/chia lần thứ hai. Nếu một cột train không có giá trị hợp lệ khi điền mean, dùng 0; cột hằng dùng sd = 1. Thống kê và nguồn dòng vẫn đi cùng dữ liệu để bảng A–F đối chiếu được giá trị gốc, sau điền thiếu và sau chuẩn hóa.
 
-Hướng sửa riêng: chia trước, fit imputer/scaler bằng train, rồi transform train/test cùng thống kê. Cần quyết định metric theo đơn vị gốc hay chuẩn hóa và thêm kiểm thử chống rò rỉ.
+Nếu bật chuẩn hóa, cả X và y được chuẩn hóa bằng thống kê train. MSE/RMSE/MAE hiện trên thang y đã chuẩn hóa, không phải đơn vị gốc của CSV; giao diện kết quả ghi rõ điều này. Chưa bổ sung inverse-transform metric hoặc lưu đầy đủ tệp CSV vào bản ghi thí nghiệm offline. Mở lại cấu hình CSV vẫn áp dụng lên dữ liệu đang có và có thông báo giới hạn.
 
-Số dòng nguồn CSV đang theo bản ghi logic tính cả header, không phải dòng vật lý nếu có ô chứa xuống dòng. [learning-demo.csv](examples/learning-demo.csv) là dữ liệu mẫu để kiểm tra nhập CSV.
+Test chống rò rỉ thay đổi riêng giá trị X/y ở test rồi kiểm tra thống kê fit, giá trị điền thiếu và dữ liệu train không đổi. Số dòng nguồn CSV vẫn là bản ghi logic tính cả header, không phải dòng vật lý nếu ô chứa xuống dòng. [learning-demo.csv](examples/learning-demo.csv) là dữ liệu mẫu kiểm tra nhập CSV.
+
+### Dữ liệu minh họa và cấu hình tái lập
+
+Trong panel Dữ liệu có lựa chọn độc lập với thuật toán: tuyến tính có nhiễu, bề mặt cong, các biến tương quan mạnh và biến không liên quan. Bấm REGENERATE mới áp dụng; chỉ đổi thuật toán không đổi dataset. Dữ liệu tương quan nên dùng ít nhất hai đặc trưng, dữ liệu sparse nên dùng ít nhất ba. Tất cả bộ sinh version 1 tái lập theo seed. Linear giữ nguyên bộ sinh cũ để các bản ghi cũ tiếp tục tái tạo đúng.
+
+Lưu thí nghiệm lấy `appliedSynthetic` (cấu hình thật đã sinh dữ liệu), không lấy lựa chọn còn đang chờ REGENERATE. Trường `synthetic` gồm kind/version/sampleCount/featureCount/noise/seed/trainRatio, đi qua IndexedDB, JSON/CSV export và bulk API. Backend đăng ký schema con tương ứng và kiểm tra cấu hình ở create/update/bulk. Bản ghi FE cũ không có trường này dùng mặc định linear; phiên bản chưa hỗ trợ không tự đoán sang bộ sinh khác. Chỉ so sánh các thuật toán khi cùng dataset, split và thang đo; không kết luận mô hình tốt hơn từ hai kịch bản dữ liệu khác nhau.
+
+### Quy tắc biểu diễn và hệ số
+
+Một chính sách `modelVisibility` quyết định đường/mặt phẳng/dải: một đặc trưng chỉ hiện đường, từ hai đặc trưng hiện mặt, pha A ở trang học ẩn mọi hình dự đoán, ε = 0 ẩn dải, mô hình vượt giới hạn hình học ẩn cả đường và mặt. Effect đánh dấu mẫu không được tự ghi lại `.visible`. Độ co hình lấy x1/x2/y đang được vẽ, không bị biến x3+ có giá trị lớn làm toàn cảnh thu nhỏ; đây vẫn chỉ là co hiển thị, không đổi dữ liệu học.
+
+Polynomial dùng cùng thứ tự tên đặc trưng với engine, gồm cả tích chéo; phần ghi chú rút gọn sau tám hạng tử khi quá dài, bảng hệ số và pha E vẫn có đủ. Panel kết quả thêm thanh |w| và giá trị có dấu cho từng đặc trưng; hệ số bằng 0 được xác định bằng giá trị thật, không dùng số đã làm tròn. So sánh độ lớn hệ số cần xét thang đo đầu vào. Ridge/Lasso vẫn vẽ mặt phẳng; khác biệt thể hiện ở trọng số và tác động của λ, không đổi hình dạng một cách giả tạo.
+
+### Kết quả xác minh sửa lỗi ngày 03/11/2026
+
+Production build FE và build NestJS đều đạt. Unit test FE: 114/114 trong 23 file; Backend: 12/12 trong 3 file. Bộ E2E đầy đủ dev-server: 18 nhóm/185 tiêu chí đạt, gồm nhóm model-integrity mới. Sau khi hoàn thiện nhãn dataset đã lưu và chặn phiên bản bộ sinh chưa hỗ trợ trước khi thay đổi trạng thái, đã chạy lại unit/build cả hai repo và nhóm model-integrity (11 tiêu chí); nhóm này còn kiểm tra không tràn ngang trên mobile cho từng thuật toán.
+
+Bằng chứng nằm trong `output/playwright/model-fixes-full-e2e.log`, `model-fixes-unit-final.log`, `model-fixes-build-final.log`, `model-integrity-final.log` và `*-result.log`; ảnh `model-integrity-learning.png`. Kiểm tra lỗi 1D/ε=0/đổi mẫu dùng scene WebGL thật trong trình duyệt; mock API chỉ xác nhận payload đồng bộ. Backend test kiểm tra mapping bulk và schema Mongoose giữ cấu hình, chưa phải lần ghi trên MongoDB đang chạy. Chưa benchmark FPS hoặc xác minh HTTPS trong đợt này. Không thay đổi engine gradient/ISTA hoặc logic commit một iteration ở F.
 
 ## 14. Hiệu năng và khả năng tiếp cận
 
