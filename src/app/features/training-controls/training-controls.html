@@ -1,14 +1,12 @@
 <section class="controls">
     <div class="field">
         <label for="learning-mode">Chế độ</label>
-        <select id="learning-mode" [value]="store.mode()" (change)="store.setMode($any($event.target).value)" [disabled]="store.switching()">
-            <option value="normal">Chạy bình thường</option><option value="learn">Học từng bước</option>
-        </select>
+        <output id="learning-mode" class="selected-algorithm">Chạy bình thường</output>
     </div>
     <div class="run-controls">
     <button (click)="store.reset()">Reset</button>
     <button class="play" [class.running]="store.status() === 'running' || store.auto()" aria-label="Chạy hoặc tạm dừng" (click)="toggle()" [disabled]="store.switching() || (store.busy() && !store.auto())"><span aria-hidden="true">{{ store.status() === 'running' || store.auto() ? '⏸' : '▶' }}</span> {{ store.status() === 'running' || store.auto() ? 'Dừng' : 'Chạy' }}</button>
-    <button (click)="store.step()" [disabled]="store.busy() || store.switching() || (store.mode() === 'learn' && store.status() === 'done')">{{ store.mode() === 'learn' ? 'Tiếp pha' : 'Step' }}</button>
+    <button (click)="store.step()" [disabled]="store.busy() || store.switching()">Step</button>
     <button class="stop" (click)="store.stop()">Stop</button>
     </div>
 
@@ -64,7 +62,6 @@
         </select>
     </div>
 
-    @if (store.mode() === 'normal') {
     <div class="field">
         <label>Nhịp chạy iteration</label>
         <select (change)="store.setSpeed(+$any($event.target).value)">
@@ -73,8 +70,6 @@
             }
         </select>
     </div>
-    }
-
     </div>
     @if (store.lrError() ?? store.errorMsg(); as msg) {
     <p class="warn">⚠ {{ msg }}</p>

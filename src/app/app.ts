@@ -53,6 +53,12 @@ export class App {
   navigate(screen: string, _cinematic = false, handoff=false) {
     if(this.pageBusy())return;
     if (!['welcome', 'algorithms', 'lab', 'learning'].includes(screen) || ((screen === 'lab' || screen === 'learning') && !this.opened())) return;
+    // Navigation owns execution mode; keep the dataset and committed model shared.
+    if (screen !== this.activeScreen()) {
+      this.lab.pause();
+      this.lab.setMode(screen === 'learning' ? 'learn' : 'normal');
+      this.lessonPhase.set(null);
+    }
     this.motion()?.settle();
     const target = document.getElementById(screen); if (!target) { this.activeScreen.set(screen); return; }
     const previous=this.activeScreen();

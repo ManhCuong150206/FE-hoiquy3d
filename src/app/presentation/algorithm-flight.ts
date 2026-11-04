@@ -26,9 +26,15 @@ export class AlgorithmFlight {
     const card=host.querySelector<HTMLElement>(`.algorithm-card[data-algorithm="${algorithm}"]`);
     if(!card||!sphere||!sphere.beginJourney(algorithm,back)) {this.restore();return false;}
     const {gsap:engine}=await import('gsap');if(revision!==this.revision||matchMedia('(prefers-reduced-motion: reduce)').matches){sphere.restoreJourney();return false;}engine.ticker.fps(60);
-    const rect=card.getBoundingClientRect(),center=()=>{const b=card.getBoundingClientRect();return {x:b.left+b.width/2,y:b.top+b.height/2};};
-    const orb=host.querySelector<HTMLElement>('.sphere-container');
-    if(!back&&orb){const box=orb.getBoundingClientRect();if(box.top<0||box.bottom>innerHeight)orb.scrollIntoView({block:'center',behavior:'smooth'});}
+    const rect=card.getBoundingClientRect();
+    let cardBox=rect,canvasBox=host.querySelector('canvas')?.getBoundingClientRect();
+    let geometryDirty=false;
+    const invalidateGeometry=()=>{geometryDirty=true;};
+    const measure=()=>{if(!geometryDirty)return;geometryDirty=false;cardBox=card.getBoundingClientRect();canvasBox=host.querySelector('canvas')?.getBoundingClientRect();};
+    const center=()=>{measure();return {x:cardBox.left+cardBox.width/2,y:cardBox.top+cardBox.height/2};};
+    // Keep viewport scrolling out of the star flight; refresh bounds only when layout changes.
+    window.addEventListener('resize',invalidateGeometry);
+    window.addEventListener('scroll',invalidateGeometry,{passive:true});
     const portal=document.createElement('div');portal.className='algorithm-flight-layer';portal.setAttribute('aria-hidden','true');portal.dataset['algorithm']=algorithm;portal.dataset['direction']=back?'out':'in';
     const star=document.createElement('div');star.className='algorithm-flight-star';
     const clone=card.cloneNode(true) as HTMLElement;clone.removeAttribute('id');clone.removeAttribute('data-card-glow');clone.style.visibility='visible';clone.classList.add('algorithm-flight-card');clone.setAttribute('aria-hidden','true');clone.tabIndex=-1;
@@ -40,11 +46,16 @@ export class AlgorithmFlight {
     const state={align:back?1:0,zoom:back?1:0,t:0,cinema:back?1:0};let origin=center();
     if(back){sphere.beginCinema(true);sphere.refreshCinemaFrame();}
     const locate=(point:FlightPoint)=>{star.style.transform=`translate3d(${point.x-18}px,${point.y-18}px,0)`;};
-    const updateSphere=()=>sphere.setJourney(state.align,state.zoom);
+    const updateSphere=()=>{
+      measure();sphere.setJourney(state.align,state.zoom,state.cinema);
+      if(portal.dataset['phase']==='fly'){const end=sphere.journeyAnchor(canvasBox);if(end)locate(curvedFlight(origin,end,state.t));}
+      else if(portal.dataset['phase']==='return-star')locate(curvedFlight(origin,center(),state.t));
+    };
     return await new Promise<boolean>(resolve=>{
       let completed=false;
       const cleanup=()=>{
         if(completed)return;completed=true;this.timeline?.kill();this.timeline=undefined;
+        window.removeEventListener('resize',invalidateGeometry);window.removeEventListener('scroll',invalidateGeometry);
         portal.remove();delete host.dataset['flight'];engine.set(others,{clearProps:'opacity'});if(back){closePlanetCinema();engine.set(host,{clearProps:'opacity'});}
         if(back){card.style.removeProperty('visibility');this.hiddenCard=undefined;sphere.restoreJourney();}
         document.removeEventListener('visibilitychange',skip);media.removeEventListener('change',skip);canvas?.removeEventListener('webglcontextlost',lost);this.finish=undefined;resolve(true);
@@ -54,34 +65,39 @@ export class AlgorithmFlight {
       const lost=()=>cleanup();canvas?.addEventListener('webglcontextlost',lost);
       const skip=()=>{if(document.hidden||media.matches){if(!back){sphere.setJourney(1,1);sphere.beginCinema();sphere.setCinema(1);}cleanup();}};
       this.finish=cleanup;document.addEventListener('visibilitychange',skip);media.addEventListener('change',skip);
-      const timeline=engine.timeline({onComplete:cleanup});this.timeline=timeline;
+      const timeline=engine.timeline({onComplete:cleanup,onUpdate:updateSphere});this.timeline=timeline;
       if(!back){
+        // Compress the entire outbound choreography uniformly; preserve easing and overlaps.
+        // 6.8s / 1.8 plus the unchanged lab reveal is about 5s total.
+        timeline.timeScale(1.8);
         locate(origin);engine.set(star,{opacity:0,scale:.7});
         timeline.call(()=>{portal.dataset['phase']='gather';},[],0)
           .to(others,{opacity:.35,duration:.3},0)
           .to(clone,{scale:.04,opacity:0,duration:.45,ease:'power2.inOut'},0)
           .to(star,{opacity:1,scale:1,duration:.2},.25)
-          .to(state,{align:1,duration:1.1,ease:'power2.inOut',onUpdate:updateSphere},0)
+          .to(state,{align:1,duration:1.1,ease:'power2.inOut'},0)
           .call(()=>{portal.dataset['phase']='fly';},[],.95)
-          .to(state,{t:1,duration:.9,ease:'power2.inOut',onUpdate:()=>{const end=sphere.journeyAnchor();if(end)locate(curvedFlight(origin,end,state.t));}},.95)
+          .to(state,{t:1,duration:.9,ease:'power1.inOut'},.95)
           .to(star,{opacity:0,scale:.25,duration:.2},1.8)
           .call(()=>{portal.dataset['phase']='approach';sphere.beginCinema();},[],1.85)
           .to(host,{opacity:0,duration:.55},1.9)
-          .to(state,{cinema:1,duration:.8,ease:'power2.inOut',onUpdate:()=>sphere.setCinema(state.cinema)},1.85)
-          .to(state,{zoom:1,duration:4.6,ease:'power2.inOut',onUpdate:updateSphere},2.2);
+          .to(state,{cinema:1,duration:.8,ease:'power2.inOut'},1.85)
+          .to(state,{zoom:1,duration:4.6,ease:'sine.inOut'},2.2);
       }else{
-        engine.set(host,{opacity:0});engine.set(clone,{scale:.04,opacity:0});engine.set(star,{opacity:0});
+        timeline.timeScale(1.5);
+        engine.set(host,{opacity:0});
+        if(cardBox.bottom>innerHeight||cardBox.top<0){card.scrollIntoView({block:'center',behavior:'instant'});invalidateGeometry();measure();sphere.refreshCinemaFrame();}engine.set(clone,{scale:.04,opacity:0});engine.set(star,{opacity:0});
         timeline.call(()=>{portal.dataset['phase']='pullback';},[],0)
-          .to(state,{zoom:0,duration:4.6,ease:'power2.inOut',onUpdate:updateSphere},0)
-          .to(state,{cinema:0,duration:.85,ease:'power2.inOut',onUpdate:()=>sphere.setCinema(state.cinema)},4.15)
+          .to(state,{zoom:0,duration:4.6,ease:'sine.inOut'},0)
+          .to(state,{cinema:0,duration:.85,ease:'power2.inOut'},4.15)
           .to(host,{opacity:1,duration:.6},4.2)
-          .call(()=>{sphere.endCinema();origin=sphere.journeyAnchor()??center();locate(origin);portal.dataset['phase']='return-star';const box=card.getBoundingClientRect();if(box.bottom>innerHeight||box.top<0)card.scrollIntoView({block:'center',behavior:'smooth'});},[],5)
+          .call(()=>{sphere.endCinema();invalidateGeometry();measure();origin=sphere.journeyAnchor(canvasBox)??center();locate(origin);portal.dataset['phase']='return-star';},[],5)
           .to(star,{opacity:1,scale:1,duration:.15},5)
-          .to(state,{t:1,duration:.9,ease:'power2.inOut',onUpdate:()=>locate(curvedFlight(origin,center(),state.t))},5.05)
+          .to(state,{t:1,duration:.9,ease:'power1.inOut'},5.05)
           .call(()=>{portal.dataset['phase']='restore-card';const box=card.getBoundingClientRect();clone.style.left=box.left+'px';clone.style.top=box.top+'px';},[],5.95)
           .to(star,{opacity:0,scale:.3,duration:.2},5.95)
           .to(clone,{scale:1,opacity:1,duration:.4,ease:'power2.out'},5.95)
-          .to(state,{align:0,duration:.6,ease:'power2.inOut',onUpdate:updateSphere},5.75);
+          .to(state,{align:0,duration:.6,ease:'power2.inOut'},5.75);
       }
     });
   }

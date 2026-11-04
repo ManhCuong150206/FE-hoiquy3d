@@ -1,0 +1,31 @@
+async(page)=>{
+ const check=(ok,message)=>{if(!ok)throw new Error(message);};page.setDefaultTimeout(20000);
+ await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');
+ const idle=id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience').getAttribute('aria-busy')==='false',id);
+ const state=()=>page.evaluate(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return {mode:l.mode(),auto:l.auto(),iteration:l.iteration(),phase:l.phase(),snapshot:!!l.snapshot(),status:l.status(),switching:l.switching()};});
+ const settled=()=>page.waitForFunction(()=>!window.ng.getComponent(document.querySelector('app-training-controls')).store.switching());
+ await page.locator('.guest-button').click();await idle('algorithms');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
+ check(await page.locator('select#learning-mode').count()===0,'Page 3 cannot select teaching mode');
+ check((await state()).mode==='normal','Page 3 starts normal');
+ await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-training-controls')).store.iteration()===1);
+ const data=await page.evaluate(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return JSON.stringify([l.trainX(),l.testX(),l.trainY(),l.testY()]);});
+ await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await idle('learning');await settled();
+ check((await state()).mode==='learn'&&!(await state()).auto,'Page 4 enters teaching but does not start automatically');
+ await page.locator('.lesson-options>summary').click();await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');await page.locator('.lesson-options>summary').click();
+ await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.waitForFunction(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return l.phase()===5&&!l.auto()&&l.iteration()===2;});
+ await page.getByRole('button',{name:'Về thực nghiệm',exact:false}).click();await idle('lab');await settled();
+ check((await state()).mode==='normal'&&(await state()).iteration===2,'Return keeps completed iteration and restores normal mode');
+ check((await page.locator('#learning-mode').innerText()).includes('Chạy bình thường'),'Toolbar reports normal mode');
+ await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-training-controls')).store.iteration()===3);
+ await page.getByRole('button',{name:'Chạy hoặc tạm dừng'}).click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-training-controls')).store.iteration()>=5);
+ await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await idle('learning');await settled();
+ let stopped=await state();await page.waitForTimeout(700);check((await state()).iteration===stopped.iteration,'Normal autoplay stops when opening page 4');
+ await page.getByRole('button',{name:'Học từng bước',exact:true}).click();await page.waitForFunction(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return l.auto()&&l.phase()===1;});
+ await page.getByRole('button',{name:'Về thực nghiệm',exact:false}).click();await idle('lab');await settled();
+ stopped=await state();await page.waitForTimeout(3000);const after=await state();
+ check(after.mode==='normal'&&!after.auto&&!after.snapshot&&after.iteration===stopped.iteration,'Leaving mid A-E cancels teaching timer without a hidden F commit');
+ check(await page.evaluate(expected=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return JSON.stringify([l.trainX(),l.testX(),l.trainY(),l.testY()])===expected;},data),'Same dataset retained on both pages');
+ await page.screenshot({path:'output/playwright/page-modes-fixed.png'});
+ return {suite:'page-modes',passed:['page 3 fixed normal mode','page 4 teaching only','entry never auto trains','A-F commits once','return retains committed iteration','Step works after return','normal autoplay works after return','normal autoplay pauses at page 4','leaving A-E cancels timer and pending result','dataset unchanged']};
+}

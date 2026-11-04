@@ -447,3 +447,61 @@ Log/ảnh nằm trong `FE/FE-hoiquy3d/output/playwright` (bị Git ignore): `per
 - File sửa: `learning-walkthrough.ts`, `learning-walkthrough.html`; thêm `learning-walkthrough.spec.ts` và `e2e/ui-redesign/lesson-restart.e2e.js`; runner E2E có thêm nhóm `lesson-restart`.
 - Kiểm thử: **131/131 unit test (26 file), build production đạt**. Browser: `lesson-restart` **8 tiêu chí**, `learning-route` **14 tiêu chí**, `smooth-learning` **9 tiêu chí** đều đạt. Browser dùng Worker thật và API fixture, không phải đợt kiểm chứng MongoDB mới; không chạy lại toàn bộ nhóm E2E.
 - Log/ảnh: `lesson-disabled-before.log`, `lesson-disabled-before.png`, `lesson-restart-unit.log`, `lesson-restart-build.log`, `lesson-restart-e2e.log`, `lesson-restart-fixed.png`, `lesson-fix-learning-route.log`, `lesson-fix-smooth-learning.log` trong `output/playwright` (Git ignore).
+
+
+## 21. Tách chế độ trang 3 và trang 4 — 04/11/2026
+
+Trước đây hai trang dùng chung `LabStore.mode`. Bấm học ở trang 4 đổi mode sang `learn`, nhưng khi về trang 3 mode không được trả lại, khiến Chạy/Step trở thành điều khiển pha học.
+
+- **Trang 3 — Thực nghiệm:** cố định “Chạy bình thường”, không còn menu chọn học từng bước. Chạy thực hiện liên tục; Step thực hiện một iteration (một lần cập nhật mô hình).
+- **Trang 4 — Học từng bước:** dùng chế độ giải thích A–F; chỉ bắt đầu khi bấm nút học. Mỗi lượt đi qua A–F và dừng sau đúng một iteration.
+- Chuyển trang tạm dừng việc đang chạy. Về trang 3 khôi phục mode `normal`; mở trang 4 chọn mode `learn`. Đây là tách chế độ điều khiển, vẫn dùng chung dataset, thuật toán và mô hình đã áp dụng.
+- Rời trang 4 giữa A–E hủy bộ hẹn giờ và bản tính thử chưa áp dụng; không tự chạy F khi trang bị ẩn. Iteration đã áp dụng ở F vẫn được giữ.
+- Nếu người dùng chuyển trang trước khi Worker trả lời, `requestId` (mã yêu cầu) giúp chỉ chấp nhận phản hồi chuyển chế độ mới nhất, tránh chế độ cũ ghi đè lựa chọn mới.
+
+| Tệp | Thay đổi và mục đích |
+| --- | --- |
+| `src/app/app.ts` | Gắn chế độ với trang đích; tạm dừng khi đổi trang, xóa lựa chọn pha xem lại cũ. |
+| `src/app/state/lab-store.ts` | Cho phép yêu cầu đổi chế độ mới thay thế yêu cầu đang chờ; tiếp tục dùng xác nhận pause từ Worker. |
+| `src/app/features/training-controls/training-controls.html` | Hiện chế độ cố định ở trang 3, giữ Step và tốc độ chạy bình thường. |
+| `src/app/app.spec.ts` | Kiểm tra điều hướng giữ dataset/iteration và chọn đúng chế độ. |
+| `src/app/state/learning-flow.spec.ts` | Kiểm tra phản hồi chậm, chuyển chế độ liên tiếp và hủy A–E khi rời trang. |
+| `src/app/features/training-controls/training-controls.spec.ts` | Kiểm tra thanh điều khiển trang 3 không có menu học từng bước. |
+| `e2e/ui-redesign/page-modes.e2e.js` | Dùng Worker thật kiểm tra chạy thường → học A–F → quay lại, chạy/Step tiếp, rời khi đang học và giữ dataset. API được mô phỏng, không kiểm thử MongoDB trong đợt này. |
+| `e2e/ui-redesign/learning-offline.e2e.js` | Bỏ thao tác chọn mode thủ công; chế độ được chọn qua điều hướng trang. |
+| `e2e/run-ui-redesign.ps1` | Thêm nhóm kiểm thử `page-modes` vào bộ chạy E2E. |
+
+Kiểm tra hiện tại: **135/135 unit test, 26 tệp; production build đạt; nhóm E2E `page-modes` đạt 10 tiêu chí**. Kết quả các đợt kiểm thử trước ở những mục trên được giữ để đối chiếu, không phải số liệu tự cập nhật.
+
+
+## 22. Rút ngắn chuyển cảnh trang 2 → trang 3 — 04/11/2026
+
+Giữ nguyên các đoạn: thẻ thu thành sao → sao bay vào lục địa → camera tiến sâu toàn màn hình → các khung trang 3 xuất hiện với độ nảy nhẹ. Chỉ tăng tốc đều timeline chiều đi bằng GSAP `timeScale(1.8)` trong `src/app/presentation/algorithm-flight.ts`.
+
+`timeScale` là hệ số tốc độ của toàn bộ chuỗi chuyển động. Ví dụ một đoạn 1,8 giây chạy ở tốc độ 1,8 sẽ còn 1 giây. Cách này giữ tỷ lệ thời gian, thứ tự, độ chồng lấp và easing (nhịp tăng/giảm tốc), tránh chỉnh riêng từng đoạn làm lệch nhịp sao và camera.
+
+- Sao bay và camera: từ 6,8 giây còn khoảng 3,78 giây.
+- Cộng phần hiện các khung trang 3 vốn giữ nguyên khoảng 1,19 giây: tổng thiết kế khoảng 5 giây, thay vì khoảng 8 giây trước đó. Thời gian đo thực tế còn gồm thao tác và độ trễ của trình duyệt.
+- Chiều quay lại, chuyển trang 1 → 2, đường bay, màu sắc và dữ liệu/mô hình giữ nguyên.
+- Vẫn hỗ trợ giảm chuyển động, ngắt hiệu ứng an toàn và dọn overlay. Không cam kết FPS cố định chỉ nhờ thay thời lượng.
+- `e2e/ui-redesign/algorithm-flight.e2e.js` phân biệt ngưỡng thời gian chiều đi mới và chiều về cũ để phát hiện chạy quá nhanh hoặc bị treo.
+
+Kiểm chứng lần này: **135/135 unit test (26 tệp), production build và 26 tiêu chí E2E** (`lab-arrival`: 11, `algorithm-flight`: 15) đều đạt. Chiều đi đo trên trình duyệt cho Linear/Polynomial/Ridge/Lasso: **5,24 / 5,46 / 5,43 / 5,49 giây**, gồm thao tác/chờ của công cụ. Chiều về: **6,97–7,26 giây**. Xác nhận thứ tự hiện khung, độ nảy nhẹ, camera toàn màn hình, dọn overlay, giảm chuyển động, mobile/resize và không tự huấn luyện khi chuyển cảnh. API trong E2E được mô phỏng; đây không phải kiểm thử lưu MongoDB.
+
+
+## 23. Làm mượt hai chiều trang 2 ↔ trang 3 — 04/11/2026
+
+Đợt này tiếp tục giữ ý tưởng thẻ → sao → lục địa → camera tiến vào → khung trang 3 xuất hiện, và đảo chiều khi quay lại. Thay đổi ở mục này thay thế quy định giữ nguyên thời gian chiều về tại mục 22.
+
+- **Chiều đi:** giữ tổng thời lượng gần 5 giây, dùng easing `sine.inOut` cho camera để tăng/giảm tốc đều, giảm cảm giác kéo dài ở đầu và cuối hành trình. Sao dùng `power1.inOut` để nối nhịp bay nhẹ hơn.
+- **Chiều về:** GSAP `timeScale(1.5)` rút chuỗi quay về từ 6,35 giây còn khoảng 4,23 giây; cộng phần chuyển giao trang khoảng 0,5 giây, mục tiêu tổng gần 4,8 giây.
+- **Cập nhật đồng bộ:** gom góc xoay, camera và mức mở rộng toàn màn hình vào một callback cập nhật timeline. `AlgorithmSphere.setJourney` nhận cả tiến độ toàn màn hình trước khi gọi dựng hình, tránh ba callback riêng có thể dựng các trạng thái lệch nhau.
+- **Ổn định đường bay:** ghi nhớ kích thước/vị trí thẻ và canvas, chỉ đo lại khi resize/cuộn hoặc khi đưa canvas về vị trí cũ. Không đo lại khung thẻ trong mọi khung hình.
+- **Không cuộn khi sao đang bay:** bỏ tự cuộn tới quả cầu lúc bắt đầu chiều đi. Khi quay về, nếu thẻ nằm ngoài màn hình thì căn vị trí ngay lúc giao diện đang ẩn sau camera toàn màn hình; không vừa cuộn vừa đổi đích bay của sao.
+- Vẫn giữ giới hạn render 60 FPS, các tùy chọn giảm chuyển động, dọn overlay và dữ liệu/mô hình. Thời lượng ngắn hơn không đồng nghĩa bảo đảm 60 FPS trên mọi thiết bị.
+
+Các tệp chính: `src/app/presentation/algorithm-flight.ts` điều phối hai chiều và đo bố cục; `src/app/features/algorithm-sphere/algorithm-sphere.ts` nhận trạng thái camera đồng bộ; `e2e/ui-redesign/algorithm-flight.e2e.js` cập nhật ngưỡng thời lượng cho cả hai chiều. Không thay logic huấn luyện hoặc API.
+
+Đo thử cùng trình duyệt desktop: trước chỉnh chiều đi **5,14 giây**, chiều về **6,96 giây**; sau chỉnh chiều đi **5,35 giây**, chiều về **4,77 giây**. Số đo gồm thao tác/chờ của công cụ, không phải cam kết thời gian hay FPS trên mọi máy. **135/135 unit test (26 tệp) và production build đạt**.
+
+Kiểm tra cuối cùng trên cả bốn thuật toán: **26 tiêu chí E2E đạt** (`lab-arrival`: 11; `algorithm-flight`: 15). Chiều đi **5,09–5,39 giây**, chiều về **4,76–4,86 giây**. Đã kiểm tra camera toàn màn hình, sao quay đúng thẻ, độ nảy và thứ tự hiện khung, không tự huấn luyện, giữ màu train/test, không sót overlay, giảm chuyển động giữa chừng, mobile và resize. API được mô phỏng; không kiểm thử lại MongoDB trong đợt hiệu ứng này.

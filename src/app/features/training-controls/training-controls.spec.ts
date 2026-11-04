@@ -31,3 +31,17 @@ describe('TrainingControls', () => {
   });
 
 });
+
+
+describe('normal page controls',()=>{
+ it('has no teaching mode selector and always labels a full iteration as Step',async()=>{
+  TestBed.configureTestingModule({imports:[TrainingControls]});
+  const fixture=TestBed.createComponent(TrainingControls);
+  fixture.componentInstance.store.mode.set('learn');await fixture.whenStable();
+  const host=fixture.nativeElement as HTMLElement;
+  expect(host.querySelector('select#learning-mode')).toBeNull();
+  expect(host.querySelector('#learning-mode')?.textContent).toBe('Chạy bình thường');
+  expect(host.textContent).not.toContain('Tiếp pha');
+  expect(host.textContent).toContain('Nhịp chạy iteration');
+ });
+});

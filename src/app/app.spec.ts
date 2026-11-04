@@ -34,7 +34,7 @@ describe('App algorithm navigation', () => {
     const count = signal(iteration);
     const pause = vi.fn();
     const setAlgorithm = vi.fn((value: Algorithm) => { algorithm.set(value); count.set(0); });
-    TestBed.configureTestingModule({ imports: [App], providers: [{ provide: LabStore, useValue: { algorithm, iteration: count, setAlgorithm, pause, resetSession:vi.fn(()=>count.set(0)) } }] });
+    TestBed.configureTestingModule({ imports: [App], providers: [{ provide: LabStore, useValue: { algorithm, iteration: count, setAlgorithm, pause, setMode:vi.fn(), resetSession:vi.fn(()=>count.set(0)) } }] });
     TestBed.overrideComponent(App, { set: { template: '<h1>Navigation test</h1>', imports: [] } });
     const fixture = TestBed.createComponent(App); await fixture.whenStable();
     vi.spyOn(fixture.componentInstance, 'navigate').mockImplementation(() => {});
@@ -80,4 +80,21 @@ describe('App algorithm navigation', () => {
     app.chooseAlgorithm('ridge');expect(app.pending()).toBeNull();expect(setAlgorithm).not.toHaveBeenCalled();
   });
 
+});
+
+
+describe('page execution modes', () => {
+  it('uses normal execution on page 3 and teaching on page 4 without resetting the model', async () => {
+    TestBed.configureTestingModule({imports:[App]});
+    TestBed.overrideComponent(App,{set:{template:'<p>Navigation</p>',imports:[]}});
+    const fixture=TestBed.createComponent(App), app=fixture.componentInstance, lab=app.lab;
+    await fixture.whenStable();
+    app.opened.set(true);app.activeScreen.set('lab');lab.iteration.set(12);
+    const x=lab.trainX(), reset=vi.spyOn(lab,'reset');
+    app.navigate('learning');expect(lab.mode()).toBe('learn');expect(lab.auto()).toBe(false);
+    app.navigate('lab');expect(lab.mode()).toBe('normal');expect(lab.auto()).toBe(false);
+    expect(lab.iteration()).toBe(12);expect(lab.trainX()).toBe(x);expect(reset).not.toHaveBeenCalled();
+    app.navigate('learning');expect(lab.mode()).toBe('learn');
+    app.navigate('algorithms');expect(lab.mode()).toBe('normal');
+  });
 });

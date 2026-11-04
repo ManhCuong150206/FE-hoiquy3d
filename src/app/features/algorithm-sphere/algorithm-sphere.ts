@@ -170,12 +170,13 @@ export class AlgorithmSphere implements OnDestroy {
     this.journey={algorithm,from,to,local,camera:this.camera.position.clone(),focus,normal:facing,alignment:returning?1:0,zoom:returning?1:0};
     this.drag=undefined;this.renderer.domElement.dataset['flightAlgorithm']=algorithm;this.draw();return true;
   }
-  setJourney(alignment:number,zoom:number){if(this.journey){this.journey.alignment=alignment;this.journey.zoom=zoom;this.draw();}}
-  journeyAnchor():{x:number;y:number}|null {
+  // Apply camera/alignment/fullscreen progress together before submitting one frame.
+  setJourney(alignment:number,zoom:number,cinemaProgress?:number){if(this.journey){this.journey.alignment=alignment;this.journey.zoom=zoom;if(this.cinema&&cinemaProgress!==undefined)this.cinema.progress=cinemaProgress;this.draw();}}
+  journeyAnchor(bounds?:DOMRect):{x:number;y:number}|null {
     if(!this.journey||!this.renderer)return null;
     this.scene.updateMatrixWorld(true);this.camera.updateMatrixWorld(true);
     const point=this.globe.localToWorld(this.journey.local.clone()).project(this.camera);
-    const rect=this.renderer.domElement.getBoundingClientRect();
+    const rect=bounds??this.renderer.domElement.getBoundingClientRect();
     const x=rect.left+(point.x+1)*rect.width/2,y=rect.top+(1-point.y)*rect.height/2;
     this.raycaster.setFromCamera(new THREE.Vector2(point.x,point.y),this.camera);
     this.renderer.domElement.dataset['anchorAlgorithm']=this.raycaster.intersectObjects([...this.meshes,...(this.ocean?[this.ocean]:[])])[0]?.object.userData['algorithm']??'';

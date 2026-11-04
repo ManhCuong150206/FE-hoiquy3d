@@ -273,7 +273,9 @@ export class LabStore {
         if (Number.isInteger(index) && index >= 0 && index < this.trainX().length) this.selectedSample.set(index);
     }
     setMode(mode: 'normal' | 'learn') {
-        if (this.switching() || mode === this.mode()) return;
+        if (mode === this.mode()) return;
+        // A newer page selection supersedes a pending pause acknowledgement.
+        // requestId below ensures only the latest mode change can finish switching.
         this.pausePresentation();
         this.mode.set(mode);
         this.expanded.set(true);

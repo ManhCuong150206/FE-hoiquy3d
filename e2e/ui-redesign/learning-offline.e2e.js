@@ -5,7 +5,6 @@ async (page) => {
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');
  await page.locator('#csv-missing').selectOption('mean');
  await page.getByRole('button',{name:'Dùng dữ liệu này',exact:true}).click();
- await page.locator('#learning-mode').selectOption('learn');
  stage='navigate';
  await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();
  await page.waitForFunction(()=>!document.querySelector('#learning').hidden && !document.querySelector('.experience').dataset.transition);
@@ -36,7 +35,6 @@ async (page) => {
  stage='sync';await page.route('**/api/v1/experiments/bulk',route=>{const rows=route.request().postDataJSON();return route.fulfill({json:{success:true,count:rows.length,items:rows.map(e=>({id:e.id,mutationId:e.mutationId??e.id,syncVersion:(e.serverVersion??0)+1}))}});});
  await page.context().setOffline(false);
  await page.locator('app-experiments-panel .sync').filter({hasText:'Đã đồng bộ'}).waitFor();
- await page.locator('#learning-mode').selectOption('normal');
  await page.getByRole('button',{name:'Stop',exact:true}).click();
  return {suite:'learning/offline',passed:['CSV upload and mean imputation','six phases A-F','no model commit during A-E','one commit at F','offline IndexedDB save','online sync UI with mocked API (not MongoDB integration)','stop']};
  }catch(error){const state=await page.evaluate(()=>({y:scrollY,top:document.querySelector('#learning')?.getBoundingClientRect().top,transition:document.querySelector('.experience')?.dataset.transition}));throw new Error(`Learning stage ${stage}: ${error.message} ${JSON.stringify(state)}`);}

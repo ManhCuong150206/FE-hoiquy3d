@@ -110,4 +110,22 @@ describe('six-phase learning flow', () => {
     expect(lab.iteration()).toBe(1);expect(lab.auto()).toBe(false);
   });
 
+  it('honours the latest navigation while an older mode acknowledgement is pending', () => {
+    lab.nextPhase();flush();
+    lab.setMode('normal');lab.setMode('learn');lab.setMode('normal');
+    expect(lab.mode()).toBe('normal');expect(lab.switching()).toBe(true);
+    flush();expect(lab.mode()).toBe('normal');expect(lab.switching()).toBe(false);
+    expect(lab.snapshot()).toBeNull();expect(lab.auto()).toBe(false);
+    lab.step();flush();expect(lab.iteration()).toBe(1);
+    lab.setMode('learn');flush();lab.playIteration();flush();
+    for(let i=0;i<5;i++){vi.advanceTimersByTime(1000);flush();}
+    expect(lab.iteration()).toBe(2);expect(lab.phase()).toBe(5);expect(lab.auto()).toBe(false);
+  });
+  it('leaving teaching during A-E cancels the timer and discards only the pending update', () => {
+    lab.playIteration();flush();vi.advanceTimersByTime(1000);flush();
+    lab.setMode('normal');flush();vi.advanceTimersByTime(10000);flush();
+    expect(lab.iteration()).toBe(0);expect(lab.auto()).toBe(false);expect(lab.snapshot()).toBeNull();
+    lab.step();flush();expect(lab.iteration()).toBe(1);
+  });
+
 });
