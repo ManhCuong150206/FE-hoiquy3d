@@ -1,6 +1,10 @@
   <div class="section-heading"><p class="eyebrow">02 / CHỌN GÓC NHÌN CỦA BẠN</p><span class="section-index">FOUR WAYS TO FIND A PATTERN</span></div>
   <div class="algorithm-stage">
-    <div class="algorithm-copy"><h2 id="algorithm-heading">Mỗi dữ liệu,<br>một <em>khả năng.</em></h2><p>Bốn cách tiếp cận. Một không gian để thử.<br>Kéo xoay hành tinh · Rê lục địa để phát sáng · Chọn thẻ để bắt đầu.</p><div class="preview-label" [attr.data-algorithm]="highlighted()"><span></span>{{ labels[highlighted()] }} Regression <b aria-hidden="true">↗</b></div></div>
+    <div class="algorithm-copy">
+      <h2 id="algorithm-heading" class="algorithm-title"><span>Mỗi dữ liệu,</span><span class="headline-accent">một khả năng.</span></h2>
+      <p class="algorithm-intro">Bốn cách tiếp cận. Một không gian để thử.</p>
+      <div class="preview-label" [attr.data-algorithm]="highlighted()"><span></span>{{ labels[highlighted()] }} Regression <b aria-hidden="true">↗</b></div>
+    </div>
     <div id="algorithm-planet-slot" class="sphere-container" [class.departing]="departing()">
       @defer (on idle) { <app-algorithm-sphere #sphere [intro]="planetScreen() === 'welcome'" [active]="highlighted()" [departing]="departing()" [lowEffects]="lowEffects()" [attention]="hovering()" (hoveredChange)="preview($event)" /> } @placeholder { <div class="sphere-placeholder" aria-label="Đang chuẩn bị hành tinh 3D"><div></div></div> }
     </div>
@@ -9,7 +13,10 @@
   <div class="algorithm-cards" aria-label="Chọn thuật toán">
     @for (algorithm of algorithms; track algorithm.id) {
       <button class="algorithm-card" [attr.data-algorithm]="algorithm.id" [class.highlighted]="highlighted() === algorithm.id" (mouseenter)="preview(algorithm.id)" (mouseleave)="preview(null)" (focus)="preview(algorithm.id)" [disabled]="flying() || departing()" (click)="selected.emit(algorithm.id)" [attr.aria-label]="'Khám phá ' + algorithm.label">
-        <span class="card-top"><span>{{ algorithm.number }}</span><span class="algorithm-dot"></span></span><strong>{{ algorithm.label }}<span aria-hidden="true">↗</span></strong><small>{{ algorithm.summary }}</small>
+        <span class="card-top"><span>{{ algorithm.number }} / {{ algorithm.label }} REGRESSION</span><span class="algorithm-dot"></span></span>
+        <strong>{{ algorithm.label }}<span class="card-arrow" aria-hidden="true">↗</span></strong>
+        <small>{{ algorithm.summary }}</small>
+        <span class="card-details">@for (detail of algorithm.details; track detail) { <span class="mini-tag">{{ detail }}</span> }</span>
       </button>
     }
   </div>

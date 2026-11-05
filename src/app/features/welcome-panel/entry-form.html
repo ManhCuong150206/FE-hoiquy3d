@@ -9,7 +9,19 @@
   @for (field of fields(); track field.id) {
     <div class="entry-field" [class.is-bad]="checked()&&invalid(field.id)" [class.is-good]="checked()&&!invalid(field.id)">
       <label [for]="field.id">{{ field.label }}</label>
-      <div class="input-box"><input [id]="field.id" [name]="field.name" [type]="field.type" [placeholder]="field.placeholder" [attr.autocomplete]="field.id==='entry-password'?(registering()?'new-password':'current-password'):field.autocomplete" required [attr.minlength]="field.id==='entry-password'?8:null" [attr.maxlength]="field.id==='display-name'?80:null" [attr.aria-invalid]="checked()?invalid(field.id):null" [attr.aria-describedby]="invalid(field.id)?field.id+'-error':null"><span class="field-check" aria-hidden="true">✓</span></div>
+      <div class="input-box" [class.has-password-toggle]="field.id==='entry-password'">
+        <input [id]="field.id" [name]="field.name" [type]="field.id==='entry-password'&&showPassword()?'text':field.type" [placeholder]="field.placeholder" [attr.autocomplete]="field.id==='entry-password'?(registering()?'new-password':'current-password'):field.autocomplete" required [attr.minlength]="field.id==='entry-password'?8:null" [attr.maxlength]="field.id==='display-name'?80:null" [attr.aria-invalid]="checked()?invalid(field.id):null" [attr.aria-describedby]="invalid(field.id)?field.id+'-error':null">
+        <span class="field-check" aria-hidden="true">✓</span>
+        @if(field.id==='entry-password'){
+          <button class="password-toggle" type="button" [attr.aria-label]="showPassword()?'Ẩn mật khẩu':'Hiện mật khẩu'" [attr.aria-pressed]="showPassword()" (click)="togglePasswordVisibility()">
+            @if(showPassword()){
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 4.4 9.5 7-.4 1-1.2 2.1-2.3 3.1M6.2 6.2C3.9 7.7 2.7 10 2.5 12c1 2.6 4.5 7 9.5 7 1.3 0 2.4-.3 3.5-.9"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z"/><circle cx="12" cy="12" r="2.7"/></svg>
+            }
+          </button>
+        }
+      </div>
       <div class="field-hint"><div><span [id]="field.id+'-error'">{{ hint(field.id) }}</span></div></div>
     </div>
   }

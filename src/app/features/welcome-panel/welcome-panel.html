@@ -1,16 +1,26 @@
 <div class="welcome-grid">
   <div class="intro-copy">
-    <h1 class="project-title">Hệ thống thực nghiệm và trực quan hóa quá trình học của mô hình hồi quy</h1>
+    <div class="hero-title-wrap">
+      <svg class="title-orbit" viewBox="0 0 420 54" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M2 43C82 8 179 3 270 24S369 48 418 19" />
+        <circle class="orbit-glint" cx="298" cy="29" r="2.4" />
+      </svg>
+      <h1 class="project-title">
+        <span class="title-line title-line-one">Khám phá</span>
+        <span class="title-line title-line-two">quá trình học</span>
+        <span class="title-line title-line-three">của mô hình hồi quy.</span>
+      </h1>
+    </div>
+    <p class="hero-description">Hệ thống thực nghiệm và trực quan hóa các thuật toán hồi quy thông qua dữ liệu, mô hình và không gian 3D.</p>
     <div id="welcome-planet-slot" class="welcome-planet-slot" aria-label="Hành tinh thuật toán"></div>
-    <div class="intro-meta"><span><b>04</b> thuật toán</span><span><b>3D</b> trực quan</span><span><b>∞</b> khám phá</span></div>
+    <p class="hero-mantra">LEARN <span>·</span> EXPERIMENT <span>·</span> VISUALIZE</p>
+    <div class="intro-meta"><span><b>04</b><small>thuật toán</small></span><span><b>3D</b><small>trực quan</small></span><span><b>∞</b><small>khám phá</small></span></div>
   </div>
   <div class="auth-card glass" data-tilt>
     <div class="auth-top"><span class="mini-orbit" aria-hidden="true">✦</span><span class="status-dot" aria-hidden="true"></span></div>
-    <p class="eyebrow">BẮT ĐẦU HÀNH TRÌNH</p>
     <h2>{{ registering() ? 'Đăng ký' : 'Đăng nhập' }}</h2>
-    <p class="auth-description">{{ registering() ? 'Một góc riêng cho những ý tưởng và thực nghiệm mới.' : 'Một ý tưởng. Một bộ dữ liệu. Vô vàn điều để khám phá.' }}</p>
+    @if(registering()) { <p class="auth-description">Một góc riêng cho những ý tưởng và thực nghiệm mới.</p> }
     <app-entry-form [registering]="registering()" (completed)="enteredDemo()" />
-    <p class="demo-note">Phiên đăng nhập bảo vệ bằng cookie HttpOnly. Guest có vùng dữ liệu riêng.</p>
     <p class="switch-auth">{{ registering() ? 'Đã có tài khoản?' : 'Chưa có tài khoản?' }} <button type="button" (click)="toggleMode()">{{ registering() ? 'Đăng nhập' : 'Đăng ký' }}</button></p>
     <div class="divider"><span>hoặc khám phá ngay</span></div>
     <button class="guest-button" type="button" [disabled]="entering()" (click)="guest()">Tham gia với tư cách Guest <span aria-hidden="true">→</span></button>

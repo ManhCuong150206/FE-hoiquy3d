@@ -14,7 +14,7 @@ const NAME_FIELD:EntryField={id:'display-name',name:'displayName',label:'Tên hi
 @Component({selector:'app-entry-form',templateUrl:'./entry-form.html',styleUrl:'./entry-form.css'})
 export class EntryForm {
   readonly registering=input(false);
-  readonly sending=signal(false);readonly serverError=signal('');
+  readonly sending=signal(false);readonly serverError=signal('');readonly showPassword=signal(false);
   private readonly auth=inject(AuthSession);
   readonly completed=output<void>();
   readonly fields=computed(()=>this.registering()?[NAME_FIELD,...LOGIN_FIELDS]:LOGIN_FIELDS);
@@ -52,7 +52,8 @@ export class EntryForm {
     if(typeof window!=='undefined'){cancelAnimationFrame(this.frame);window.clearTimeout(this.timer);}
     if(cancelShakes){this.shakes.forEach(animation=>animation.cancel());this.shakes.clear();}
   }
-  private clearValidation(){this.cancelNavigation();this.checked.set(false);this.issues.set([]);this.serverError.set('');}
+  private clearValidation(){this.cancelNavigation();this.checked.set(false);this.issues.set([]);this.serverError.set('');this.showPassword.set(false);}
+  togglePasswordVisibility(){this.showPassword.update(visible=>!visible);}
   reset(){this.form()?.nativeElement.reset();this.clearValidation();}
   goTo(id:FieldId,event?:Event){
     event?.preventDefault();this.cancelNavigation(false);

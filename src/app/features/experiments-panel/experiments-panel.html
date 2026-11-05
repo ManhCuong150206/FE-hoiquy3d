@@ -7,7 +7,7 @@
         <button (click)="exp.resolveConflict(true)">Giữ bản cục bộ thành bản sao</button>
       </div>
     }
-    <button type="button" aria-label="Đồng bộ với máy chủ" [disabled]="exp.syncing()" (click)="exp.sync()">{{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ với máy chủ' }}</button>
+    <button type="button" class="sync-button" aria-label="Đồng bộ với máy chủ" [disabled]="exp.syncing()" (click)="exp.sync()">{{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ với máy chủ' }}</button>
     @if(exp.syncError()){<p role="status">{{ exp.syncError() }}</p>}
     <div class="save">
         <input type="text" placeholder="Tên lần chạy (tuỳ chọn)" aria-label="Tên lần chạy" [value]="name()"

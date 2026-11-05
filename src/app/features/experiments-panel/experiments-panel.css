@@ -226,3 +226,4 @@ td.best {
 .list .name { white-space: normal; overflow-wrap: anywhere; }
 button { min-height: 40px; }
 button:disabled { color: var(--muted); background: var(--surface-2); }
+.sync-button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:44px;height:auto!important;margin:0 0 10px;padding:9px 12px;line-height:1.35;text-align:center;white-space:normal;overflow-wrap:anywhere}

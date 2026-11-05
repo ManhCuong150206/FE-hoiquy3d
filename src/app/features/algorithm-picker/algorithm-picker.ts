@@ -19,11 +19,11 @@ export class AlgorithmPicker {
   readonly selected = output<Algorithm>();
   readonly back = output<void>();
   readonly labels = ALGORITHM_LABELS;
-  readonly algorithms: {id: Algorithm; number: string; label: string; summary: string}[] = [
-    {id:'linear',number:'01',label:'Linear',summary:'Tìm đường đi qua dữ liệu.'},
-    {id:'polynomial',number:'02',label:'Polynomial',summary:'Khám phá những đường cong.'},
-    {id:'ridge',number:'03',label:'Ridge',summary:'Cân bằng bằng điều chuẩn L2.'},
-    {id:'lasso',number:'04',label:'Lasso',summary:'Chọn điều quan trọng với L1.'},
+  readonly algorithms: {id: Algorithm; number: string; label: string; summary: string; details: string[]}[] = [
+    {id:'linear',number:'01',label:'Linear',summary:'Tìm đường thẳng phù hợp nhất với dữ liệu.',details:['Model · y = wx + b','Tuyến tính','Loss · MSE']},
+    {id:'polynomial',number:'02',label:'Polynomial',summary:'Mô hình hóa các mối quan hệ phi tuyến trong dữ liệu.',details:['Model · y = a₀ + a₁x + a₂x² + …','Đặc trưng phi tuyến','Loss · MSE']},
+    {id:'ridge',number:'03',label:'Ridge',summary:'Giảm overfitting thông qua điều chuẩn L2.',details:['Regularization · L2','Giữ mọi hệ số, hạn chế độ lớn','Alpha · α']},
+    {id:'lasso',number:'04',label:'Lasso',summary:'Điều chuẩn L1 và lựa chọn đặc trưng.',details:['Regularization · L1','Có thể đưa hệ số về 0','Alpha · α']},
   ];
   preview(algorithm:Algorithm|null){if(this.flying())return;this.hovering.set(algorithm!==null);this.highlighted.set(algorithm??this.active());}
   async animate(algorithm:Algorithm,back=false):Promise<boolean>{

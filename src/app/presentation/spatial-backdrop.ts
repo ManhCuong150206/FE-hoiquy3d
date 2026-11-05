@@ -53,14 +53,14 @@ export class SpatialBackdrop implements OnDestroy {
   }
 
   private createStars() {
-    const count = 1000, positions = new Float32Array(count * 3), colors = new Float32Array(count * 3), phases = new Float32Array(count * 2), sizes = new Float32Array(count);
+    const count = 1800, positions = new Float32Array(count * 3), colors = new Float32Array(count * 3), phases = new Float32Array(count * 2), sizes = new Float32Array(count);
     let seed = 814;
     const random = () => { seed = seed * 16807 % 2147483647; return seed / 2147483647; };
     for (let i = 0; i < count; i++) {
       positions.set([(random() - .5) * 27, (random() - .5) * 18, random() * 16 - 14], i * 3);
       const blue = random(); colors.set([.68 + blue * .32, .79 + blue * .21, 1], i * 3);
       const phase = unitRotation(random() * Math.PI * 2); phases.set([phase.real, phase.imaginary], i * 2);
-      sizes[i] = 1.1 + random() ** 3 * 4.2;
+      sizes[i] = 1.2 + random() ** 2.5 * 4.8;
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)); geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
