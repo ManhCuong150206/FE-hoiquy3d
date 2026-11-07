@@ -17,6 +17,7 @@ export class EntryForm {
   readonly sending=signal(false);readonly serverError=signal('');readonly showPassword=signal(false);
   private readonly auth=inject(AuthSession);
   readonly completed=output<void>();
+  readonly registered=output<void>();
   readonly fields=computed(()=>this.registering()?[NAME_FIELD,...LOGIN_FIELDS]:LOGIN_FIELDS);
   readonly checked=signal(false);
   readonly issues=signal<EntryIssue[]>([]);
@@ -42,7 +43,8 @@ export class EntryForm {
       else if(!el.value)hint=field.id==='entry-email'?'Vui lòng nhập email.':'Vui lòng nhập mật khẩu.';
       else if(el.validity.typeMismatch)hint='Email chưa đúng định dạng, ví dụ ban@example.com.';
       else if(field.id==='entry-password'&&el.value.length<8)hint='Mật khẩu cần ít nhất 8 ký tự.';
-      else if(field.id==='display-name'&&el.value.length>80)hint='Tên hiển thị tối đa 80 ký tự.';
+      else if(field.id==='entry-password'&&new TextEncoder().encode(el.value).byteLength>72)hint='Mật khẩu tối đa 72 byte UTF-8.';
+      else if(field.id==='display-name'&&el.value.trim().length>120)hint='Tên hiển thị tối đa 120 ký tự.';
       return hint?[{id:field.id,label:field.label,hint}]:[];
     });
   }
@@ -77,7 +79,8 @@ export class EntryForm {
       if(this.sending())return;this.sending.set(true);this.serverError.set('');
       const email=this.control('entry-email')?.value??'',password=this.control('entry-password')?.value??'',displayName=this.control('display-name')?.value;
       const passwordField=this.control('entry-password');if(passwordField)passwordField.value='';
-      try{await this.auth.enter({email,password,displayName},this.registering());this.reset();this.completed.emit();}
+      const registering=this.registering();
+      try{await this.auth.enter({email,password,displayName},registering);this.reset();if(registering)this.registered.emit();else this.completed.emit();}
       catch(error){this.checked.set(false);this.serverError.set(error instanceof Error?error.message:'Không đăng nhập được.');}
       finally{this.sending.set(false);}return;
     }

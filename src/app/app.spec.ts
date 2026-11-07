@@ -24,7 +24,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hệ thống thực nghiệm và trực quan hóa quá trình học của mô hình hồi quy');
+    expect(compiled.querySelector('h1')?.textContent).toContain('của mô hình hồi quy.');
   });
 });
 
@@ -61,11 +61,12 @@ describe('App algorithm navigation', () => {
     app.chooseAlgorithm('lasso'); app.confirmChange(); await fixture.whenStable();
     expect(setAlgorithm).toHaveBeenCalledExactlyOnceWith('lasso'); expect(app.pending()).toBeNull();
   });
-  it('revokes the session and logs out by pausing and clearing private model data before welcome', async () => {
+  it('revokes the session and clears private model data while keeping algorithms visible', async () => {
     const { app, pause, setAlgorithm } = await setup(12);
     vi.spyOn(TestBed.inject(AuthSession),'logout').mockResolvedValue();
     await app.logout(); expect(pause).toHaveBeenCalledOnce();
-    expect(app.navigate).toHaveBeenCalledWith('welcome', true);
+    expect(app.navigate).toHaveBeenCalledWith('algorithms');
+    expect(app.activeScreen()).toBe('algorithms');
     expect(app.lab.iteration()).toBe(0); expect(setAlgorithm).not.toHaveBeenCalled();
   });
   it('can clean up server-rendered views without browser animation APIs', async () => {
@@ -73,6 +74,30 @@ describe('App algorithm navigation', () => {
     vi.stubGlobal('cancelAnimationFrame', undefined);
     try { expect(() => fixture.destroy()).not.toThrow(); }
     finally { vi.unstubAllGlobals(); }
+  });
+  it('keeps algorithms visible when the signed-in account is restored', async () => {
+    const { app, fixture } = await setup();
+    const auth = TestBed.inject(AuthSession);
+    auth.user.set({ userId: 'person-a', displayName: 'Minh Anh', isAnonymous: false });
+    auth.scope.set('person-a');
+    await fixture.whenStable();
+    expect(app.activeScreen()).toBe('algorithms');
+  });
+  it('clears the previous lab before login navigation without resetting the pending transition', async () => {
+    const { app, fixture } = await setup(12);
+    const auth = TestBed.inject(AuthSession);
+    app.activeScreen.set('welcome');app.opened.set(true);
+    const reset = vi.spyOn(app.lab, 'resetSession');
+    vi.mocked(app.navigate).mockImplementation(() => app.pageBusy.set(true));
+    auth.user.set({ userId: 'person-a', displayName: 'Minh Anh', isAnonymous: false });
+    auth.scope.set('person-a');
+    app.enterAlgorithms();
+    expect(reset).toHaveBeenCalledOnce();
+    expect(app.navigate).toHaveBeenCalledWith('algorithms', true);
+    await fixture.whenStable();
+    expect(reset).toHaveBeenCalledOnce();
+    expect(app.pageBusy()).toBe(true);
+    expect(app.activeScreen()).toBe('welcome');
   });
 
   it('ignores another algorithm selection while the transition is busy', async () => {

@@ -10,20 +10,20 @@ Trong thư mục frontend, dùng Node.js/npm phù hợp với dependency và loc
 
 ```powershell
 npm.cmd ci
-npm.cmd start -- --host 127.0.0.1 --port 4300
+npm.cmd start -- --host localhost --port 4200
 ```
 
-Mở http://127.0.0.1:4300. Trên môi trường khác có thể dùng npm thay npm.cmd.
+Mở http://localhost:4200 (origin mặc định được backend cho phép). Trên môi trường khác có thể dùng npm thay npm.cmd. Nếu dùng host/cổng khác, thêm origin đó vào `CORS_ORIGINS` của backend.
 
 ## Cách sử dụng
 
-1. Vào bằng form demo hoặc Guest, chọn thuật toán bằng thẻ; hành tinh bốn lục địa hỗ trợ rê chuột và kéo xoay.
+1. Đăng nhập bằng email/mật khẩu hoặc dùng Guest không cần tài khoản, chọn thuật toán bằng thẻ; hành tinh bốn lục địa hỗ trợ rê chuột và kéo xoay.
 2. Sinh dữ liệu hoặc nhập CSV; cấu hình tham số và chạy ở trang thực nghiệm.
 3. Mở trang học, bấm **Học từng bước** để chạy đúng một iteration A–F rồi dừng.
 4. Chọn chặng để xem lại số liệu/minh họa; dùng **Đến ghi chú** để đọc công thức.
-5. Lưu thí nghiệm trong trình duyệt; đồng bộ gọi POST /api/v1/experiments/bulk theo cấu hình hiện tại.
+5. Tài khoản đã đăng nhập có thể lưu thí nghiệm trong trình duyệt và đồng bộ qua `POST /api/v1/sync/batch`. Guest chỉ sử dụng dữ liệu trong bộ nhớ, không lưu/đồng bộ.
 
-Đăng nhập vẫn là demo. Huấn luyện chạy trong Web Worker của browser, không lấy kết quả từ backend. Xem tài liệu chính để biết offline, giới hạn CSV và phạm vi kiểm thử.
+Đăng nhập dùng session cookie HttpOnly của backend. Huấn luyện chạy trong Web Worker của browser, không lấy kết quả từ backend. Xem tài liệu chính để biết offline, giới hạn CSV và phạm vi kiểm thử.
 
 ## Kiểm tra
 
@@ -43,7 +43,11 @@ Production build ở dist/Hoiquy3d. Dockerfile phục vụ SSR cổng 4000; HTTP
 
 ### Backend và phiên người dùng
 
-Chạy NestJS tại `D:/JS,TS` bằng `npm run start:dev` trước khi dùng đăng ký/đăng nhập hoặc đồng bộ. Dev proxy `/api` đã cấu hình tới `127.0.0.1:3000`. Bản SSR dùng `BACKEND_ORIGIN` nếu địa chỉ Backend khác. Guest có vùng dữ liệu riêng; chỉ Guest offline được làm cục bộ rồi chuyển hàng đợi lên phiên Guest khi có mạng. Đăng nhập tài khoản cần mạng.
+Chạy NestJS tại `D:/WEB-UTH/New folder/TS/TS-JS` bằng `npm run start:dev` trước khi dùng đăng ký/đăng nhập hoặc đồng bộ. Dev proxy `/api` đã cấu hình tới `127.0.0.1:3000`. Bản SSR dùng `BACKEND_ORIGIN` nếu địa chỉ backend khác. Đăng nhập tài khoản cần mạng. Guest hoạt động cả khi offline, không tạo tài khoản/phiên trên backend, không ghi danh tính, tùy chọn giao diện hay thí nghiệm xuống bộ nhớ bền vững.
+
+Frontend dùng `POST /auth/login`, `POST /auth/register`, `POST /auth/logout` và khôi phục phiên bằng `GET /auth/me` dưới `/api/v1`. Đăng ký thành công quay về form đăng nhập. Mọi request API đi qua `AuthSession.api` với `credentials: include`; request ghi có `X-Requested-With: XMLHttpRequest`. Không lưu token hoặc tin danh tính cũ trong localStorage. HTTP 401 dừng đồng bộ và xóa trạng thái đăng nhập; dữ liệu offline phân vùng theo `_id` được máy chủ xác nhận. Dữ liệu Guest/anonymous cũ không được nhận vào tài khoản mới.
+
+Đồng bộ kiểm tra từng `results[]` của `/sync/batch` và kéo tombstone từ `/sync/changes`. Snapshot để khôi phục mô hình/CSV nằm trong `algorithm.config.snapshot`, là trường cấu hình backend cho phép lưu; các trường snapshot đặt ở cấp cao nhất sẽ bị backend bỏ qua.
 
 Bản lưu CSV giữ split đã xử lý và mô hình, tối đa 8 MiB; bản ghi cũ chưa có snapshot CSV vẫn giữ giới hạn cũ. Đồng bộ có tombstone và xử lý xung đột; xem tài liệu công nghệ mục 12. Auth thật thay thế demo, không dùng header user ID tự khai.
 

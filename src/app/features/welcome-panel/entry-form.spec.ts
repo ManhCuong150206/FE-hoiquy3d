@@ -43,4 +43,13 @@ describe('EntryForm validation',()=>{
   fixture.componentRef.setInput('registering',false);await fixture.whenStable();
   expect(component.issues()).toEqual([]);expect(field('entry-email').value).toBe('learner@example.com');
  });
+ it('rejects passwords exceeding 72 UTF-8 bytes',async()=>{
+  const {component,field,submit}=await setup();field('entry-email').value='learner@example.com';field('entry-password').value='ế'.repeat(25);submit();
+  expect(component.hint('entry-password')).toContain('72 byte');
+ });
+ it('accepts registration display names up to 120 characters',async()=>{
+  const {fixture,component,field,submit}=await setup(true);field('display-name').value='A'.repeat(120);field('entry-email').value='learner@example.com';field('entry-password').value='password123';
+  const registered=vi.spyOn(component.registered,'emit');const completed=vi.spyOn(component.completed,'emit');submit();await fixture.whenStable();
+  expect(registered).toHaveBeenCalledOnce();expect(completed).not.toHaveBeenCalled();
+ });
 });

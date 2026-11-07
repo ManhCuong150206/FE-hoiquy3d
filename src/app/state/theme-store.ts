@@ -1,11 +1,13 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, afterNextRender, inject, signal } from '@angular/core';
+import { AuthSession } from './auth-session';
 
 type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'hoiquy3d-theme';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeStore {
+    private readonly auth = inject(AuthSession);
     private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
     private readonly document = inject(DOCUMENT);
     private readonly current = signal<Theme>('dark');
@@ -29,6 +31,7 @@ export class ThemeStore {
         if (!this.isBrowser) return;
         const theme = this.theme() === 'dark' ? 'light' : 'dark';
         this.apply(theme);
+        if (!this.auth.authenticated()) return;
         try { window.localStorage.setItem(STORAGE_KEY, theme); } catch { /* Keep working in memory. */ }
     }
 

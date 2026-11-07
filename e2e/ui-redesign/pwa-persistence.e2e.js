@@ -11,15 +11,13 @@ async(page)=>{
  stage="offline reload and Guest";await page.context().setOffline(true);await page.reload();await page.locator('.guest-button').click();await idle('algorithms');
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
  await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1');
- await page.getByLabel('Tên lần chạy',{exact:true}).fill(name);await page.getByRole('button',{name:'Lưu',exact:true}).click();
- const row=page.locator('#lab app-experiments-panel li').filter({hasText:name});await row.waitFor();check(await row.locator('.sync').innerText()==='Chờ đồng bộ','Offline snapshot pending');
+ check(await page.getByRole('button',{name:'Lưu',exact:true}).isDisabled(),'Guest snapshots cannot be saved');
  stage='offline restore';await page.reload();await page.locator('.guest-button').click();await idle('algorithms');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
- const restored=page.locator('#lab app-experiments-panel li').filter({hasText:name});await restored.waitFor();await restored.getByRole('button',{name:'Áp dụng',exact:true}).click();
- await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1');
- stage='online synchronization';await page.context().setOffline(false);await restored.locator('.sync').filter({hasText:'Đã đồng bộ'}).waitFor();
- const api=await page.request.get(base+'/api/v1/experiments');check(api.ok()&&(api.headers()['content-type']??'').includes('application/json'),'SSR forwards API as JSON');
- const response=await api.json();check(response.items.some(e=>e.name===name&&e.iterations===1&&Array.isArray(e.w)),'Production offline snapshot reaches MongoDB');
+ check(await page.locator('#lab app-experiments-panel li').count()===0,'Guest results do not survive reload');
+ check(await page.evaluate(()=>localStorage.getItem('regression.identity'))===null,'Guest identity is not persisted');
+ const calls=[];page.on('request',request=>{if(request.url().includes('/api/'))calls.push(request.url());});
+ stage='Guest reconnect';await page.context().setOffline(false);await page.waitForTimeout(200);check(calls.length===0,'Guest does not sync on reconnect');
  await page.screenshot({path:'output/playwright/pwa-persistence-complete.png'});
- return {suite:'pwa-persistence',passed:['production service worker activated','Worker bundle cached','full app reload offline','offline Guest training','IndexedDB survives offline reload','restore trained iteration offline','real Guest adoption and MongoDB sync','SSR API JSON proxy']};
+ return {suite:'pwa-persistence',passed:['production service worker activated','Worker bundle cached','full app reload offline','offline Guest training','Guest results not persisted','Guest identity not persisted','no sync on reconnect']};
 }catch(error){throw new Error(stage+': '+error.message);}
 }

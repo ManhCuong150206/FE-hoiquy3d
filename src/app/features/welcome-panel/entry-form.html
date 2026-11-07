@@ -10,7 +10,7 @@
     <div class="entry-field" [class.is-bad]="checked()&&invalid(field.id)" [class.is-good]="checked()&&!invalid(field.id)">
       <label [for]="field.id">{{ field.label }}</label>
       <div class="input-box" [class.has-password-toggle]="field.id==='entry-password'">
-        <input [id]="field.id" [name]="field.name" [type]="field.id==='entry-password'&&showPassword()?'text':field.type" [placeholder]="field.placeholder" [attr.autocomplete]="field.id==='entry-password'?(registering()?'new-password':'current-password'):field.autocomplete" required [attr.minlength]="field.id==='entry-password'?8:null" [attr.maxlength]="field.id==='display-name'?80:null" [attr.aria-invalid]="checked()?invalid(field.id):null" [attr.aria-describedby]="invalid(field.id)?field.id+'-error':null">
+        <input [id]="field.id" [name]="field.name" [type]="field.id==='entry-password'&&showPassword()?'text':field.type" [placeholder]="field.placeholder" [attr.autocomplete]="field.id==='entry-password'?(registering()?'new-password':'current-password'):field.autocomplete" required [attr.minlength]="field.id==='entry-password'?8:null" [attr.maxlength]="field.id==='display-name'?120:null" [attr.aria-invalid]="checked()?invalid(field.id):null" [attr.aria-describedby]="invalid(field.id)?field.id+'-error':null">
         <span class="field-check" aria-hidden="true">✓</span>
         @if(field.id==='entry-password'){
           <button class="password-toggle" type="button" [attr.aria-label]="showPassword()?'Ẩn mật khẩu':'Hiện mật khẩu'" [attr.aria-pressed]="showPassword()" (click)="togglePasswordVisibility()">

@@ -22,10 +22,15 @@ async (page) => {
  const listener = req => { if (req.method() === 'POST') outbound.push(req.url()); };
  page.on('request',listener);
  await page.locator('form').getByRole('button',{name:'Đăng ký',exact:true}).click();
+ await page.getByText('Đăng ký thành công. Hãy đăng nhập để lưu thí nghiệm.',{exact:true}).waitFor();
+ check(await page.locator('#algorithms').isHidden(),'Registration does not log in automatically');
+ await page.getByLabel('Email',{exact:true}).fill('demo@example.com');
+ await page.getByLabel('Mật khẩu',{exact:true}).fill('demo-password');
+ await page.locator('form').getByRole('button',{name:'Đăng nhập',exact:true}).click();
  await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden && !document.querySelector('.experience').dataset.transition);
  check(await page.getByLabel('Email',{exact:true}).inputValue() === '', 'Demo email must clear');
  check(await page.getByLabel('Mật khẩu',{exact:true}).inputValue() === '', 'Demo password must clear');
- check(outbound.length === 1 && outbound[0].endsWith('/auth/register'), 'Credentials submitted only to auth endpoint');
+ check(outbound.length === 2 && outbound[0].endsWith('/auth/register') && outbound[1].endsWith('/auth/login'), 'Registration followed by explicit login');
  page.off('request',listener);
  await page.locator('app-algorithm-sphere canvas').waitFor({state:'visible'});
  await page.screenshot({path:'output/playwright/algorithms-desktop.png'});

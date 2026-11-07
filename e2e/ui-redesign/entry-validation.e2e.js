@@ -33,7 +33,7 @@ async(page)=>{
  check(await page.locator('.summary-box a').count()===0,'All errors clear when fixed');
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile no horizontal overflow');
  await page.screenshot({path:'output/playwright/entry-validation-mobile.png'});
- await page.locator('.guest-button').click();await waitScreen('algorithms');
+ await page.getByRole('button',{name:/Tham gia với tư cách Guest/}).click();await waitScreen('algorithms');
  check(await page.locator('#entry-email').inputValue()==='','Guest clears form');
  return {suite:'entry-validation',passed:['error summary','first error focus','keyboard jump to error','live correction and checks','centered submit label','silver auth text','dark/light themes','short password blocked','valid authenticated transition','auth request only; credentials cleared','registration validation','reduced motion','mobile layout','guest still works']};
 }

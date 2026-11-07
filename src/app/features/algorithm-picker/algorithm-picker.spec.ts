@@ -1,9 +1,30 @@
 import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { AlgorithmPicker } from './algorithm-picker';
+import { AuthSession } from '../../state/auth-session';
 
 describe('AlgorithmPicker', () => {
   beforeEach(() => TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual }));
+  it('updates the account controls when signing in and returning to Guest', async () => {
+    const fixture = TestBed.createComponent(AlgorithmPicker);
+    const auth = TestBed.inject(AuthSession);
+    const login = vi.spyOn(fixture.componentInstance.loginRequested, 'emit');
+    const logout = vi.spyOn(fixture.componentInstance.back, 'emit');
+    await fixture.whenStable();
+    const controls = () => fixture.nativeElement.querySelector('.account-actions') as HTMLElement;
+    expect(controls().textContent).toContain('Đăng nhập');
+    controls().querySelector('button')!.click();
+    expect(login).toHaveBeenCalledOnce();
+    auth.user.set({ userId: 'person-a', displayName: 'Minh Anh', isAnonymous: false });
+    await fixture.whenStable();
+    expect(controls().textContent).toContain('Xin chào, Minh Anh');
+    expect(controls().querySelector('button')!.textContent).toBe('Đăng xuất');
+    controls().querySelector('button')!.click();
+    expect(logout).toHaveBeenCalledOnce();
+    auth.guest();await fixture.whenStable();
+    expect(controls().textContent).toContain('Đăng nhập');
+    expect(controls().querySelector('.account-greeting')).toBeNull();
+  });
   it('reflects external algorithm selection without emitting a change', async () => {
     const fixture = TestBed.createComponent(AlgorithmPicker);
     const emit = vi.spyOn(fixture.componentInstance.selected, 'emit');

@@ -1,0 +1,32 @@
+async(page)=>{
+ const check=(value,message)=>{if(!value)throw new Error(message);};
+ const idle=id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience')?.getAttribute('aria-busy')==='false',id);
+ const base='http://127.0.0.1:4300';
+ page.setDefaultTimeout(20000);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto(base);
+ await page.locator('.switch-auth button').click();
+ await page.getByLabel('Tên hiển thị').fill('Member');
+ await page.getByLabel('Email',{exact:true}).fill('demo@example.com');
+ await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');
+ await page.locator('.auth-submit').click();
+ await page.getByText('Đăng ký thành công. Hãy đăng nhập để lưu thí nghiệm.',{exact:true}).waitFor();
+ check(await page.locator('#algorithms').isHidden(),'Registration must not enter the lab');
+ check(await page.locator('#entry-password').inputValue()==='','Registration password must clear');
+ await page.getByLabel('Email',{exact:true}).fill('demo@example.com');
+ await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');
+ await page.locator('.auth-submit').click();await idle('algorithms');
+ await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
+ await page.getByRole('button',{name:'Step',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]')?.getAttribute('aria-valuenow')==='1');
+ await page.getByLabel('Tên lần chạy',{exact:true}).fill('Authenticated snapshot');
+ await page.getByRole('button',{name:'Lưu',exact:true}).click();
+ await page.locator('app-experiments-panel li').filter({hasText:'Authenticated snapshot'}).getByText('Đã đồng bộ',{exact:true}).waitFor();
+ await page.reload();await page.getByRole('button',{name:'Tiếp tục khám phá →',exact:true}).waitFor();
+ check(await page.evaluate(()=>localStorage.getItem('regression.identity'))===null,'No local identity token');
+ await page.getByRole('button',{name:'Tiếp tục khám phá →',exact:true}).click();await idle('algorithms');
+ await page.getByRole('button',{name:'Đăng xuất',exact:true}).click();
+ await page.locator('#algorithms').getByRole('button',{name:'Đăng nhập',exact:true}).waitFor();await idle('algorithms');
+ check(await page.locator('#algorithms .account-greeting').count()===0,'Logout clears the greeting');
+ return {suite:'auth-session',passed:['registration requires subsequent login','credentials clear','login navigation','authenticated save and sync','auth/me restores session','no stored identity','logout keeps algorithms visible']};
+}

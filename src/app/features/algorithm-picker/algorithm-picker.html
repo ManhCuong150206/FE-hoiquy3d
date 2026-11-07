@@ -1,23 +1,47 @@
-  <div class="section-heading"><p class="eyebrow">02 / CHỌN GÓC NHÌN CỦA BẠN</p><span class="section-index">FOUR WAYS TO FIND A PATTERN</span></div>
-  <div class="algorithm-stage">
-    <div class="algorithm-copy">
-      <h2 id="algorithm-heading" class="algorithm-title"><span>Mỗi dữ liệu,</span><span class="headline-accent">một khả năng.</span></h2>
-      <p class="algorithm-intro">Bốn cách tiếp cận. Một không gian để thử.</p>
-      <div class="preview-label" [attr.data-algorithm]="highlighted()"><span></span>{{ labels[highlighted()] }} Regression <b aria-hidden="true">↗</b></div>
-    </div>
-    <div id="algorithm-planet-slot" class="sphere-container" [class.departing]="departing()">
-      @defer (on idle) { <app-algorithm-sphere #sphere [intro]="planetScreen() === 'welcome'" [active]="highlighted()" [departing]="departing()" [lowEffects]="lowEffects()" [attention]="hovering()" (hoveredChange)="preview($event)" /> } @placeholder { <div class="sphere-placeholder" aria-label="Đang chuẩn bị hành tinh 3D"><div></div></div> }
-    </div>
-    <div class="stage-caption"><span>EXPLORE THE SURFACE</span><span aria-hidden="true">✦</span><span>CHỌN ĐỂ BẮT ĐẦU</span></div>
-  </div>
-  <div class="algorithm-cards" aria-label="Chọn thuật toán">
-    @for (algorithm of algorithms; track algorithm.id) {
-      <button class="algorithm-card" [attr.data-algorithm]="algorithm.id" [class.highlighted]="highlighted() === algorithm.id" (mouseenter)="preview(algorithm.id)" (mouseleave)="preview(null)" (focus)="preview(algorithm.id)" [disabled]="flying() || departing()" (click)="selected.emit(algorithm.id)" [attr.aria-label]="'Khám phá ' + algorithm.label">
-        <span class="card-top"><span>{{ algorithm.number }} / {{ algorithm.label }} REGRESSION</span><span class="algorithm-dot"></span></span>
-        <strong>{{ algorithm.label }}<span class="card-arrow" aria-hidden="true">↗</span></strong>
-        <small>{{ algorithm.summary }}</small>
-        <span class="card-details">@for (detail of algorithm.details; track detail) { <span class="mini-tag">{{ detail }}</span> }</span>
-      </button>
+<div class="section-heading">
+
+  <div class="account-actions">
+    @if (auth.authenticated()) {
+    <span class="account-greeting">Xin chào, {{ auth.user()?.displayName }}</span>
+    <button type="button" [disabled]="flying() || departing()" (click)="back.emit()">Đăng xuất</button>
+    } @else {
+    <button type="button" class="login-button" [disabled]="flying() || departing()" (click)="loginRequested.emit()">Đăng
+      nhập</button>
     }
   </div>
-  <div class="section-footer"><span>MÔ HÌNH KHÁC NHAU · CÙNG MỘT TINH THẦN KHÁM PHÁ</span><button class="text-button" [disabled]="flying() || departing()" (click)="back.emit()">Đăng xuất</button></div>
+</div>
+<div class="algorithm-stage">
+  <div class="algorithm-copy">
+    <h2 id="algorithm-heading" class="algorithm-title"><span>Mỗi dữ liệu,</span><span class="headline-accent">một khả
+        năng.</span></h2>
+    <p class="algorithm-intro">Bốn cách tiếp cận. Một không gian để thử.</p>
+    <div class="preview-label" [attr.data-algorithm]="highlighted()"><span></span>{{ labels[highlighted()] }} Regression
+      <b aria-hidden="true">↗</b>
+    </div>
+  </div>
+  <div id="algorithm-planet-slot" class="sphere-container" [class.departing]="departing()">
+    @defer (on idle) { <app-algorithm-sphere #sphere [intro]="planetScreen() === 'welcome'" [active]="highlighted()"
+      [departing]="departing()" [lowEffects]="lowEffects()" [attention]="hovering()"
+      (hoveredChange)="preview($event)" /> } @placeholder { <div class="sphere-placeholder"
+      aria-label="Đang chuẩn bị hành tinh 3D">
+      <div></div>
+    </div> }
+  </div>
+  <div class="stage-caption"><span>EXPLORE THE SURFACE</span><span aria-hidden="true">✦</span><span>CHỌN ĐỂ BẮT
+      ĐẦU</span></div>
+</div>
+<div class="algorithm-cards" aria-label="Chọn thuật toán">
+  @for (algorithm of algorithms; track algorithm.id) {
+  <button class="algorithm-card" [attr.data-algorithm]="algorithm.id"
+    [class.highlighted]="highlighted() === algorithm.id" (mouseenter)="preview(algorithm.id)"
+    (mouseleave)="preview(null)" (focus)="preview(algorithm.id)" [disabled]="flying() || departing()"
+    (click)="selected.emit(algorithm.id)" [attr.aria-label]="'Khám phá ' + algorithm.label">
+    <span class="card-top"><span>{{ algorithm.number }} / {{ algorithm.label }} REGRESSION</span><span
+        class="algorithm-dot"></span></span>
+    <strong>{{ algorithm.label }}<span class="card-arrow" aria-hidden="true">↗</span></strong>
+    <small>{{ algorithm.summary }}</small>
+    <span class="card-details">@for (detail of algorithm.details; track detail) { <span class="mini-tag">{{ detail
+        }}</span> }</span>
+  </button>
+  }
+</div>

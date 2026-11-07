@@ -2,9 +2,11 @@ import { AlgorithmFlight } from '../../presentation/algorithm-flight';
 import { Component, effect, input, output, signal, ElementRef, inject, viewChild, DestroyRef, Injector, afterNextRender } from '@angular/core';
 import { Algorithm, ALGORITHM_LABELS } from '../../core/models/experiment';
 import { AlgorithmSphere } from '../algorithm-sphere/algorithm-sphere';
+import { AuthSession } from '../../state/auth-session';
 
 @Component({ selector: 'app-algorithm-picker', host: {'[attr.data-algorithm]':'highlighted()'}, imports: [AlgorithmSphere], templateUrl: './algorithm-picker.html', styleUrl: './algorithm-picker.css' })
 export class AlgorithmPicker {
+  readonly auth = inject(AuthSession);
   private readonly host=inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly sphere=viewChild<AlgorithmSphere>('sphere');
   private readonly flight=new AlgorithmFlight();
@@ -17,6 +19,7 @@ export class AlgorithmPicker {
   readonly lowEffects = input(false);
   readonly highlighted = signal<Algorithm>('linear');
   readonly selected = output<Algorithm>();
+  readonly loginRequested = output<void>();
   readonly back = output<void>();
   readonly labels = ALGORITHM_LABELS;
   readonly algorithms: {id: Algorithm; number: string; label: string; summary: string; details: string[]}[] = [

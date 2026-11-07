@@ -5,7 +5,7 @@ import { WelcomePanel } from './welcome-panel';
 
 describe('WelcomePanel demo entry', () => {
   async function setup() {
-    TestBed.configureTestingModule({providers:[{provide:AuthSession,useValue:{enter:vi.fn().mockResolvedValue({userId:'test'})}}]});
+    TestBed.configureTestingModule({providers:[{provide:AuthSession,useValue:{authenticated:()=>false,enter:vi.fn().mockResolvedValue({userId:'test'})}}]});
     const fixture = TestBed.createComponent(WelcomePanel);
     await fixture.whenStable();
     const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
@@ -34,5 +34,16 @@ describe('WelcomePanel demo entry', () => {
     expect(fixture.nativeElement.querySelector('#display-name')).not.toBeNull();
     component.toggleMode(); await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('#display-name')).toBeNull();
+  });
+  it('returns to login after registration without entering the lab', async () => {
+    const { fixture, component } = await setup();
+    component.toggleMode();await fixture.whenStable();
+    const form=fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    (form.elements.namedItem('displayName') as HTMLInputElement).value='Linh';
+    (form.elements.namedItem('email') as HTMLInputElement).value='linh@example.com';
+    (form.elements.namedItem('password') as HTMLInputElement).value='password123';
+    const emit=vi.spyOn(component.explore,'emit');
+    form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));await fixture.whenStable();
+    expect(emit).not.toHaveBeenCalled();expect(component.registering()).toBe(false);expect(component.message()).toContain('Đăng ký thành công');
   });
 });

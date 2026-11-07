@@ -2,6 +2,7 @@ import { Component, PLATFORM_ID, inject } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { ThemeStore } from './theme-store';
+import { AuthSession } from './auth-session';
 
 @Component({ template: '' })
 class ThemeHost {
@@ -30,10 +31,10 @@ describe('ThemeStore', () => {
         document.documentElement.removeAttribute('data-theme');
     });
 
-    async function create(platform = 'browser') {
+    async function create(platform = 'browser', authenticated = true) {
         TestBed.configureTestingModule({
             imports: [ThemeHost],
-            providers: [{ provide: PLATFORM_ID, useValue: platform }],
+            providers: [{ provide: PLATFORM_ID, useValue: platform }, { provide: AuthSession, useValue: { authenticated: () => authenticated } }],
         });
         const fixture = TestBed.createComponent(ThemeHost);
         await fixture.whenStable();
@@ -80,6 +81,12 @@ describe('ThemeStore', () => {
         expect(store.theme()).toBe('dark');
         expect(() => store.toggle()).not.toThrow();
         expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    });
+    it('changes theme in memory without writing preferences as Guest', async () => {
+        const store = await create('browser', false);
+        store.toggle();
+        expect(store.theme()).toBe('light');
+        expect(storage.setItem).not.toHaveBeenCalled();
     });
 
     it('works when accessing the localStorage property itself throws', async () => {
