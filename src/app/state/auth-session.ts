@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 
 export interface Identity { userId: string; displayName: string; email?: string; isAnonymous: boolean }
 interface ApiUser { _id: string; displayName: string; email: string; role: 'user' | 'admin'; status: 'active' | 'disabled' }
+const IDENTITY_KEY = 'regression.lastIdentity';
 
 export function apiMessage(value: unknown, fallback: string): string {
     const message = (value as { message?: unknown } | null)?.message;
@@ -20,17 +21,39 @@ export class AuthSession {
     readonly authenticated = computed(() => !!this.user() && !this.user()!.isAnonymous);
     readonly error = signal<string | null>(null);
 
+    private remember(user: Identity | null) {
+        if (!this.browser) return;
+        try {
+            if (user && !user.isAnonymous) {
+                const { userId, displayName, email } = user;
+                localStorage.setItem(IDENTITY_KEY, JSON.stringify({ userId, displayName, email }));
+            } else localStorage.removeItem(IDENTITY_KEY);
+        } catch { /* Local storage can be disabled; the current session still works. */ }
+    }
+
+    private restoreLocal() {
+        try {
+            const value = JSON.parse(localStorage.getItem(IDENTITY_KEY) ?? 'null');
+            if (value && typeof value.userId === 'string' && value.userId && value.userId !== 'guest'
+                && typeof value.displayName === 'string' && typeof value.email === 'string') {
+                this.set({ userId: value.userId, displayName: value.displayName, email: value.email, isAnonymous: false });
+            }
+        } catch { /* Invalid or unavailable storage does not establish an identity. */ }
+    }
+
     private set(user: Identity | null) {
         this.generation++;
         this.requests.abort();
         this.requests = new AbortController();
         this.user.set(user);
         this.scope.set(user?.userId ?? 'guest');
+        if (!user) this.remember(null);
         return user;
     }
 
     // The dev proxy forwards /api to localhost:3000. Production uses the same
-    // origin route. Cookies remain browser-managed; no identity or token is stored.
+    // origin route. Cookies remain browser-managed; cached identity grants local access only.
+    // TODO(BE-confirm): verify the deployed Origin allowlist and cookie flow with the real BE.
     async api(path: string, options: RequestInit = {}, protectedRequest = true): Promise<Response> {
         if (!path.startsWith('/api/v1/')) throw new Error('Đường dẫn API không hợp lệ.');
         if (protectedRequest && !this.authenticated()) throw new Error('Đăng nhập để lưu và đồng bộ thí nghiệm.');
@@ -67,14 +90,25 @@ export class AuthSession {
     }
 
     async restore() {
-        if (!this.browser || !navigator.onLine) return;
+        if (!this.browser) return;
+        // TODO(BE-confirm): verify offline reload with the production service worker after its first online install.
+        if (!navigator.onLine) { this.restoreLocal(); return; }
         const generation = this.generation;
+        let response: Response;
+        try { response = await this.api('/api/v1/auth/me', {}, false); }
+        catch (error) {
+            if (generation === this.generation) {
+                this.restoreLocal();
+                this.error.set(error instanceof Error ? error.message : 'Không kết nối được máy chủ.');
+            }
+            return;
+        }
+        if (generation !== this.generation) return;
+        if (response.status === 401) { this.set(null); return; }
         try {
-            const response = await this.api('/api/v1/auth/me', {}, false);
-            if (generation !== this.generation || response.status === 401) return;
             if (!response.ok) throw new Error('Không khôi phục được phiên. Bạn vẫn có thể dùng Guest.');
             const user = this.identity(await response.json());
-            if (generation === this.generation) this.set(user);
+            if (generation === this.generation) { this.set(user); this.remember(user); }
         } catch (error) {
             if (generation === this.generation) this.error.set(error instanceof Error ? error.message : 'Không kết nối được máy chủ.');
         }
@@ -91,7 +125,7 @@ export class AuthSession {
         const user = this.identity(data);
         this.error.set(null);
         // Register creates an account only. The form returns to login afterwards.
-        if (!registering) this.set(user);
+        if (!registering) { this.set(user); this.remember(user); }
         return user;
     }
 
@@ -110,6 +144,7 @@ export class AuthSession {
             this.error.set('Phiên máy chủ đã đổi tài khoản. Đăng nhập lại để đồng bộ đúng người dùng.');
             throw new Error(this.error()!);
         }
+        this.remember(current);
         return current;
     }
 

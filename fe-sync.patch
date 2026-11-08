@@ -1,0 +1,686 @@
+diff --git a/src/app/state/auth-session.spec.ts b/src/app/state/auth-session.spec.ts
+index 950de0e..d366728 100644
+--- a/src/app/state/auth-session.spec.ts
++++ b/src/app/state/auth-session.spec.ts
+@@ -10,6 +10,7 @@ describe('cookie session authentication', () => {
+     let auth: AuthSession;
+     const fetchMock = vi.fn<typeof fetch>();
+     beforeEach(() => {
++        localStorage.clear();
+         vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+         fetchMock.mockReset();
+         vi.stubGlobal('fetch', fetchMock);
+@@ -17,7 +18,7 @@ describe('cookie session authentication', () => {
+     });
+     afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+ 
+-    it('accepts the direct User response and sends cookies plus CSRF header without storing identity', async () => {
++    it('sends cookies plus CSRF header and stores only userId, displayName and email', async () => {
+         const write = vi.spyOn(Storage.prototype, 'setItem');
+         fetchMock.mockResolvedValue(reply(user));
+         await auth.enter({ ...credentials, displayName: 'ignored' }, false);
+@@ -28,7 +29,8 @@ describe('cookie session authentication', () => {
+         expect(options?.credentials).toBe('include');
+         expect(new Headers(options?.headers).get('X-Requested-With')).toBe('XMLHttpRequest');
+         expect(JSON.parse(String(options?.body))).toEqual({ email: user.email, password: credentials.password });
+-        expect(write).not.toHaveBeenCalled();
++        expect(write).toHaveBeenCalledWith('regression.lastIdentity', JSON.stringify({ userId: user._id, displayName: user.displayName, email: user.email }));
++        expect(JSON.parse(localStorage.getItem('regression.lastIdentity')!)).toEqual({ userId: user._id, displayName: user.displayName, email: user.email });
+     });
+     it('registers without creating a logged-in frontend session', async () => {
+         fetchMock.mockResolvedValue(reply(user, 201));
+@@ -75,6 +77,7 @@ describe('cookie session authentication', () => {
+         await auth.api('/api/v1/experiments/bulk', { method: 'POST' });
+         expect(auth.authenticated()).toBe(false);
+         expect(auth.error()).toContain('hết hạn');
++        expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
+         await expect(auth.api('/api/v1/experiments/bulk', { method: 'POST' })).rejects.toThrow();
+         expect(fetchMock).toHaveBeenCalledTimes(2);
+     });
+@@ -95,10 +98,54 @@ describe('cookie session authentication', () => {
+         expect(options?.method).toBe('POST');
+         expect(new Headers(options?.headers).get('X-Requested-With')).toBe('XMLHttpRequest');
+         expect(auth.user()).toBeNull();
++        expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
+     });
+     it.each([400, 401, 403, 409, 429])('shows API validation/errors for HTTP %s', async status => {
+         fetchMock.mockResolvedValue(reply({ message: ['Lỗi thứ nhất', 'Lỗi thứ hai'] }, status));
+         await expect(auth.enter(credentials, false)).rejects.toThrow('Lỗi thứ nhất\nLỗi thứ hai');
+         expect(auth.authenticated()).toBe(false);
+     });
++    const cache = () => localStorage.setItem('regression.lastIdentity', JSON.stringify({ userId: user._id, displayName: user.displayName, email: user.email }));
++    it('restores offline identity without contacting the API and ensure waits for connectivity', async () => {
++        cache(); vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
++        await auth.restore();
++        expect(auth.scope()).toBe(user._id); expect(auth.authenticated()).toBe(true);
++        expect(await auth.ensure()).toBeNull(); expect(fetchMock).not.toHaveBeenCalled();
++    });
++    it('restores cached identity on a network failure even if navigator reports online', async () => {
++        cache(); fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
++        await auth.restore(); expect(auth.scope()).toBe(user._id);
++    });
++    it.each([403, 500])('does not fall back to cached identity on HTTP %s', async status => {
++        cache(); fetchMock.mockResolvedValue(reply({ message: 'Failure' }, status));
++        await auth.restore(); expect(auth.user()).toBeNull();
++    });
++    it('clears cached identity and an offline-restored user when restore receives 401', async () => {
++        cache(); vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false); await auth.restore();
++        vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
++        fetchMock.mockResolvedValue(reply({ message: 'Expired' }, 401));
++        await auth.restore(); expect(auth.user()).toBeNull(); expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
++    });
++    it('refreshes the cached identity from auth/me and replaces it on another login', async () => {
++        fetchMock.mockResolvedValueOnce(reply(user)); await auth.restore();
++        expect(JSON.parse(localStorage.getItem('regression.lastIdentity')!).userId).toBe(user._id);
++        fetchMock.mockResolvedValueOnce(reply({ ...user, _id: 'person-b' })); await auth.enter(credentials, false);
++        expect(JSON.parse(localStorage.getItem('regression.lastIdentity')!).userId).toBe('person-b');
++    });
++    it.each(['invalid json', '{}', '{"userId":"guest","displayName":"Guest","email":""}'])('ignores invalid cached identity %s', async value => {
++        localStorage.setItem('regression.lastIdentity', value); vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
++        await auth.restore(); expect(auth.user()).toBeNull();
++    });
++    it('continues when localStorage is unavailable', async () => {
++        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('Denied'); });
++        fetchMock.mockResolvedValue(reply(user)); await auth.enter(credentials, false); expect(auth.authenticated()).toBe(true);
++        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('Denied'); });
++        vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false); await expect(auth.restore()).resolves.toBeUndefined();
++    });
++    it('does not restore cached identity after Guest was chosen during a failed fetch', async () => {
++        cache(); let fail!: (error: Error) => void;
++        fetchMock.mockImplementation(() => new Promise((_, reject) => { fail = reject; }));
++        const restoring = auth.restore(); auth.guest(); fail(new TypeError('Failed to fetch')); await restoring;
++        expect(auth.scope()).toBe('guest');
++    });
+ });
+diff --git a/src/app/state/auth-session.ts b/src/app/state/auth-session.ts
+index bc85799..4b000c1 100644
+--- a/src/app/state/auth-session.ts
++++ b/src/app/state/auth-session.ts
+@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
+ 
+ export interface Identity { userId: string; displayName: string; email?: string; isAnonymous: boolean }
+ interface ApiUser { _id: string; displayName: string; email: string; role: 'user' | 'admin'; status: 'active' | 'disabled' }
++const IDENTITY_KEY = 'regression.lastIdentity';
+ 
+ export function apiMessage(value: unknown, fallback: string): string {
+     const message = (value as { message?: unknown } | null)?.message;
+@@ -20,17 +21,39 @@ export class AuthSession {
+     readonly authenticated = computed(() => !!this.user() && !this.user()!.isAnonymous);
+     readonly error = signal<string | null>(null);
+ 
++    private remember(user: Identity | null) {
++        if (!this.browser) return;
++        try {
++            if (user && !user.isAnonymous) {
++                const { userId, displayName, email } = user;
++                localStorage.setItem(IDENTITY_KEY, JSON.stringify({ userId, displayName, email }));
++            } else localStorage.removeItem(IDENTITY_KEY);
++        } catch { /* Local storage can be disabled; the current session still works. */ }
++    }
++
++    private restoreLocal() {
++        try {
++            const value = JSON.parse(localStorage.getItem(IDENTITY_KEY) ?? 'null');
++            if (value && typeof value.userId === 'string' && value.userId && value.userId !== 'guest'
++                && typeof value.displayName === 'string' && typeof value.email === 'string') {
++                this.set({ userId: value.userId, displayName: value.displayName, email: value.email, isAnonymous: false });
++            }
++        } catch { /* Invalid or unavailable storage does not establish an identity. */ }
++    }
++
+     private set(user: Identity | null) {
+         this.generation++;
+         this.requests.abort();
+         this.requests = new AbortController();
+         this.user.set(user);
+         this.scope.set(user?.userId ?? 'guest');
++        if (!user) this.remember(null);
+         return user;
+     }
+ 
+     // The dev proxy forwards /api to localhost:3000. Production uses the same
+-    // origin route. Cookies remain browser-managed; no identity or token is stored.
++    // origin route. Cookies remain browser-managed; cached identity grants local access only.
++    // TODO(BE-confirm): verify the deployed Origin allowlist and cookie flow with the real BE.
+     async api(path: string, options: RequestInit = {}, protectedRequest = true): Promise<Response> {
+         if (!path.startsWith('/api/v1/')) throw new Error('Đường dẫn API không hợp lệ.');
+         if (protectedRequest && !this.authenticated()) throw new Error('Đăng nhập để lưu và đồng bộ thí nghiệm.');
+@@ -67,14 +90,25 @@ export class AuthSession {
+     }
+ 
+     async restore() {
+-        if (!this.browser || !navigator.onLine) return;
++        if (!this.browser) return;
++        // TODO(BE-confirm): verify offline reload with the production service worker after its first online install.
++        if (!navigator.onLine) { this.restoreLocal(); return; }
+         const generation = this.generation;
++        let response: Response;
++        try { response = await this.api('/api/v1/auth/me', {}, false); }
++        catch (error) {
++            if (generation === this.generation) {
++                this.restoreLocal();
++                this.error.set(error instanceof Error ? error.message : 'Không kết nối được máy chủ.');
++            }
++            return;
++        }
++        if (generation !== this.generation) return;
++        if (response.status === 401) { this.set(null); return; }
+         try {
+-            const response = await this.api('/api/v1/auth/me', {}, false);
+-            if (generation !== this.generation || response.status === 401) return;
+             if (!response.ok) throw new Error('Không khôi phục được phiên. Bạn vẫn có thể dùng Guest.');
+             const user = this.identity(await response.json());
+-            if (generation === this.generation) this.set(user);
++            if (generation === this.generation) { this.set(user); this.remember(user); }
+         } catch (error) {
+             if (generation === this.generation) this.error.set(error instanceof Error ? error.message : 'Không kết nối được máy chủ.');
+         }
+@@ -91,7 +125,7 @@ export class AuthSession {
+         const user = this.identity(data);
+         this.error.set(null);
+         // Register creates an account only. The form returns to login afterwards.
+-        if (!registering) this.set(user);
++        if (!registering) { this.set(user); this.remember(user); }
+         return user;
+     }
+ 
+@@ -110,6 +144,7 @@ export class AuthSession {
+             this.error.set('Phiên máy chủ đã đổi tài khoản. Đăng nhập lại để đồng bộ đúng người dùng.');
+             throw new Error(this.error()!);
+         }
++        this.remember(current);
+         return current;
+     }
+ 
+diff --git a/src/app/state/experiments-store.spec.ts b/src/app/state/experiments-store.spec.ts
+index 12db04f..ea70e69 100644
+--- a/src/app/state/experiments-store.spec.ts
++++ b/src/app/state/experiments-store.spec.ts
+@@ -13,6 +13,7 @@ describe('scoped snapshot synchronization',()=>{
+  let posted:Record<string,unknown>[][],remote:Record<string,unknown>[],validAck:boolean;
+  const settle=async()=>{TestBed.tick();await new Promise(resolve=>setTimeout(resolve,0));await new Promise(resolve=>setTimeout(resolve,0));};
+  beforeEach(async()=>{
++  localStorage.clear();
+   disk=new Map();posted=[];remote=[];validAck=true;scope=signal('person-a');
+   vi.spyOn(experimentDb,'all').mockImplementation(async()=>[...disk.values()]);
+   vi.spyOn(experimentDb,'putMany').mockImplementation(async rows=>{for(const row of rows)disk.set(row.id,structuredClone(row));});
+@@ -40,7 +41,7 @@ describe('scoped snapshot synchronization',()=>{
+  });
+  it('pulls saved server results and remote deletion without requiring a local change',async()=>{
+   const saved=store.save('Pull me')!;await settle();remote=[{...saved,clientId:saved.id,algorithm:{type:'linear'},syncVersion:2,deletedAt:new Date().toISOString()}];
+-  await store.sync();expect(store.list()).toHaveLength(0);expect(disk.get(saved.id)?.deletedAt).toBeTruthy();
++  await store.sync();expect(store.list()).toHaveLength(0);expect(disk.has(saved.id)).toBe(false);
+  });
+  it('keeps different identities isolated locally and does not upload the previous account queue',async()=>{
+   store.online.set(false);const saved=store.save('Private A')!;await settle();const before=posted.length;
+@@ -86,8 +87,8 @@ describe('scoped snapshot synchronization',()=>{
+  });
+  it('keeps rejected operations pending even when the HTTP batch response is 200',async()=>{
+   store.online.set(false);const saved=store.save('Denied')!;await settle();
+-  vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({success:false,results:[{operationId:saved.mutationId,idempotencyKey:saved.mutationId,entityType:'experiment',entityClientId:saved.id,status:'error',error:'Không tìm thấy dữ liệu'}]}))));
+-  store.online.set(true);await store.sync();expect(store.list()[0].synced).toBe(false);expect(store.syncError()).toBe('Không tìm thấy dữ liệu');
++  vi.stubGlobal('fetch',vi.fn(async(_url, options)=>new Response(JSON.stringify(options?.method==='POST'?{success:false,results:[{operationId:saved.mutationId,idempotencyKey:saved.mutationId,entityType:'experiment',entityClientId:saved.id,status:'error',error:'Không tìm thấy dữ liệu'}]}:{changes:{experiments:[]}}))));
++  store.online.set(true);await store.sync();expect(store.list()[0].synced).toBe(false);expect(store.syncError()).toBe('1 bản ghi chưa đồng bộ: Không tìm thấy dữ liệu');
+  });
+  it('does not replay a remembered conflict key as a successful duplicate after reload',async()=>{
+   store.online.set(false);const saved=store.save('Conflict')!;await settle();
+@@ -95,4 +96,198 @@ describe('scoped snapshot synchronization',()=>{
+   store.online.set(true);await store.sync();
+   expect(store.conflict()?.id).toBe(saved.id);expect(disk.get(saved.id)?.synced).toBe(false);expect(disk.get(saved.id)?.mutationId).not.toBe(saved.mutationId);
+  });
++
++ const cursorKey = 'regression.syncCursor.person-a';
++ const serverTime = '2026-11-08T10:00:00.000Z';
++ const raw = (saved:SavedExperiment, version=2, mutation=saved.mutationId):Record<string,unknown> => ({
++  clientId:saved.id, ownerId:saved.scopeId, name:saved.name, syncVersion:version,
++  algorithm:{type:saved.algorithm,config:{snapshot:{...saved,lastMutationId:mutation}}}
++ });
++ const respond = (result:(op:Record<string,unknown>)=>Record<string,unknown>, time:unknown=serverTime) => {
++  const mock=vi.fn(async(_url:string,options?:RequestInit)=>{
++   if(options?.method==='POST'){
++    const ops=JSON.parse(String(options.body)).operations as Record<string,unknown>[];posted.push(ops);
++    return new Response(JSON.stringify({success:false,results:ops.map(op=>({...op,...result(op)}))}),{status:201});
++   }
++   return new Response(JSON.stringify({serverTime:time,changes:{experiments:remote}}));
++  });vi.stubGlobal('fetch',mock);return mock;
++ };
++ it('uses a scope cursor with a 60-second overlap only after successful persistence',async()=>{
++  store.online.set(false);store.save('Cursor');await settle();
++  const mock=respond(()=>({status:'applied',serverVersion:1}));store.online.set(true);
++  await store.sync();expect(localStorage.getItem(cursorKey)).toBe(serverTime);
++  await store.sync();expect(mock.mock.calls.at(-1)?.[0]).toBe('/api/v1/sync/changes?since='+encodeURIComponent('2026-11-08T09:59:00.000Z'));
++ });
++ it.each(['invalid',''])('pulls everything for an invalid or missing cursor %s',async cursor=>{
++  store.online.set(false);store.save('Cursor');await settle();localStorage.setItem(cursorKey,cursor);
++  const mock=respond(()=>({status:'applied',serverVersion:1}));store.online.set(true);await store.sync();
++  expect(mock.mock.calls.at(-1)?.[0]).toBe('/api/v1/sync/changes');
++ });
++ it('ignores a stale cursor when IndexedDB for the scope is empty',async()=>{
++  localStorage.setItem(cursorKey,serverTime);const mock=respond(()=>({status:'applied'}));await store.sync();
++  expect(mock.mock.calls[0][0]).toBe('/api/v1/sync/changes');
++ });
++ it.each([undefined,'invalid'])('does not advance the cursor with invalid serverTime %s',async time=>{
++  const mock=respond(()=>({status:'applied'}),time===undefined?null:time);await store.sync();
++  expect(mock).toHaveBeenCalled();expect(localStorage.getItem(cursorKey)).toBeNull();
++ });
++ it('does not advance the cursor when IndexedDB persistence fails',async()=>{
++  respond(()=>({status:'applied'}));vi.mocked(experimentDb.putMany).mockRejectedValueOnce(new Error('Disk failed'));
++  await store.sync();expect(localStorage.getItem(cursorKey)).toBeNull();expect(store.syncError()).toBe('Disk failed');
++ });
++ it('does not advance the cursor when persisting the pulled records fails',async()=>{
++  store.online.set(false);const saved=store.save('Remote')!;await settle();
++  remote=[raw({...saved,id:'remote-only'})];respond(()=>({status:'applied',serverVersion:1}));
++  const write=vi.mocked(experimentDb.putMany);
++  write.mockImplementation(async rows=>{if(rows.some(e=>e.id==='remote-only'))throw new Error('Merge failed');for(const e of rows)disk.set(e.id,structuredClone(e));});
++  store.online.set(true);await store.sync();expect(localStorage.getItem(cursorKey)).toBeNull();
++ });
++ it('continues later batches and pulls after per-record errors, retrying only on a later sync',async()=>{
++  store.online.set(false);const bad=store.save('Bad')!;
++  for(let i=0;i<51;i++)store.save('Good '+i);await settle();
++  const mock=respond(op=>op['entityClientId']===bad.id?{status:'error',error:'Dữ liệu sai'}:{status:'applied',serverVersion:1});
++  store.online.set(true);await store.sync();
++  expect(posted.map(batch=>batch.length)).toEqual([50,2]);expect(mock.mock.calls.at(-1)?.[0]).toBe('/api/v1/sync/changes');
++  expect(store.pendingCount()).toBe(1);expect(disk.get(bad.id)?.synced).toBe(false);expect(store.syncError()).toBe('1 bản ghi chưa đồng bộ: Dữ liệu sai');
++  await settle();expect(posted).toHaveLength(2);await store.sync();expect(posted).toHaveLength(3);
++ });
++ it.each([undefined,99])('verifies duplicate via snapshot lastMutationId independently of response version %s',async version=>{
++  store.online.set(false);const saved=store.save('Duplicate')!;await settle();remote=[raw(saved,4)];
++  localStorage.setItem(cursorKey,serverTime);const mock=respond(()=>({status:'duplicate',serverVersion:version}));
++  store.online.set(true);await store.sync();
++  expect(mock.mock.calls.at(-1)?.[0]).toBe('/api/v1/sync/changes');expect(disk.get(saved.id)?.synced).toBe(true);expect(disk.get(saved.id)?.serverVersion).toBe(4);
++ });
++ it.each(['other',undefined])('does not acknowledge a duplicate for a different or missing server mutation %s',async mutation=>{
++  store.online.set(false);const saved=store.save('Keep local')!;await settle();
++  remote=mutation?[raw({...saved,name:'Server'},5,mutation)]:[];
++  respond(()=>({status:'duplicate',serverVersion:99}));store.online.set(true);await store.sync();
++  const current=disk.get(saved.id)!;expect(current.synced).toBe(false);expect(current.name).toBe('Keep local');expect(current.mutationId).not.toBe(saved.mutationId);
++  expect(posted).toHaveLength(1);await settle();expect(posted).toHaveLength(1);
++ });
++ it('acknowledges duplicate deletion only after pulling a server tombstone',async()=>{
++  store.online.set(false);const saved=store.save('Delete')!;store.remove(saved.id);await settle();
++  remote=[{clientId:saved.id,ownerId:'person-a',syncVersion:3,deletedAt:serverTime}];respond(()=>({status:'duplicate'}));
++  store.online.set(true);await store.sync();expect(disk.has(saved.id)).toBe(false);expect(store.pendingCount()).toBe(0);
++ });
++ it('keeps the duplicate mutation intact if the verification pull fails',async()=>{
++  store.online.set(false);const saved=store.save('Duplicate')!;await settle();
++  const mock=respond(()=>({status:'duplicate'}));const normal=mock.getMockImplementation()!;
++  mock.mockImplementation((url,options)=>options?.method==='POST'?normal(url,options):Promise.reject(new TypeError('Offline')));
++  store.online.set(true);await store.sync();expect(disk.get(saved.id)?.mutationId).toBe(saved.mutationId);expect(disk.get(saved.id)?.synced).toBe(false);
++ });
++ it('ignores unknown tombstones and preserves pending local records against remote deletion',async()=>{
++  store.online.set(false);const saved=store.save('Pending')!;await settle();
++  remote=[{clientId:'unknown',syncVersion:2,deletedAt:serverTime},{clientId:saved.id,syncVersion:2,deletedAt:serverTime}];
++  respond(()=>({status:'error',error:'Không tìm thấy dữ liệu'}));store.online.set(true);await store.sync();
++  expect(disk.has('unknown')).toBe(false);expect(disk.get(saved.id)?.synced).toBe(false);expect(store.list()[0].name).toBe('Pending');
++ });
++ it('deduplicates pulls by id/version and never overwrites pending data',async()=>{
++  store.online.set(false);const saved=store.save('Local')!;await settle();
++  remote=[raw({...saved,name:'Remote'},8),raw({...saved,id:'new',name:'Newest'},4),raw({...saved,id:'new',name:'Older'},2)];
++  respond(()=>({status:'error',error:'Rejected'}));store.online.set(true);await store.sync();
++  expect(disk.get(saved.id)?.name).toBe('Local');expect(disk.get('new')?.name).toBe('Newest');
++ });
++ it('preserves all synthetic kinds and mutation identity inside the snapshot round trip',async()=>{
++  store.online.set(false);const saved=store.save('Synthetic')!;await settle();
++  for(const kind of ['linear','curved','correlated','sparse'] as const){
++   const synthetic={kind,version:1 as const,sampleCount:50,featureCount:2,noise:1,seed:42,trainRatio:.8};
++   remote.push(raw({...saved,id:kind,synthetic}));
++  }
++  respond(()=>({status:'applied',serverVersion:1}));store.online.set(true);await store.sync();
++  const payload=posted[0][0]['payload'] as {algorithm:{config:{snapshot:Record<string,unknown>}}};
++  expect(payload.algorithm.config.snapshot['lastMutationId']).toBe(saved.mutationId);
++  expect(payload.algorithm.config.snapshot['mutationId']).toBeUndefined();
++  for(const kind of ['linear','curved','correlated','sparse']){expect(disk.get(kind)?.synthetic?.kind).toBe(kind);expect(disk.get(kind)?.mutationId).toBe(saved.mutationId);}
++ });
++ it('keeps a copy even when the user chooses server for an unreadable conflict',async()=>{
++  store.online.set(false);const saved=store.save('Important')!;await settle();
++  respond(()=>({status:'conflict',conflict:{reason:'Conflict',serverData:{unexpected:true}}}));store.online.set(true);await store.sync();
++  expect(store.conflict()?.invalidServer).toBe(true);store.online.set(false);await store.resolveConflict(false);
++  expect(store.conflict()).toBeNull();const copy=store.list()[0];expect(copy.id).not.toBe(saved.id);expect(copy.w).toEqual(saved.w);
++  expect(copy.synced).toBe(false);expect(copy.serverVersion).toBe(0);expect(disk.get(copy.id)).toEqual(copy);expect(store.syncError()).toContain('bản sao');
++ });
++ it('retains the original on disk if persisting a conflict copy fails',async()=>{
++  store.online.set(false);const saved=store.save('Important')!;await settle();
++  respond(()=>({status:'conflict',conflict:{reason:'Conflict',serverData:{unexpected:true}}}));store.online.set(true);await store.sync();
++  store.online.set(false);vi.mocked(experimentDb.putMany).mockRejectedValueOnce(new Error('Disk failed'));await store.resolveConflict(false);
++  expect(disk.has(saved.id)).toBe(true);expect(store.list()[0].id).toBe(saved.id);expect(store.conflict()).not.toBeNull();
++ });
++ it('commits a pending local write even if the account changes before the write runs',async()=>{
++  store.online.set(false);const saved=store.save('Do not lose')!;scope.set('guest');await settle();
++  expect(disk.get(saved.id)?.scopeId).toBe('person-a');expect(disk.get(saved.id)?.synced).toBe(false);
++ });
++ it.each([400,401,403,500])('preserves the queue on HTTP %s',async status=>{
++  store.online.set(false);const saved=store.save('Pending')!;await settle();
++  vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({message:'Failure'}),{status})));
++  store.online.set(true);await store.sync();expect(disk.get(saved.id)?.synced).toBe(false);expect(disk.get(saved.id)?.mutationId).toBe(saved.mutationId);
++  expect(localStorage.getItem(cursorKey)).toBeNull();
++ });
++ it('does not acknowledge a newer deletion with the response to an older save',async()=>{
++  store.online.set(false);const saved=store.save('Race')!;await settle();
++  let finish!:(response:Response)=>void;
++  const mock=respond(()=>({status:'error',error:'Try later'}));const normal=mock.getMockImplementation()!;let blocked=false;
++  mock.mockImplementation((url,options)=>{
++   if(options?.method==='POST'&&!blocked){blocked=true;return new Promise(resolve=>{finish=resolve;});}
++   return normal(url,options);
++  });
++  store.online.set(true);const running=store.sync();await settle();store.remove(saved.id);await settle();
++  const deleted=disk.get(saved.id)!;
++  finish(new Response(JSON.stringify({success:true,results:[{operationId:saved.mutationId,idempotencyKey:saved.mutationId,entityType:'experiment',entityClientId:saved.id,status:'applied',serverVersion:1}]})));
++  await running;await settle();expect(disk.get(saved.id)?.mutationId).toBe(deleted.mutationId);expect(disk.get(saved.id)?.synced).toBe(false);
++  expect(disk.get(saved.id)?.deletedAt).toBeTruthy();
++ });
++ it('keeps local data and the cursor unchanged on a batch network failure',async()=>{
++  store.online.set(false);const saved=store.save('Offline')!;await settle();localStorage.setItem(cursorKey,serverTime);
++  vi.stubGlobal('fetch',vi.fn(async()=>{throw new TypeError('Failed to fetch');}));store.online.set(true);await store.sync();
++  expect(disk.get(saved.id)?.synced).toBe(false);expect(localStorage.getItem(cursorKey)).toBe(serverTime);
++ });
++});
++
++describe('offline reload with the real auth session and mocked IndexedDB',()=>{
++ let disk:Map<string,SavedExperiment>,auth:AuthSession,store:ExperimentsStore,lab:LabStore;
++ const settle=async()=>{TestBed.tick();await new Promise(resolve=>setTimeout(resolve,0));await new Promise(resolve=>setTimeout(resolve,0));};
++ const user={_id:'offline-owner',displayName:'Linh',email:'linh@example.com',role:'user',status:'active'};
++ beforeEach(async()=>{
++  localStorage.clear();disk=new Map();
++  vi.spyOn(experimentDb,'all').mockImplementation(async()=>[...disk.values()]);
++  vi.spyOn(experimentDb,'putMany').mockImplementation(async rows=>{for(const row of rows)disk.set(row.id,structuredClone(row));});
++  vi.spyOn(experimentDb,'remove').mockImplementation(async id=>{disk.delete(id);});
++  vi.spyOn(navigator,'onLine','get').mockReturnValue(true);
++  vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(user))));
++  auth=TestBed.inject(AuthSession);await auth.enter({email:user.email,password:'password123'},false);
++  vi.spyOn(navigator,'onLine','get').mockReturnValue(false);
++  store=TestBed.inject(ExperimentsStore);lab=TestBed.inject(LabStore);await settle();
++  lab.history.set([{iteration:2,w:[1,2],b:.5,trainLoss:.1,testLoss:.2}]);
++ });
++ afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
++ it('reloads only the cached owner records, permits offline saves/deletes, and retains them on reconnect 401',async()=>{
++  const first=store.save('Before reload')!;await settle();disk.set('foreign',{...first,id:'foreign',scopeId:'another-user'});
++  TestBed.resetTestingModule();auth=TestBed.inject(AuthSession);await auth.restore();
++  store=TestBed.inject(ExperimentsStore);lab=TestBed.inject(LabStore);await settle();
++  expect(store.list().map(e=>e.id)).toEqual([first.id]);expect(auth.scope()).toBe(user._id);
++  lab.history.set([{iteration:3,w:[2,3],b:1,trainLoss:.1,testLoss:.2}]);
++  const second=store.save('After reload')!;store.remove(first.id);await settle();
++  expect(store.pendingCount()).toBe(2);expect(disk.get(second.id)?.synced).toBe(false);expect(disk.get(first.id)?.deletedAt).toBeTruthy();
++  vi.spyOn(navigator,'onLine','get').mockReturnValue(true);
++  vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({message:'Expired'}),{status:401})));
++  store.online.set(true);await store.sync();await settle();
++  expect(auth.user()).toBeNull();expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
++  expect(disk.get(second.id)?.synced).toBe(false);expect(disk.get(first.id)?.deletedAt).toBeTruthy();expect(disk.has('foreign')).toBe(true);
++  expect(vi.mocked(fetch).mock.calls.map(call=>call[0])).toEqual(['/api/v1/auth/me']);
++ });
++ it('verifies auth/me before syncing the offline queue and keeps IndexedDB after logout',async()=>{
++  const saved=store.save('Offline save')!;await settle();vi.spyOn(navigator,'onLine','get').mockReturnValue(true);
++  vi.stubGlobal('fetch',vi.fn(async(url,options)=>{
++   if(String(url).endsWith('/auth/me'))return new Response(JSON.stringify(user));
++   if(String(url).endsWith('/sync/batch')){
++    const operations=JSON.parse(String(options?.body)).operations;
++    return new Response(JSON.stringify({success:true,results:operations.map((op:Record<string,unknown>)=>({...op,status:'applied',serverVersion:1}))}));
++   }
++   if(String(url).endsWith('/auth/logout'))return new Response(JSON.stringify({success:true}));
++   return new Response(JSON.stringify({serverTime:'2026-11-08T10:00:00.000Z',changes:{experiments:[]}}));
++  }));
++  store.online.set(true);await store.sync();expect(disk.get(saved.id)?.synced).toBe(true);
++  expect(vi.mocked(fetch).mock.calls.map(call=>call[0])).toEqual(['/api/v1/auth/me','/api/v1/sync/batch','/api/v1/sync/changes']);
++  await auth.logout();await settle();expect(localStorage.getItem('regression.lastIdentity')).toBeNull();expect(disk.has(saved.id)).toBe(true);
++ });
+ });
+diff --git a/src/app/state/experiments-store.ts b/src/app/state/experiments-store.ts
+index b81f20d..03c73f6 100644
+--- a/src/app/state/experiments-store.ts
++++ b/src/app/state/experiments-store.ts
+@@ -18,23 +18,25 @@ function operation(e: SavedExperiment) {
+         action: deletedAt ? 'delete' : serverVersion ? 'update' : 'create', clientVersion: serverVersion ?? 0,
+         payload: deletedAt ? {} : {
+             name: e.name, status: 'completed',
+-            algorithm: { type: e.algorithm, version: '1.0.0', config: { snapshot } }
++            algorithm: { type: e.algorithm, version: '1.0.0', config: { snapshot: { ...snapshot, lastMutationId: mutationId } } }
+         },
+     };
+ }
+ function newId() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`; }
+ function fromServer(value: unknown, scopeId: string): SavedExperiment | null {
+     if (!value || typeof value !== 'object') return null; const r = value as Record<string, unknown>;
+-    // The API permits algorithm.config; top-level snapshot fields are discarded.
++    // Keep the v2 snapshot contract; algorithm.config is a free-form BE field.
+     if (r['ownerId'] && r['ownerId'] !== scopeId) return null;
+     const algorithm = r['algorithm'] as { type?: string; config?: { snapshot?: Record<string, unknown> } };
+     const snapshot = algorithm?.config?.snapshot ?? r;
++    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return null;
+     const type = typeof r['algorithm'] === 'string' ? r['algorithm'] : algorithm?.type;
+-    if (typeof r['clientId'] !== 'string' || !['linear', 'polynomial', 'ridge', 'lasso'].includes(type ?? '')) return null;
++    if (typeof r['clientId'] !== 'string' || (!r['deletedAt'] && !['linear', 'polynomial', 'ridge', 'lasso'].includes(type ?? ''))) return null;
+     if (!r['deletedAt'] && (!Array.isArray(snapshot['w']) || !snapshot['train'] || !snapshot['test'] || !snapshot['dataSource'])) return null;
+     const date = typeof snapshot['createdAt'] === 'number' ? snapshot['createdAt'] : new Date(String(r['createdAt'])).getTime();
+     const result = {
+         ...snapshot, id: r['clientId'], name: r['name'], algorithm: type, createdAt: date, scopeId, synced: true,
++        mutationId: typeof snapshot['lastMutationId'] === 'string' ? snapshot['lastMutationId'] : undefined,
+         serverVersion: r['syncVersion'], deletedAt: r['deletedAt'] ? new Date(String(r['deletedAt'])).getTime() : undefined
+     } as unknown as SavedExperiment;
+     for (const key of ['train', 'test'] as const) if (result[key]?.r2 === null) result[key] = { ...result[key], r2: NaN };
+@@ -45,7 +47,7 @@ export class ExperimentsStore {
+     private isBrowser = isPlatformBrowser(inject(PLATFORM_ID)); private lab = inject(LabStore); private auth = inject(AuthSession);
+     private all = signal<SavedExperiment[]>([]); list = computed(() => this.canPersist() ? this.all().filter(e => e.scopeId === this.auth.scope() && !e.deletedAt) : []);
+     online = signal(true); syncing = signal(false); syncError = signal<string | null>(null);
+-    conflict = signal<{ id: string; server: SavedExperiment | null } | null>(null);
++    conflict = signal<{ id: string; server: SavedExperiment | null; invalidServer?: boolean } | null>(null);
+     readonly canPersist = computed(() => this.auth.authenticated());
+     pendingCount = computed(() => this.canPersist() ? this.all().filter(e => e.scopeId === this.auth.scope() && !e.synced).length : 0); canSave = computed(() => this.canPersist() && this.lab.latest() !== null);
+     private syncAgain = false;
+@@ -57,11 +59,21 @@ export class ExperimentsStore {
+         window.addEventListener('online', on); window.addEventListener('offline', off);
+         inject(DestroyRef).onDestroy(() => { window.removeEventListener('online', on); window.removeEventListener('offline', off); });
+     }
+-    private persist() { const scope = this.auth.scope(), records = this.all(); this.writes = this.writes.catch(() => { }).then(async () => { if (this.canPersist() && this.auth.scope() === scope) await experimentDb.putMany(records); }); return this.writes; }
++    private persist(removed: string[] = []) {
++        if (!this.canPersist()) return Promise.resolve();
++        const scope = this.auth.scope(), records = this.all().filter(e => e.scopeId === scope);
++        // A queued local write must finish even if a 401 or account switch happens meanwhile.
++        this.writes = this.writes.catch(() => { }).then(async () => {
++            await experimentDb.putMany(records);
++            for (const id of removed) await experimentDb.remove(id);
++        });
++        return this.writes;
++    }
+     private async loadScope() {
+         const scope = this.auth.scope(), rev = ++this.revision; this.loadedScope = ''; this.all.set([]); this.conflict.set(null);
+         this.syncError.set(null); if (!this.canPersist()) { this.loadedScope = scope; return; }
+         try {
++            await this.writes;
+             const stored = await experimentDb.all(); if (rev !== this.revision || scope !== this.auth.scope() || !this.canPersist()) return;
+             const records = stored.filter(e => e.scopeId === scope);
+             this.all.set(records.sort((a, c) => c.createdAt - a.createdAt)); this.loadedScope = scope;
+@@ -89,25 +101,61 @@ export class ExperimentsStore {
+         void this.sync(); return exp;
+     }
+     remove(id: string) { if (!this.canPersist() || this.loadedScope !== this.auth.scope()) return; this.all.update(list => list.map(e => e.id === id ? { ...e, deletedAt: Date.now(), synced: false, mutationId: newId() } : e)); void this.persist().catch(() => { }); void this.sync(); }
+-    private async readRemote(scope: string) {
++    private async readRemote(scope: string, full = false) {
+         const records: SavedExperiment[] = [];
+         if (scope !== this.auth.scope() || !this.canPersist()) throw new Error('Phiên làm việc đã thay đổi.');
+-        const res = await this.auth.api('/api/v1/sync/changes');
++        let query = '';
++        try {
++            const cursor = localStorage.getItem('regression.syncCursor.' + scope);
++            const time = cursor ? Date.parse(cursor) : NaN;
++            if (!full && Number.isFinite(time) && this.all().some(e => e.scopeId === scope)) {
++                query = '?since=' + encodeURIComponent(new Date(time - 60_000).toISOString());
++            }
++        } catch { /* Pull everything if storage is unavailable. */ }
++        const res = await this.auth.api('/api/v1/sync/changes' + query);
+         if (!res.ok) throw new Error(apiMessage(await res.json().catch(() => null), 'Không đọc được thí nghiệm từ máy chủ.'));
+-        const data = await res.json() as { changes?: { experiments?: unknown[] } };
++        const data = await res.json() as { serverTime?: string; changes?: { experiments?: unknown[] } };
+         if (!Array.isArray(data.changes?.experiments)) throw new Error('Phản hồi danh sách không hợp lệ.');
+-        for (const value of data.changes.experiments) { const record = fromServer(value, scope); if (record) records.push(record); }
+-        return records;
++        let complete = true;
++        for (const value of data.changes.experiments) { const record = fromServer(value, scope); if (record) records.push(record); else complete = false; }
++        return { records, serverTime: complete ? data.serverTime : undefined };
+     }
+     async resolveConflict(copy: boolean) {
+-        if (!this.canPersist() || this.loadedScope !== this.auth.scope()) return; const scope = this.auth.scope(); const conflict = this.conflict(); if (!conflict) return; const local = this.all().find(e => e.id === conflict.id); if (!local) return;
+-        const remote = conflict.server; this.all.update(list => list.filter(e => e.id !== local.id).concat(remote ? [remote] : [], copy ? [{ ...local, id: newId(), mutationId: newId(), serverVersion: 0, synced: false, deletedAt: undefined, name: local.name.slice(0, 109) + ' (bản sao)' }] : []));
+-        await experimentDb.remove(local.id).catch(() => { }); if (scope !== this.auth.scope() || !this.canPersist()) return; await this.persist(); this.conflict.set(null); void this.sync();
++        if (!this.canPersist() || this.loadedScope !== this.auth.scope()) return;
++        const scope = this.auth.scope(), conflict = this.conflict();
++        if (!conflict) return;
++        const local = this.all().find(e => e.id === conflict.id);
++        if (!local) return;
++        const remote = conflict.server?.deletedAt ? null : conflict.server;
++        const replacement = copy || conflict.invalidServer ? {
++            ...local, id: newId(), mutationId: newId(), serverVersion: 0, synced: false,
++            deletedAt: undefined, name: local.name.slice(0, 109) + ' (bản sao)'
++        } : null;
++        this.all.update(list => list.filter(e => e.id !== local.id).concat(remote ? [remote] : [], replacement ? [replacement] : []));
++        try {
++            // Persist the copy BEFORE removing the original; a failed write must not lose it.
++            await this.persist(remote ? [] : [local.id]);
++        } catch {
++            if (scope === this.auth.scope()) {
++                this.all.update(list => list.filter(e => e.id !== local.id && e.id !== replacement?.id).concat(local));
++                this.syncError.set('Không lưu được xuống IndexedDB; dữ liệu hiện chỉ ở bộ nhớ.');
++            }
++            return;
++        }
++        if (scope !== this.auth.scope()) return;
++        this.conflict.set(null);
++        if (conflict.invalidServer) this.syncError.set('Không đọc được bản server. Đã giữ dữ liệu local thành bản sao, chờ đồng bộ.');
++        else void this.sync();
+     }
+     async sync() {
+         if (!this.isBrowser || !this.online() || !this.canPersist() || this.conflict()) return;
+         if (this.syncing()) { this.syncAgain = true; return; }
+         this.syncing.set(true); this.syncError.set(null); const scope = this.auth.scope();
++        const excluded = new Set<string>(), failures = new Map<string, string>();
++        const duplicates = new Map<string, SavedExperiment>();
++        let interrupted = false;
++        const active = () => scope === this.auth.scope() && this.canPersist();
++        const reject = (id: string, reason: string) => { excluded.add(id); failures.set(id, reason); };
+         try {
+             const user = await this.auth.ensure(); if (!user || user.userId !== scope || scope !== this.auth.scope() || !this.canPersist()) return;
+             // Wait for the current account's records before consuming its queue.
+@@ -117,38 +165,98 @@ export class ExperimentsStore {
+             }
+ 
+             while (true) {
+-                if (scope !== this.auth.scope()) return; const pending = this.all().filter(e => !e.synced); if (!pending.length) break;
+-                const batch: SavedExperiment[] = []; let bytes = 0; for (const item of pending) { const size = new TextEncoder().encode(JSON.stringify(item)).byteLength; if (batch.length && (bytes + size > 8 * 1024 * 1024 || batch.length >= 50)) break; batch.push(item); bytes += size; }
++                if (!active()) return;
++                // Persist missing mutation keys before sending older local records.
++                this.all.update(list => list.map(e => !e.synced && !e.mutationId ? { ...e, mutationId: newId() } : e));
++                await this.persist();
++                if (!active()) return;
++                const pending = this.all().filter(e => e.scopeId === scope && !e.synced && !excluded.has(e.id));
++                if (!pending.length) break;
++                const batch: SavedExperiment[] = []; let bytes = 17;
++                for (const item of pending) {
++                    const size = new TextEncoder().encode(JSON.stringify(operation(item))).byteLength;
++                    if (size + 17 > 8 * 1024 * 1024) { reject(item.id, 'Bản lưu vượt 8 MiB.'); continue; }
++                    if (batch.length && (bytes + size + 1 > 8 * 1024 * 1024 || batch.length >= 50)) break;
++                    batch.push(item); bytes += size + (batch.length > 1 ? 1 : 0);
++                }
++                if (!batch.length) break;
+                 const res = await this.auth.api(SYNC_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ operations: batch.map(operation) }) });
+-                const ack = await res.json() as { results?: SyncResult[] };
++                const ack = await res.json().catch(() => null) as { success?: boolean; results?: SyncResult[] } | null;
+                 if (!res.ok) throw new Error(apiMessage(ack, `Đồng bộ thất bại (HTTP ${res.status}).`));
+-                if (scope !== this.auth.scope()) return;
+-                const results = Array.isArray(ack.results) ? ack.results : [];
+-                const match = (e: SavedExperiment) => results.find(a => a.entityType === 'experiment' && a.entityClientId === e.id && a.operationId === (e.mutationId ?? e.id) && a.idempotencyKey === (e.mutationId ?? e.id));
+-                const accepted = (e: SavedExperiment, a: SyncResult | undefined) => !!a && ['applied', 'duplicate'].includes(a.status)
+-                    && ((Number.isInteger(a.serverVersion) && (a.serverVersion ?? 0) > 0) || (!!e.deletedAt && a.serverVersion === undefined));
+-                this.all.update(list => list.map(e => {
+-                    const a = match(e);
+-                    if (accepted(e, a)) return { ...e, synced: true, serverVersion: a!.serverVersion ?? e.serverVersion };
+-                    // Conflict keys are remembered by the backend. Rotate every
+-                    // rejected conflict key so reload cannot mistake it for success.
+-                    return a?.status === 'conflict' ? { ...e, mutationId: newId() } : e;
+-                }));
++                if (!active()) return;
++                const results = Array.isArray(ack?.results) ? ack.results : [];
++                for (const sent of batch) {
++                    const local = this.all().find(e => e.id === sent.id);
++                    // A response to an older mutation cannot acknowledge a newer local edit.
++                    if (!local || local.mutationId !== sent.mutationId) continue;
++                    const result = results.find(a => a.entityType === 'experiment' && a.entityClientId === sent.id
++                        && a.operationId === sent.mutationId && a.idempotencyKey === sent.mutationId);
++                    if (result?.status === 'applied' && ((Number.isInteger(result.serverVersion) && result.serverVersion! > 0)
++                        || (!!sent.deletedAt && result.serverVersion === undefined))) {
++                        this.all.update(list => list.map(e => e.id === sent.id ? { ...e, synced: true, serverVersion: result.serverVersion ?? e.serverVersion } : e));
++                    } else if (result?.status === 'duplicate') {
++                        excluded.add(sent.id); duplicates.set(sent.id, sent);
++                    } else if (result?.status === 'conflict') {
++                        // TODO(BE-confirm): confirm live serverData shape; unreadable data must preserve the local record.
++                        const raw = result.conflict?.serverData, parsed = fromServer(raw, scope);
++                        const invalidServer = raw != null && (!parsed || parsed.id !== sent.id);
++                        this.all.update(list => list.map(e => e.id === sent.id ? { ...e, mutationId: newId() } : e));
++                        if (!this.conflict()) this.conflict.set({ id: sent.id, server: invalidServer || parsed?.deletedAt ? null : parsed, invalidServer });
++                        reject(sent.id, invalidServer ? 'Không đọc được bản server. Dữ liệu local sẽ được giữ thành bản sao.'
++                            : result.conflict?.reason ?? 'Máy chủ chưa xác nhận đủ từng thí nghiệm. Dữ liệu còn chờ đồng bộ.');
++                    } else reject(sent.id, result?.error ?? 'Máy chủ chưa xác nhận đủ từng thí nghiệm. Dữ liệu còn chờ đồng bộ.');
++                }
+                 await this.persist();
+-                if (scope !== this.auth.scope()) return;
+-                const rejected = batch.find(e => !accepted(e, match(e)));
+-                if (rejected) {
+-                    const result = match(rejected);
+-                    if (result?.status === 'conflict') {
+-                        this.conflict.set({ id: rejected.id, server: fromServer(result.conflict?.serverData, scope) });
+-                    }
+-                    throw new Error(result?.error ?? result?.conflict?.reason ?? 'Máy chủ chưa xác nhận đủ từng thí nghiệm. Dữ liệu còn chờ đồng bộ.');
++                if (!active()) return;
++                if (this.conflict()) { this.syncError.set([...failures.values()][0]); return; }
++            }
++            // A duplicate may reference data older than the incremental cursor window.
++            // TODO(BE-confirm): duplicate may omit serverVersion; only the pulled record proves acknowledgement.
++            const remote = await this.readRemote(scope, duplicates.size > 0); if (!active()) return;
++            const byId = new Map<string, SavedExperiment>();
++            for (const record of remote.records) {
++                const previous = byId.get(record.id);
++                if (!previous || (record.serverVersion ?? 0) > (previous.serverVersion ?? 0)
++                    || ((record.serverVersion ?? 0) === (previous.serverVersion ?? 0) && record.deletedAt)) byId.set(record.id, record);
++            }
++            this.all.update(list => list.map(local => {
++                const sent = duplicates.get(local.id);
++                if (!sent || local.mutationId !== sent.mutationId) return local;
++                const server = byId.get(local.id);
++                if (server && Number.isInteger(server.serverVersion) && server.serverVersion! > 0
++                    && ((!!sent.deletedAt && !!server.deletedAt) || (!sent.deletedAt && !server.deletedAt && server.mutationId === sent.mutationId))) {
++                    return { ...local, synced: true, serverVersion: server.serverVersion };
++                }
++                reject(local.id, 'Máy chủ chưa xác nhận đúng thay đổi. Dữ liệu còn chờ đồng bộ.');
++                return { ...local, mutationId: newId() };
++            }));
++            const removed: string[] = [];
++            this.all.update(list => {
++                const merged = new Map(list.map(e => [e.id, e]));
++                for (const record of byId.values()) {
++                    const local = merged.get(record.id);
++                    if (record.deletedAt) {
++                        if (local?.synced) { merged.delete(record.id); removed.push(record.id); }
++                    } else if (!local || local.synced && (record.serverVersion ?? 0) > (local.serverVersion ?? 0)) merged.set(record.id, record);
+                 }
++                return [...merged.values()].sort((a, b) => b.createdAt - a.createdAt);
++            });
++            await this.persist(removed);
++            if (!active()) return;
++            if (typeof remote.serverTime === 'string' && Number.isFinite(Date.parse(remote.serverTime))) {
++                try { localStorage.setItem('regression.syncCursor.' + scope, remote.serverTime); } catch { /* A full pull is safe. */ }
+             }
+-            const remote = await this.readRemote(scope); if (scope !== this.auth.scope()) return;
+-            this.all.update(list => { const merged = new Map(list.map(e => [e.id, e])); for (const record of remote) { const local = merged.get(record.id); if (!local || local.synced && (record.serverVersion ?? 0) >= (local.serverVersion ?? 0)) merged.set(record.id, record); } return [...merged.values()].sort((a, b) => b.createdAt - a.createdAt); }); await this.persist();
+-        } catch (error) { if (scope === this.auth.scope() && this.canPersist()) this.syncError.set(error instanceof Error ? error.message : 'Chưa đồng bộ được. Dữ liệu vẫn được giữ cục bộ.'); }
+-        finally { this.syncing.set(false); if (this.syncAgain) { this.syncAgain = false; void this.sync(); } }
++            if (failures.size) this.syncError.set(`${failures.size} bản ghi chưa đồng bộ: ${[...failures.values()][0]}`);
++        } catch (error) {
++            interrupted = true;
++            if (active()) this.syncError.set(error instanceof Error ? error.message : 'Chưa đồng bộ được. Dữ liệu vẫn được giữ cục bộ.');
++        } finally {
++            this.syncing.set(false);
++            const again = this.syncAgain; this.syncAgain = false;
++            // Rejected records wait for a later explicit sync; a newly queued save can proceed.
++            if (again && !interrupted && (scope !== this.auth.scope()
++                || this.all().some(e => !e.synced && !excluded.has(e.id)))) void this.sync();
++        }
+     }
+     // ===== xuất =====
+     exportJson() {

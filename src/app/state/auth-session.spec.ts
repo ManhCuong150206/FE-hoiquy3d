@@ -10,6 +10,7 @@ describe('cookie session authentication', () => {
     let auth: AuthSession;
     const fetchMock = vi.fn<typeof fetch>();
     beforeEach(() => {
+        localStorage.clear();
         vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
         fetchMock.mockReset();
         vi.stubGlobal('fetch', fetchMock);
@@ -17,7 +18,7 @@ describe('cookie session authentication', () => {
     });
     afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
-    it('accepts the direct User response and sends cookies plus CSRF header without storing identity', async () => {
+    it('sends cookies plus CSRF header and stores only userId, displayName and email', async () => {
         const write = vi.spyOn(Storage.prototype, 'setItem');
         fetchMock.mockResolvedValue(reply(user));
         await auth.enter({ ...credentials, displayName: 'ignored' }, false);
@@ -28,7 +29,8 @@ describe('cookie session authentication', () => {
         expect(options?.credentials).toBe('include');
         expect(new Headers(options?.headers).get('X-Requested-With')).toBe('XMLHttpRequest');
         expect(JSON.parse(String(options?.body))).toEqual({ email: user.email, password: credentials.password });
-        expect(write).not.toHaveBeenCalled();
+        expect(write).toHaveBeenCalledWith('regression.lastIdentity', JSON.stringify({ userId: user._id, displayName: user.displayName, email: user.email }));
+        expect(JSON.parse(localStorage.getItem('regression.lastIdentity')!)).toEqual({ userId: user._id, displayName: user.displayName, email: user.email });
     });
     it('registers without creating a logged-in frontend session', async () => {
         fetchMock.mockResolvedValue(reply(user, 201));
@@ -75,6 +77,7 @@ describe('cookie session authentication', () => {
         await auth.api('/api/v1/experiments/bulk', { method: 'POST' });
         expect(auth.authenticated()).toBe(false);
         expect(auth.error()).toContain('hết hạn');
+        expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
         await expect(auth.api('/api/v1/experiments/bulk', { method: 'POST' })).rejects.toThrow();
         expect(fetchMock).toHaveBeenCalledTimes(2);
     });
@@ -95,10 +98,54 @@ describe('cookie session authentication', () => {
         expect(options?.method).toBe('POST');
         expect(new Headers(options?.headers).get('X-Requested-With')).toBe('XMLHttpRequest');
         expect(auth.user()).toBeNull();
+        expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
     });
     it.each([400, 401, 403, 409, 429])('shows API validation/errors for HTTP %s', async status => {
         fetchMock.mockResolvedValue(reply({ message: ['Lỗi thứ nhất', 'Lỗi thứ hai'] }, status));
         await expect(auth.enter(credentials, false)).rejects.toThrow('Lỗi thứ nhất\nLỗi thứ hai');
         expect(auth.authenticated()).toBe(false);
+    });
+    const cache = () => localStorage.setItem('regression.lastIdentity', JSON.stringify({ userId: user._id, displayName: user.displayName, email: user.email }));
+    it('restores offline identity without contacting the API and ensure waits for connectivity', async () => {
+        cache(); vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+        await auth.restore();
+        expect(auth.scope()).toBe(user._id); expect(auth.authenticated()).toBe(true);
+        expect(await auth.ensure()).toBeNull(); expect(fetchMock).not.toHaveBeenCalled();
+    });
+    it('restores cached identity on a network failure even if navigator reports online', async () => {
+        cache(); fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+        await auth.restore(); expect(auth.scope()).toBe(user._id);
+    });
+    it.each([403, 500])('does not fall back to cached identity on HTTP %s', async status => {
+        cache(); fetchMock.mockResolvedValue(reply({ message: 'Failure' }, status));
+        await auth.restore(); expect(auth.user()).toBeNull();
+    });
+    it('clears cached identity and an offline-restored user when restore receives 401', async () => {
+        cache(); vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false); await auth.restore();
+        vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+        fetchMock.mockResolvedValue(reply({ message: 'Expired' }, 401));
+        await auth.restore(); expect(auth.user()).toBeNull(); expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
+    });
+    it('refreshes the cached identity from auth/me and replaces it on another login', async () => {
+        fetchMock.mockResolvedValueOnce(reply(user)); await auth.restore();
+        expect(JSON.parse(localStorage.getItem('regression.lastIdentity')!).userId).toBe(user._id);
+        fetchMock.mockResolvedValueOnce(reply({ ...user, _id: 'person-b' })); await auth.enter(credentials, false);
+        expect(JSON.parse(localStorage.getItem('regression.lastIdentity')!).userId).toBe('person-b');
+    });
+    it.each(['invalid json', '{}', '{"userId":"guest","displayName":"Guest","email":""}'])('ignores invalid cached identity %s', async value => {
+        localStorage.setItem('regression.lastIdentity', value); vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+        await auth.restore(); expect(auth.user()).toBeNull();
+    });
+    it('continues when localStorage is unavailable', async () => {
+        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('Denied'); });
+        fetchMock.mockResolvedValue(reply(user)); await auth.enter(credentials, false); expect(auth.authenticated()).toBe(true);
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('Denied'); });
+        vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false); await expect(auth.restore()).resolves.toBeUndefined();
+    });
+    it('does not restore cached identity after Guest was chosen during a failed fetch', async () => {
+        cache(); let fail!: (error: Error) => void;
+        fetchMock.mockImplementation(() => new Promise((_, reject) => { fail = reject; }));
+        const restoring = auth.restore(); auth.guest(); fail(new TypeError('Failed to fetch')); await restoring;
+        expect(auth.scope()).toBe('guest');
     });
 });

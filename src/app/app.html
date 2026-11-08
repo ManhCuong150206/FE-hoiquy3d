@@ -25,15 +25,16 @@
     </div>
     @defer (when opened()) {
     <app-header />
+    <div class="lesson-entry">
+      <div><p>Muốn hiểu mô hình đã học như thế nào?</p><small>Bấm để mở trang học · chỉ các nút
+        học mới thực hiện tính toán.</small></div>
+      <button class="primary" [disabled]="pageBusy()"
+        (click)="navigate('learning', true)">Học từng bước và ghi chú →</button>
+    </div>
     <app-training-controls data-motion />
     <main class="workspace"><app-experiments-panel data-motion data-tilt /><app-data-panel data-motion /><app-viewport3d
         data-motion idPrefix="experiment" [active]="activeScreen() === 'lab'"
         [lowQuality]="lowEffects()" /><app-results-panel data-motion data-tilt /></main>
-    <div class="lesson-entry">
-      <p>Muốn hiểu mô hình đã học như thế nào?</p><button class="primary" [disabled]="pageBusy()"
-        (click)="navigate('learning', true)">Học từng bước và ghi chú →</button><small>Bấm để mở trang học · chỉ các nút
-        học mới thực hiện tính toán.</small>
-    </div>
     }
     <footer class="lab-footer"><span>HỒI QUY 3D · THỬ, QUAN SÁT, THẤU HIỂU.</span></footer>
   </section>

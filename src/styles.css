@@ -243,7 +243,7 @@ app-root.low-effects button,app-root.low-effects .glass{backdrop-filter:none}app
 
 .learning-section{min-height:100svh;padding-top:40px;position:relative;border-top:1px solid var(--border);background:radial-gradient(ellipse at 20% 30%,#8570ff0c,transparent 65%)}
 .learning-workspace{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;padding:10px clamp(16px,2vw,40px) 24px;align-items:start}.learning-workspace>*{min-width:0}.learning-workspace app-viewport3d{position:sticky;top:18px}.learning-hint{font-size:13px;color:var(--muted)}
-.lesson-entry{display:grid;justify-items:center;gap:16px;padding:54px 24px 70px;text-align:center}.lesson-entry p{font-size:22px}.lesson-entry small{color:var(--muted)}
+.lesson-entry{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:16px clamp(16px,2vw,40px);text-align:left}.lesson-entry p{margin:0 0 6px;font-size:18px;line-height:1.4}.lesson-entry small{color:var(--muted);font-size:13px;line-height:1.5}.lesson-entry button{flex-shrink:0;min-height:44px}@media(max-width:700px){.lesson-entry{align-items:flex-start;flex-direction:column}.lesson-entry button{width:100%}}
 @media(max-width:900px){.learning-workspace{grid-template-columns:1fr}.learning-workspace app-viewport3d{position:static}.journey-steps{gap:12px}}
 
 .experience [data-screen][hidden]{display:none!important}.experience [data-screen]{scroll-snap-align:none;min-height:100svh}

@@ -223,7 +223,7 @@ Kiểm tra mở rộng toàn màn hình: 94/94 unit test (20 file), 13 nhóm E2E
 - **Instancing:** vẽ nhiều điểm bằng một cấu trúc dùng chung, thay vì tạo hàng trăm đối tượng độc lập.
 - **Raycasting:** dò vật thể tại vị trí con trỏ, dùng nhận biết vùng màu khi rê trên cầu hoặc chọn mẫu dữ liệu trong mô hình hồi quy.
 
-Xoay camera tiếp tục dùng phép nhân số phức trên các cặp tọa độ và các phép xoay/quaternion hiện có. Quaternion là cách biểu diễn hướng quay 3D. Không coi mọi thao tác nội bộ của Three.js là đã loại bỏ hoàn toàn lượng giác; yêu cầu số phức áp dụng vào phần điều khiển/chuyển động được xây dựng cho đề tài.
+Khung hồi quy 3D dùng OrbitControls để xoay quanh trục đứng của camera, giữ chiều kéo nhất quán ở mọi góc nhìn, hỗ trợ chuột/cảm ứng và giảm chấn khi thả tay. Vòng vẽ dùng timestamp của requestAnimationFrame, giữ giới hạn 60 FPS và điều chỉnh giảm chấn theo thời gian giữa các frame. Các nút góc nhìn xóa quán tính trước khi đặt camera. Phép nhân số phức vẫn dùng trong các chuyển động nền hiện có; quaternion là cách biểu diễn hướng quay 3D. Không coi mọi thao tác nội bộ của Three.js là đã loại bỏ hoàn toàn lượng giác.
 
 ## 9. Viền sáng theo chuột hoạt động thế nào?
 

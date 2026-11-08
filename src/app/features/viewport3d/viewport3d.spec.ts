@@ -20,6 +20,89 @@ describe('Viewport3d', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('camera interaction', () => {
+    let view: any;
+    let canvas: HTMLCanvasElement;
+    const drag = (dx: number, dy: number, button = 0) => {
+      const event = (type: string, x: number, y: number) => canvas.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, pointerId: 1, pointerType: 'mouse', isPrimary: true, button, buttons: type === 'pointerup' ? 0 : button === 2 ? 2 : 1,
+        clientX: x, clientY: y,
+      }));
+      event('pointerdown', 200, 200);
+      event('pointermove', 200 + dx, 200 + dy);
+      event('pointerup', 200 + dx, 200 + dy);
+    };
+
+    beforeEach(() => {
+      view = component as any;
+      canvas = document.createElement('canvas');
+      document.body.appendChild(canvas);
+      Object.defineProperties(canvas, { clientWidth: { value: 600 }, clientHeight: { value: 420 } });
+      canvas.setPointerCapture = () => {};
+      canvas.releasePointerCapture = () => {};
+      view.camera = new THREE.PerspectiveCamera(50, 600 / 420, .1, 200);
+      view.camera.position.set(8, 6, 8);
+      view.initControls(canvas);
+    });
+
+    afterEach(() => { view.controls.dispose(); canvas.remove(); });
+
+    it.each(['default', 'front', 'side', 'top'] as const)('keeps horizontal drag direction and orbit radius from %s', preset => {
+      component.view(preset);
+      const before = view.controls.getAzimuthalAngle();
+      const radius = view.camera.position.length();
+      drag(30, 0);
+      expect(view.controls.getAzimuthalAngle()).toBeLessThan(before);
+      expect(view.camera.position.length()).toBeCloseTo(radius, 10);
+    });
+
+    it.each(['default', 'front', 'side'] as const)('keeps vertical drag direction from %s without rolling', preset => {
+      component.view(preset);
+      const before = view.controls.getPolarAngle();
+      drag(0, 30);
+      expect(view.controls.getPolarAngle()).toBeLessThan(before);
+      expect(view.camera.up.toArray()).toEqual([0, 1, 0]);
+      expect(view.camera.position.toArray().every(Number.isFinite)).toBe(true);
+    });
+
+    it('settles gradually after release and resets without residual drift', () => {
+      drag(30, 20);
+      let previous = view.camera.position.clone();
+      const distances: number[] = [];
+      for (let i = 0; i < 100; i++) {
+        view.controls.update();
+        distances.push(view.camera.position.distanceTo(previous));
+        previous.copy(view.camera.position);
+      }
+      expect(distances[0]).toBeGreaterThan(0);
+      expect(distances[1]).toBeLessThan(distances[0]);
+      expect(distances[99]).toBeLessThan(.00001);
+      drag(30, 20);
+      component.view('default');
+      for (let i = 0; i < 30; i++) view.controls.update();
+      expect(view.camera.position.distanceTo(new THREE.Vector3(8, 6, 8))).toBeLessThan(1e-10);
+    });
+
+    it('preserves pan and wheel zoom', () => {
+      const before = view.camera.position.clone();
+      drag(30, 20, 2);
+      expect(view.controls.target.length()).toBeGreaterThan(0);
+      expect(view.camera.position.distanceTo(before)).toBeGreaterThan(0);
+      const radius = view.controls.getDistance();
+      canvas.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, cancelable: true }));
+      expect(view.controls.getDistance()).toBeLessThan(radius);
+    });
+
+    it('does not interpret a drag returning to its origin as a sample click', () => {
+      view.onPointerDown({ button: 0, isPrimary: true, pointerId: 1, clientX: 20, clientY: 20 });
+      view.onPointerMove({ pointerId: 1, clientX: 60, clientY: 20 });
+      view.onPointerMove({ pointerId: 1, clientX: 20, clientY: 20 });
+      expect(view.pointerStart.dragged).toBe(true);
+      view.onPointerCancel();
+      expect(view.pointerStart).toBeUndefined();
+    });
+  });
+
   it('scales epsilon by train-y standard deviation only, including raw CSV units', () => {
     component.store.trainY.set([1000, 2000, 3000]);
     component.store.testY.set([1e9]);
