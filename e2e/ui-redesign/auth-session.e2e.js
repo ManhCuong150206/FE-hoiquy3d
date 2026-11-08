@@ -4,7 +4,9 @@ async(page)=>{
  const base='http://127.0.0.1:4300';
  page.setDefaultTimeout(20000);
  await page.emulateMedia({reducedMotion:'reduce'});
- await page.goto(base);
+ await page.goto(base);await idle('algorithms');
+ check(await page.locator('#welcome').isHidden(),'Initial page is algorithms');
+ await page.locator('#algorithms .login-button').click();await idle('welcome');
  await page.locator('.switch-auth button').click();
  await page.getByLabel('Tên hiển thị').fill('Member');
  await page.getByLabel('Email',{exact:true}).fill('demo@example.com');
@@ -22,9 +24,10 @@ async(page)=>{
  await page.getByLabel('Tên lần chạy',{exact:true}).fill('Authenticated snapshot');
  await page.getByRole('button',{name:'Lưu',exact:true}).click();
  await page.locator('app-experiments-panel li').filter({hasText:'Authenticated snapshot'}).getByText('Đã đồng bộ',{exact:true}).waitFor();
- await page.reload();await page.getByRole('button',{name:'Tiếp tục khám phá →',exact:true}).waitFor();
+ await page.reload();await idle('algorithms');
+ await page.locator('#algorithms .account-greeting').filter({hasText:'Member'}).waitFor();
  check(await page.evaluate(()=>localStorage.getItem('regression.identity'))===null,'No local identity token');
- await page.getByRole('button',{name:'Tiếp tục khám phá →',exact:true}).click();await idle('algorithms');
+
  await page.getByRole('button',{name:'Đăng xuất',exact:true}).click();
  await page.locator('#algorithms').getByRole('button',{name:'Đăng nhập',exact:true}).waitFor();await idle('algorithms');
  check(await page.locator('#algorithms .account-greeting').count()===0,'Logout clears the greeting');

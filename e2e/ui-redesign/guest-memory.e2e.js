@@ -8,6 +8,8 @@ async(page)=>{
   const open=indexedDB.open.bind(indexedDB);indexedDB.open=(...args)=>{window.guestWrites.push('indexedDB:'+args[0]);return open(...args);};
  });
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300');
+ await idle('algorithms');
+ await page.locator('#algorithms .login-button').click();await idle('welcome');
  await page.waitForLoadState('networkidle');
  const calls=[];page.on('request',request=>{if(request.url().includes('/api/'))calls.push(request.url());});
  await page.context().setOffline(true);
@@ -22,7 +24,7 @@ async(page)=>{
  await page.context().setOffline(false);await page.waitForTimeout(200);
  check(calls.length===0,'Guest must not call auth or sync on reconnect');
  await page.locator('#lab .change-algorithm').click();await idle('algorithms');
- await page.context().setOffline(true);await page.getByRole('button',{name:'Đăng xuất',exact:true}).click();await idle('welcome');
+ await page.context().setOffline(true);await page.locator('#algorithms .login-button').click();await idle('welcome');
  await page.context().setOffline(false);
- return {suite:'guest-memory',passed:['offline Guest entry','training works','save and sync disabled','zero IndexedDB/localStorage writes','zero API calls on reconnect','Guest exits offline']};
+ return {suite:'guest-memory',passed:['offline Guest entry','training works','save and sync disabled','zero IndexedDB/localStorage writes','zero API calls on reconnect','Guest opens login offline']};
 }

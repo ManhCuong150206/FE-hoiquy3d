@@ -4,7 +4,10 @@ async(page)=>{
  const waitScreen=id=>page.waitForFunction(id=>!document.getElementById(id)?.hidden&&document.querySelector('.experience')?.getAttribute('aria-busy')==='false',id);
  const focused=id=>page.waitForFunction(id=>document.activeElement?.id===id,id);
  for(const theme of ['dark','light']){
-  await page.emulateMedia({reducedMotion:'no-preference'});await page.setViewportSize({width:1440,height:1000});await page.goto('http://127.0.0.1:4300/');
+  await page.emulateMedia({reducedMotion:'no-preference'});await page.setViewportSize({width:1440,height:1000});await page.goto('http://127.0.0.1:4300/');await waitScreen('algorithms');
+ await page.waitForLoadState('networkidle');
+ if(await page.locator('#algorithms .account-greeting').count()){await page.locator('#algorithms').getByRole('button',{name:'Đăng xuất',exact:true}).click();}
+ await page.locator('#algorithms .login-button').click();await waitScreen('welcome');
   await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
   await page.locator('.auth-submit').click();await focused('entry-email');
   check(await page.locator('.summary-box a').count()===2,'Two login errors in '+theme);
@@ -25,7 +28,10 @@ async(page)=>{
   check(sent.length===1&&sent[0].endsWith('/auth/login'),'One authenticated login request');page.off('request',request);
   check(await page.locator('#entry-email').inputValue()===''&&await page.locator('#entry-password').inputValue()==='','Credentials cleared');
  }
- await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:390,height:844});await page.goto('http://127.0.0.1:4300/');
+ await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:390,height:844});await page.goto('http://127.0.0.1:4300/');await waitScreen('algorithms');
+ await page.waitForLoadState('networkidle');
+ if(await page.locator('#algorithms .account-greeting').count()){await page.locator('#algorithms').getByRole('button',{name:'Đăng xuất',exact:true}).click();}
+ await page.locator('#algorithms .login-button').click();await waitScreen('welcome');
  await page.locator('.switch-auth button').click();await page.locator('.auth-submit').click();await focused('display-name');
  check(await page.locator('.summary-box a').count()===3,'Registration validates three fields');
  check(await page.locator('.entry-field').first().evaluate(el=>el.getAnimations({subtree:true}).every(a=>a.effect?.getTiming().duration!==400)),'Reduced motion skips shake');

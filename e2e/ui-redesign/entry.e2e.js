@@ -7,6 +7,8 @@ async (page) => {
  await page.goto('http://127.0.0.1:4300/');
  await page.evaluate(async () => { localStorage.clear(); await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase('hoiquy3d');request.onsuccess=resolve;request.onerror=()=>reject(request.error);}); });
  await page.reload();
+ await page.locator('#algorithms .login-button').click();
+ await page.waitForFunction(()=>!document.querySelector('#welcome').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');
  await page.getByRole('heading', {name:'Đăng nhập'}).waitFor();
  await page.evaluate(() => window.scrollTo({top:0,behavior:'instant'}));
  check(await page.locator('#lab').count() === 0, 'Lab must not mount before a selection');
