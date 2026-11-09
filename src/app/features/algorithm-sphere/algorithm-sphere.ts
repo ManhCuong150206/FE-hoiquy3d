@@ -1,3 +1,4 @@
+import { ThemeStore } from '../../state/theme-store';
 import { CONTINENTS, PLANET_RADIUS, PLANET_SEED, continentCenter, continentGeometry } from './planet-geometry';
 import { FrameBudget, recordRender } from '../../presentation/frame-budget';
 import { Component, ElementRef, NgZone, OnDestroy, afterNextRender, effect, inject, input, output, signal, viewChild } from '@angular/core';
@@ -17,6 +18,7 @@ const SECTORS=CONTINENTS;
   styles: [`:host{display:block;height:100%}.sphere-host{position:relative;height:100%;width:100%;display:grid;place-items:center}.sphere-host canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}.fallback-orb{width:65%;max-width:300px;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 25%,#0b2337,#020b15 65%,#010711);box-shadow:inset -35px -40px 60px #000b,inset 18px 20px 40px #fff4,0 0 70px color-mix(in srgb,var(--algorithm-accent) 12%,transparent)}.fallback-orb svg{width:100%;height:100%;filter:drop-shadow(0 0 3px #d7e0ee33)}.orb-caption{position:absolute;bottom:22px;font-size:8px;letter-spacing:.22em;color:var(--muted);pointer-events:none}.fallback-note{position:absolute;bottom:40px;font-size:10px;color:var(--muted);text-align:center}`],
 })
 export class AlgorithmSphere implements OnDestroy {
+  private readonly themeStore = inject(ThemeStore);
   readonly intro = input(false);
   readonly active = input<Algorithm>('linear');
   readonly hoveredChange = output<Algorithm | null>();
@@ -32,6 +34,7 @@ export class AlgorithmSphere implements OnDestroy {
   private readonly camera = new THREE.PerspectiveCamera(36, 1, 0.015, 40);
   private readonly meshes: THREE.Mesh<THREE.BufferGeometry, THREE.MeshPhysicalMaterial>[] = [];
   private ocean?:THREE.Mesh<THREE.SphereGeometry,THREE.MeshPhysicalMaterial>;
+  private atmosphere?: THREE.ShaderMaterial;
   private cinema?:{element:HTMLDivElement;rect:DOMRect;progress:number};
   private pulse:[number,number]=[1,0];
   private locked?:Algorithm;
@@ -60,6 +63,7 @@ export class AlgorithmSphere implements OnDestroy {
   private reducedMotion?: MediaQueryList;
 
   constructor() {
+    effect(() => { this.themeStore.theme(); this.applyTheme(); this.draw(); });
     effect(() => {
       const active = this.active(), attention=this.attention();
       this.departing();
@@ -91,6 +95,37 @@ export class AlgorithmSphere implements OnDestroy {
     });
   }
 
+  private applyTheme() {
+    const light = this.themeStore.theme() === 'light';
+    const colors: Record<string, string> = light
+      ? { linear: '#d9af54', polynomial: '#cfb998', ridge: '#2454a6', lasso: '#c5d1df' }
+      : { linear: '#ffd166', polynomial: '#e8d8b5', ridge: '#397bff', lasso: '#d7e0ee' };
+    this.globe.traverse(object => {
+      const id = object.userData['algorithm'];
+      if (id && (object instanceof THREE.Mesh || object instanceof THREE.Line)) {
+        const material = object.material;
+        if (material instanceof THREE.MeshPhysicalMaterial || material instanceof THREE.MeshBasicMaterial || material instanceof THREE.LineBasicMaterial) {
+          material.color.set(colors[id]);
+          if (material instanceof THREE.MeshPhysicalMaterial) {
+            material.emissive.set(colors[id]); material.roughness = light ? .48 : .93;
+            material.metalness = light ? .18 : 0; material.clearcoat = light ? .7 : 0;
+          }
+        }
+      }
+    });
+    if (this.ocean) {
+      this.ocean.material.color.set(light ? '#41677f' : '#021222');
+      this.ocean.material.emissive.set(light ? '#173143' : '#03192b');
+      this.ocean.material.roughness = light ? .38 : .94;
+      this.ocean.material.clearcoat = light ? .9 : 0;
+    }
+    if (this.atmosphere) {
+      this.atmosphere.uniforms['pearl'].value = light ? 1 : 0;
+      this.atmosphere.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+    }
+    if (this.renderer) this.renderer.domElement.dataset['theme'] = light ? 'light' : 'dark';
+  }
+
   private init() {
     const host = this.host().nativeElement;
     this.zone.runOutsideAngular(() => {
@@ -113,8 +148,8 @@ export class AlgorithmSphere implements OnDestroy {
           const geometry=continentGeometry(sector);islandCount+=geometry.islandCount;
           const material=new THREE.MeshPhysicalMaterial({color,vertexColors:true,roughness:.93,metalness:0,clearcoat:0,emissive:color,emissiveIntensity:.24});
           const mesh=new THREE.Mesh(geometry.land,material);mesh.userData['algorithm']=sector;this.meshes.push(mesh);group.add(mesh);
-          const coast=new THREE.LineSegments(geometry.coast,new THREE.LineBasicMaterial({color,transparent:true,opacity:.95,toneMapped:false}));group.add(coast);
-          const relief=new THREE.Mesh(geometry.land,new THREE.MeshBasicMaterial({color,wireframe:true,transparent:true,opacity:.1,depthWrite:false}));group.add(relief);
+          const coast=new THREE.LineSegments(geometry.coast,new THREE.LineBasicMaterial({color,transparent:true,opacity:.95,toneMapped:false}));coast.userData['algorithm']=sector;group.add(coast);
+          const relief=new THREE.Mesh(geometry.land,new THREE.MeshBasicMaterial({color,wireframe:true,transparent:true,opacity:.1,depthWrite:false}));relief.userData['algorithm']=sector;group.add(relief);
         });
         this.scene.add(group);
         const silver=new THREE.Color(0x75b4db),ringStep=unitRotation(Math.PI*2/180);
@@ -136,9 +171,18 @@ export class AlgorithmSphere implements OnDestroy {
           matrix.makeTranslation(point.x,point.y,point.z);nodes.setMatrixAt(i,matrix);links.push(...anchor.multiplyScalar(1.7).toArray(),...point.toArray());
         }
         group.add(nodes);const linkGeometry=new THREE.BufferGeometry();linkGeometry.setAttribute('position',new THREE.Float32BufferAttribute(links,3));group.add(new THREE.LineSegments(linkGeometry,new THREE.LineBasicMaterial({color:silver,transparent:true,opacity:.23,depthWrite:false})));
-        const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.72,48,32),new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.AdditiveBlending,vertexShader:`varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.);n=normalize(normalMatrix*normal);v=-p.xyz;gl_Position=projectionMatrix*p;}`,fragmentShader:`varying vec3 n;varying vec3 v;void main(){float rim=pow(1.-abs(dot(normalize(n),normalize(v))),2.8);gl_FragColor=vec4(.12,.49,.72,rim*.22);}`}));group.add(atmosphere);
+        this.atmosphere = new THREE.ShaderMaterial({
+          transparent: true, depthWrite: false, side: THREE.BackSide,
+          blending: THREE.AdditiveBlending, uniforms: { pearl: { value: 0 } },
+          vertexShader: `varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.);n=normalize(normalMatrix*normal);v=-p.xyz;gl_Position=projectionMatrix*p;}`,
+          fragmentShader: `uniform float pearl;varying vec3 n;varying vec3 v;
+            void main(){float rim=pow(1.-abs(dot(normalize(n),normalize(v))),2.8);
+            vec3 daylight=mix(vec3(.22,.48,.82),vec3(.57,.38,.76),smoothstep(-.7,.7,normalize(n).x));
+            gl_FragColor=vec4(mix(vec3(.12,.49,.72),daylight,pearl),rim*mix(.22,.85,pearl));}`
+        });
+        group.add(new THREE.Mesh(new THREE.SphereGeometry(1.72,48,32),this.atmosphere));
         this.scene.add(this.ornaments);
-        host.appendChild(this.renderer.domElement);this.renderer.domElement.dataset['planet']='continents';this.renderer.domElement.dataset['continentCount']='4';this.renderer.domElement.dataset['islandCount']=String(islandCount);this.renderer.domElement.dataset['atlasSeed']=String(PLANET_SEED);
+        host.appendChild(this.renderer.domElement);this.applyTheme();this.renderer.domElement.dataset['planet']='continents';this.renderer.domElement.dataset['continentCount']='4';this.renderer.domElement.dataset['islandCount']=String(islandCount);this.renderer.domElement.dataset['atlasSeed']=String(PLANET_SEED);
         this.renderer.domElement.addEventListener('pointerdown', this.pointerDown);
         this.renderer.domElement.addEventListener('pointerup', this.pointerUp);
         this.renderer.domElement.addEventListener('pointercancel', this.pointerCancel);
@@ -246,7 +290,8 @@ export class AlgorithmSphere implements OnDestroy {
       const {rect,progress,element}=this.cinema,w=innerWidth,h=innerHeight;
       this.camera.zoom=(rect.height/Math.max(h,1))*(1-progress)+progress;
       this.camera.setViewOffset(w,h,(w/2-rect.left-rect.width/2)*(1-progress),(h/2-rect.top-rect.height/2)*(1-progress),w,h);
-      element.style.backgroundColor=`rgba(2,4,11,${progress})`;
+      const background = this.themeStore.theme() === 'light' ? '244,246,250' : '2,4,11';
+      element.style.backgroundColor=`rgba(${background},${progress})`;
       this.renderer.domElement.dataset['cinemaProgress']=progress.toFixed(3);
     }
     const arrival=this.journey?Math.max(0,(this.journey.zoom-.78)/.22):0;

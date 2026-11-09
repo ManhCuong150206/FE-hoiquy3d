@@ -1,3 +1,4 @@
+import { ThemeStore } from '../../state/theme-store';
 import { AlgorithmFlight } from '../../presentation/algorithm-flight';
 import { Component, effect, input, output, signal, ElementRef, inject, viewChild, DestroyRef, Injector, afterNextRender } from '@angular/core';
 import { Algorithm, ALGORITHM_LABELS } from '../../core/models/experiment';
@@ -7,6 +8,7 @@ import { AuthSession } from '../../state/auth-session';
 @Component({ selector: 'app-algorithm-picker', host: {'[attr.data-algorithm]':'highlighted()'}, imports: [AlgorithmSphere], templateUrl: './algorithm-picker.html', styleUrl: './algorithm-picker.css' })
 export class AlgorithmPicker {
   readonly auth = inject(AuthSession);
+  readonly themeStore = inject(ThemeStore);
   private readonly host=inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly sphere=viewChild<AlgorithmSphere>('sphere');
   private readonly flight=new AlgorithmFlight();

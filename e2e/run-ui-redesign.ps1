@@ -17,7 +17,7 @@ Invoke-BrowserCommand -CommandArgs $openArgs | Out-Null
 try {
     Invoke-BrowserCommand -CommandArgs @('run-code','--filename=e2e/ui-redesign/api-fixture.e2e.js') | Out-Null
     $started = -not $FromSuite
-    foreach ($suite in @('auth-session','guest-memory','entry','entry-validation','lab','learning-offline','lesson-restart','page-modes','mobile-fallback','sphere','motion','slides','neon','navigation-layout','learning-route','smooth-learning','card-glow','shared-planet','lab-arrival','planet','algorithm-flight','model-integrity')) {
+    foreach ($suite in @('pearl-transition','pearl-theme','auth-session','guest-memory','entry','entry-validation','lab','learning-offline','lesson-restart','page-modes','mobile-fallback','sphere','motion','slides','neon','navigation-layout','learning-route','smooth-learning','card-glow','shared-planet','lab-arrival','planet','algorithm-flight','model-integrity')) {
         if ($suite -eq $FromSuite) { $started = $true }
         if (-not $started) { continue }
         Invoke-BrowserCommand -CommandArgs @('run-code',"--filename=e2e/ui-redesign/$suite.e2e.js") | Set-Content "output/playwright/$suite-result.log"

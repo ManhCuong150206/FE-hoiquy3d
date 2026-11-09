@@ -1,0 +1,33 @@
+async(page)=>{
+ const check=(ok,msg)=>{if(!ok)throw Error(msg);};
+ const idle=id=>page.waitForFunction(id=>!document.querySelector('#'+id)?.hidden&&document.querySelector('.experience')?.getAttribute('aria-busy')==='false',id);
+ const theme=()=>page.evaluate(()=>document.documentElement.dataset.theme);
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.goto('http://127.0.0.1:4300');await page.evaluate(()=>localStorage.clear());await page.reload();await idle('algorithms');
+ check(await theme()==='dark','Guest defaults dark');
+ await page.locator('#algorithm-planet-slot canvas').waitFor();
+ await page.locator('#algorithms .theme-toggle').click();
+ check(await theme()==='light','Toggle to pearl');
+ check(await page.locator('.theme-wave').count()===1,'One transition wave');
+ const duration=await page.locator('.theme-wave').evaluate(el=>el.getAnimations()[0].effect.getTiming().duration);
+ check(duration===1400,'Wave lasts 1400 ms');
+ await page.waitForFunction(()=>!document.querySelector('.theme-wave'));
+ check(await page.locator('#algorithm-planet-slot canvas').getAttribute('data-theme')==='light','Planet updates without reload');
+ check(await page.evaluate(()=>localStorage.getItem('hoiquy3d-theme'))===null,'Guest theme is memory only');
+ await page.screenshot({path:'output/playwright/pearl-picker.png'});
+ await page.locator('#algorithms .login-button').click();await idle('welcome');check(await theme()==='light','Theme retained on login');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.getByLabel('Email',{exact:true}).fill('demo@example.com');await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');
+ await page.locator('.auth-submit').click();await idle('algorithms');
+ check(await page.evaluate(()=>localStorage.getItem('hoiquy3d-theme'))==='light','Signed in choice persisted');
+ await page.reload();await idle('algorithms');await page.waitForFunction(()=>document.documentElement.dataset.theme==='light');
+ await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');check(await theme()==='light','Lab retains pearl');
+ await page.screenshot({path:'output/playwright/pearl-lab.png'});
+ await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await idle('learning');check(await theme()==='light','Learning retains pearl');
+ await page.getByRole('button',{name:'Về thực nghiệm',exact:false}).click();await idle('lab');
+ await page.locator('#lab .change-algorithm').click();await idle('algorithms');
+ await page.getByRole('button',{name:'Đăng xuất',exact:true}).click();await page.waitForFunction(()=>document.documentElement.dataset.theme==='dark');
+ await page.locator('#algorithms .theme-toggle').click();check(await theme()==='light','Guest can change again');check(await page.locator('.theme-wave').count()===0,'Reduced motion skips wave');
+ await page.reload();await idle('algorithms');check(await theme()==='dark','Guest reload ignores member preference');
+ return {suite:'pearl-theme',passed:['1400ms wave','planet colors','guest memory','login retains theme','member persists','lab and learning retain theme','logout resets Guest','reduced motion','Guest reload dark']};
+}

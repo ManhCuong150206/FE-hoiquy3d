@@ -8,7 +8,7 @@
     </div>
 
     <div class="status">
-        <button type="button" (click)="themeStore.toggle()"
+        <button type="button" (click)="themeStore.toggle()" [disabled]="themeStore.transitioning()"
             [attr.aria-pressed]="themeStore.theme() === 'dark'"
             [attr.aria-label]="themeStore.theme() === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'">
             <span aria-hidden="true">{{ themeStore.theme() === 'dark' ? '☾' : '☀' }}</span>

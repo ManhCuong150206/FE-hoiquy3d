@@ -94,7 +94,7 @@ export class JourneyMotion {
           if(offscreen)timeline.fromTo(portal,{opacity:0},{opacity:1,duration:.3},0);
           timeline.call(()=>{change();measure();},[],.55)
             .fromTo(target,{opacity:0},{opacity:1,duration:.85,ease:'power2.out'},.75)
-            .to(arriving,{opacity:1,duration:.75,stagger:.08,ease:'power2.out'},2.6)
+            .to(arriving,{opacity:1,duration:.9,stagger:.08,ease:'power2.out'},target.id==='welcome'?1:2.6)
             .to(state,{t:1,duration:3.8,ease:'power3.inOut',onUpdate:move},.1)
             .to({}, {duration:.1},3.9);
         });return;

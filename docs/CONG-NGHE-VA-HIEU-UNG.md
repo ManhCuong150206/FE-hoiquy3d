@@ -505,3 +505,24 @@ Các tệp chính: `src/app/presentation/algorithm-flight.ts` điều phối hai
 Đo thử cùng trình duyệt desktop: trước chỉnh chiều đi **5,14 giây**, chiều về **6,96 giây**; sau chỉnh chiều đi **5,35 giây**, chiều về **4,77 giây**. Số đo gồm thao tác/chờ của công cụ, không phải cam kết thời gian hay FPS trên mọi máy. **135/135 unit test (26 tệp) và production build đạt**.
 
 Kiểm tra cuối cùng trên cả bốn thuật toán: **26 tiêu chí E2E đạt** (`lab-arrival`: 11; `algorithm-flight`: 15). Chiều đi **5,09–5,39 giây**, chiều về **4,76–4,86 giây**. Đã kiểm tra camera toàn màn hình, sao quay đúng thẻ, độ nảy và thứ tự hiện khung, không tự huấn luyện, giữ màu train/test, không sót overlay, giảm chuyển động giữa chừng, mobile và resize. API được mô phỏng; không kiểm thử lại MongoDB trong đợt hiệu ứng này.
+
+
+## Chế độ sáng vũ trụ ngọc trai (09/11/2026)
+- Nút đổi sáng/tối nằm ở trang chọn thuật toán và header thực nghiệm. Theme dùng chung khi mở đăng nhập, thực nghiệm và học từng bước.
+- ThemeStore điều phối sóng ánh sáng 1,4 giây bằng Web Animations API; không chạy hiệu ứng khi người dùng yêu cầu giảm chuyển động. Khóa nút theme và lựa chọn thuật toán trong lúc chuyển đổi.
+- Nền ngọc trai, hào quang xanh tím, sao xanh thép; Three.js chuyển kiểu hòa màu để sao còn nhìn rõ trên nền sáng. Hành tinh giữ hình dạng/vị trí lục địa, đổi đại dương xanh đá phiến và lớp phủ bóng. Kính mờ và glow vẫn được giữ.
+- Guest chỉ giữ theme trong bộ nhớ của phiên hiện tại, tải lại mặc định tối và không đọc theme đã lưu của thành viên. Thành viên lưu lựa chọn trong localStorage của trình duyệt; không đồng bộ MongoDB. Đăng xuất trả về tối.
+- CSS nằm ở src/styles/pearl-theme.css, tải sau palette.css. Không thay đổi dữ liệu, thuật toán, API hoặc màu điểm train/test.
+- E2E riêng: e2e/ui-redesign/pearl-theme.e2e.js dùng API giả lập để kiểm tra sóng 1400 ms, màu hành tinh, đổi trang, đăng nhập, khôi phục theme và Guest.
+
+
+### Độ trong suốt liquid glass — 09/11/2026
+
+Áp dụng chung cho sáng và tối: nền khung đăng nhập/thẻ thuật toán trong 56% (alpha 0.44); khung nội dung trang thực nghiệm/học từng bước trong 52% (alpha 0.48); ô nhập, bảng và kết quả chi tiết trong 40% (alpha 0.60). Chỉ thay alpha nền, không giảm opacity chữ hoặc toàn khung. Các khung lồng nhau có thể nhìn đặc hơn do nhiều lớp kính chồng lên nhau.
+
+Giữ viền glow, phản chiếu liquid glass, màu thuật toán và điểm train/test. Nền vùng vẽ 3D ổn định để sao nền không lẫn với dữ liệu. Chế độ ít hiệu ứng hoặc trình duyệt không hỗ trợ làm mờ nền dùng kính đặc hơn để giữ độ dễ đọc.
+
+Kiểm tra trình duyệt: cả bốn trang ở hai theme có đúng alpha nền khung; opacity khung bằng 1. Đã kiểm tra ảnh đăng nhập sáng, thực nghiệm tối và học từng bước sáng. Đây là kiểm tra giao diện, không phải kiểm thử xác thực backend.
+
+
+Tinh chỉnh tiếp theo theo phản hồi: tăng mức nhìn xuyên nền. Các mức mới thay thế bảng trước: đăng nhập/thẻ thuật toán trong 78%, khung nội dung 74%, chi tiết 62%, nút chức năng 82% (hover 72%), nền canvas 3D 75%. Giảm blur xuống 2–3px để còn thấy mờ sao/dải Ngân Hà thay vì nền bị hòa thành mảng màu. Không giảm opacity của chữ hay vật thể 3D. Các lớp lồng nhau vẫn có độ che phủ cộng dồn. Đã kiểm tra màu nền thực tế trên trình duyệt ở cả hai theme.

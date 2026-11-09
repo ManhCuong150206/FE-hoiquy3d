@@ -9,7 +9,6 @@
 
 .intro-copy .project-title{font-size:clamp(27px,3vw,44px);line-height:1.22;margin:12px 0 8px}
 .welcome-planet-slot{height:clamp(260px,27vw,350px);width:100%;position:relative;max-width:650px;margin:6px auto}
-.welcome-planet-slot:empty::before{content:'';position:absolute;inset:12% 25%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#163044,#020b15 70%);box-shadow:0 0 30px #75b4db16}
 .intro-copy .intro-meta{margin:10px 0 16px;justify-content:space-around;max-width:520px}
 @media(max-width:800px){.welcome-planet-slot{height:290px}.intro-copy .project-title{font-size:30px}}
 .intro-copy{min-width:0;width:100%;max-width:690px}
@@ -24,7 +23,7 @@
 .project-title .title-line-three{font-size:clamp(48px,3.8vw,54px)}
 .hero-description{max-width:500px;margin:19px 0 0;padding-left:15px;border-left:2px solid #e7efff;color:#aab6c9;font-family:Geist,'Segoe UI',Arial,sans-serif!important;font-size:15px;line-height:1.5}
 .welcome-planet-slot{height:clamp(260px,25vw,340px);margin:8px auto 0;isolation:isolate}
-.welcome-planet-slot::after{position:absolute;z-index:-1;content:'';pointer-events:none;left:-14%;right:-14%;bottom:5%;height:24%;background:radial-gradient(ellipse at center,rgba(124,190,255,.2),rgba(61,121,205,.07) 35%,transparent 72%);filter:blur(8px)}
+.welcome-planet-slot:has(app-algorithm-sphere)::after{position:absolute;z-index:-1;content:'';pointer-events:none;left:-14%;right:-14%;bottom:5%;height:24%;background:radial-gradient(ellipse at center,rgba(124,190,255,.2),rgba(61,121,205,.07) 35%,transparent 72%);filter:blur(8px)}
 .welcome-planet-slot app-algorithm-sphere{position:relative;z-index:1}
 .intro-copy .hero-mantra{margin:0 auto 18px;text-align:center;color:#aab6c9;font-family:Geist,'Segoe UI',Arial,sans-serif!important;font-size:9px;font-weight:500;letter-spacing:3px;line-height:1.4}
 .hero-mantra span{padding:0 5px;color:#dce8fb}

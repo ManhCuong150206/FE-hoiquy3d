@@ -27,7 +27,8 @@
             ],
             "styles": [
               "src/styles.css",
-              "src/styles/palette.css"
+              "src/styles/palette.css",
+              "src/styles/pearl-theme.css"
             ],
             "server": "src/main.server.ts",
             "outputMode": "server",

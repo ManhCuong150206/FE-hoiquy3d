@@ -1,0 +1,80 @@
+/* Pearl universe: presentation only, loaded after the dark palette. */
+.theme-wave{position:fixed;width:160vmax;height:160vmax;border-radius:50%;pointer-events:none;z-index:10000;background:radial-gradient(circle,transparent 22%,#b9ccef55 36%,#f0eaffbb 42%,#a5c5eb55 48%,transparent 58%);will-change:transform,opacity}
+.theme-wave[data-direction=dark]{background:radial-gradient(circle,transparent 22%,#354b8844 36%,#7581b677 42%,#1d305955 48%,transparent 58%)}
+.account-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+:root[data-theme=light]{color-scheme:light;--bg:#f4f6fa;--surface:#ffffffd9;--surface-2:#eef2f8;--border:#b7c5d8;--text:#17263d;--muted:#526179;--color-bg:#f4f6fa;--color-surface:#fff;--color-surface-glass:#ffffffbd;--color-border:#b7c5d8;--color-text:#17263d;--color-muted:#526179;--color-silver:#435874;--color-primary:#2454a6;--color-linear:#876016;--color-polynomial:#705943;--color-ridge:#2454a6;--color-lasso:#435874;--color-success:#176348;--color-danger:#a92a45;--color-warning:#846000}
+body{transition:background-color 1.4s ease,color .6s ease}
+:root[data-theme=light] body,:root[data-theme=light] .experience{background-color:#f4f6fa;color:#17263d}
+:root[data-theme=light] .starfield-base{background:radial-gradient(ellipse at 75% 30%,#b9cbed70,transparent 50%),radial-gradient(ellipse at 45% 65%,#d9cfee65,transparent 55%),#f4f6fa;opacity:1}
+:root[data-theme=light] .starfield-base::before,:root[data-theme=light] .starfield-base::after{background:radial-gradient(ellipse at center,#b4c8e044,transparent 65%);opacity:.5}
+:root[data-theme=light] .experience::before,:root[data-theme=light] .experience::after{opacity:.08}
+:root[data-theme=light] :is(.intro-copy,.algorithm-copy,.lab-heading){--text:#17263d;--muted:#526179}
+:root[data-theme=light] .experience :is(.card,.auth-card,.algorithm-card,.controls,app-header .bar){background:linear-gradient(135deg,#fffffff0,#edf2fac9)!important;border:1px solid #a7b9d17a!important;box-shadow:inset 0 1px 1px #fff,0 10px 32px #263e6812!important;backdrop-filter:blur(12px);color:#17263d}
+:root[data-theme=light] .experience :is(button,.algorithm-card){--liquid-text:var(--algorithm-accent,#2454a6);color:var(--liquid-text)!important;background:linear-gradient(145deg,#ffffffd9,#dce7f570)!important;border-color:#8aa4c599!important;box-shadow:inset 0 2px 3px #fff,0 4px 14px #24457420!important;text-shadow:0 0 10px #709fce35}
+:root[data-theme=light] .experience button:hover:not(:disabled){box-shadow:inset 0 2px 3px #fff,0 0 18px #6d99ce55!important}
+:root[data-theme=light] .experience button:focus-visible{outline:3px solid #2454a6;outline-offset:3px}
+:root[data-theme=light] .experience :is(h1,h2,h3,h4,.card-title){color:var(--algorithm-accent,#17263d)!important;text-shadow:0 0 14px #6c93b530!important}
+:root[data-theme=light] :is(#welcome,#algorithms) :is(h1,h2,h3,h4,.eyebrow,.auth-description,.algorithm-intro,.stage-caption,.orb-caption){color:#17263d!important;text-shadow:0 0 12px #7999b630!important}
+:root[data-theme=light] :is(#welcome,#algorithms) :is(h1,h2) :is(span,em){color:#17263d!important}
+:root[data-theme=light] #algorithms .algorithm-card strong{color:var(--algorithm-accent)!important;text-shadow:0 0 12px color-mix(in srgb,var(--algorithm-accent) 20%,transparent)!important}
+:root[data-theme=light] .experience :is(p,small,label,.hint,.legend,.subtle,.learning-hint,.preview-label,.mini-tag){color:#526179}
+:root[data-theme=light] .experience :is(input:not([type=range]),select,.selected-algorithm,code,.formula,.table-wrap,.box,.parameters,.iter){background:#f5f8fce6!important;color:#17263d!important;border-color:#a8bbd2!important}
+:root[data-theme=light] .experience :is(.viewport,.viewport-wrap,.chart){background:#e7edf5!important}
+:root[data-theme=light] .experience :is(th,td){color:#17263d;border-color:#bdc9da}
+:root[data-theme=light] .experience button:disabled{color:#65758a!important;opacity:.6}
+:root[data-theme=light] .fallback-orb{background:radial-gradient(circle at 35% 25%,#a8bdce,#41677f 65%,#233e55)!important}
+:root[data-theme-transition] .starfield-base{transition:background 1.4s ease}
+@media(prefers-reduced-motion:reduce){body{transition:none}.theme-wave{display:none}}
+
+:root[data-theme=light] app-viewport3d .host{background:#e7edf5!important}
+:root[data-theme=light] .starfield-base::before{content:'';position:absolute;inset:-15%;background:conic-gradient(from 20deg at 70% 45%,transparent,#b9d7ef55,transparent 30%,#d3c5e755,transparent 65%);filter:blur(40px);animation:pearl-aurora 28s ease-in-out infinite alternate}
+@keyframes pearl-aurora{from{transform:rotate(-5deg) scale(1);opacity:.35}to{transform:rotate(6deg) scale(1.08);opacity:.65}}
+@media(prefers-reduced-motion:reduce){:root[data-theme=light] .starfield-base::before{animation:none}}
+
+:root[data-theme=light] #algorithms .algorithm-card.highlighted,:root[data-theme=light] #algorithms .algorithm-card:hover{background:linear-gradient(135deg,#fff,#e1eaf6)!important;box-shadow:inset 0 1px 2px #fff,0 0 22px color-mix(in srgb,var(--algorithm-accent) 20%,transparent)!important}
+:root[data-theme=light] #algorithms .algorithm-card :is(.card-top,.mini-tag,.mini-tag *,small){color:#526179!important}
+:root[data-theme=light] #algorithms .algorithm-card .algorithm-dot{background:var(--algorithm-accent)!important}
+:root[data-theme=light] .experience app-results-panel .losses .box:first-child strong{color:#806000!important;text-shadow:0 0 12px #ffe45c55}
+:root[data-theme=light] .experience app-results-panel .losses .box:last-child strong{color:#bd153c!important}
+
+/* A soft diagonal galaxy, with a quiet foreground for labels and cards. */
+:root[data-theme=light] .starfield-base::before{inset:-20%;background:radial-gradient(ellipse at 58% 48%,#ffffffed 0%,#e5edffbb 6%,#abc9ed99 13%,#c6b4df80 20%,transparent 35%);filter:blur(18px);transform:rotate(-24deg) scale(1.4,.65);animation:pearl-galaxy 32s ease-in-out infinite alternate;opacity:.85}
+:root[data-theme=light] .starfield-base::after{content:'';position:absolute;inset:-20%;background:radial-gradient(ellipse at 57% 50%,#fff 0%,#e8f4ffcc 3%,#c8daf380 9%,transparent 20%);filter:blur(8px);transform:rotate(-24deg) scale(1.4,.42);opacity:.65}
+@keyframes pearl-galaxy{from{transform:translate(-1%,0) rotate(-24deg) scale(1.4,.65)}to{transform:translate(1%,2%) rotate(-21deg) scale(1.45,.7)}}
+:root[data-theme=light] .planet-cinema{background:#f4f6fa}
+:root[data-theme=light] .planet-cinema::after{background:radial-gradient(ellipse at center,#fff,#e1eaf9 65%,#d8ccea)}
+:root[data-theme=light] .scene-wipe{background:radial-gradient(ellipse at 65% 40%,color-mix(in srgb,var(--wipe-color,#a4c8ef) 12%,#f4f6fa),#f4f6fa 75%)}
+@media(prefers-reduced-motion:reduce){:root[data-theme=light] .starfield-base::before{animation:none}}
+
+/* Match the scoped auth-card rules without changing the dark glass theme. */
+:root[data-theme=light] #welcome app-welcome-panel .auth-card.glass[data-tilt]{background:radial-gradient(ellipse at 5% 0%,#ffffffcc,transparent 65%),linear-gradient(135deg,#ffffffc9,#e7eef8bf)!important;border-color:#9bafca99!important;box-shadow:inset 0 1px 1px #fff,0 20px 60px #324b7026!important;color:#17263d;--button-neon:#435874}
+:root[data-theme=light] #welcome .auth-card.glass[data-tilt] button{background:linear-gradient(145deg,#ffffffeb,#dce7f5b3)!important;border-color:#8aa4c599!important;color:#304b70!important;--liquid-text:#304b70;text-shadow:0 0 10px #709fce30!important;box-shadow:inset 0 2px 3px #fff,0 4px 14px #24457420!important}
+:root[data-theme=light] #welcome .auth-card.glass[data-tilt] :is(label,.auth-top,.auth-description,.demo-note,.switch-auth,.divider){color:#435874;text-shadow:none}
+:root[data-theme=light] #welcome .auth-card.glass[data-tilt]::before{background:linear-gradient(116deg,#ffffff66,transparent 30%,#c5d8f026)}
+:root[data-theme=light] #welcome .hero-description{border-left-color:#8aa4c5}
+:root[data-theme=light] #welcome :is(.hero-mantra,.hero-mantra span,.intro-meta b,.intro-meta small){color:#435874}
+
+/* Shared glass opacity: alpha is coverage, not transparency. Text stays opaque. */
+:root{--glass-rgb:8,15,28;--glass-detail-rgb:5,12,24;--glass-hero-alpha:.22;--glass-panel-alpha:.26;--glass-detail-alpha:.38}
+:root[data-theme=light]{--glass-rgb:245,249,255;--glass-detail-rgb:248,251,255}
+:root .experience #welcome app-welcome-panel .auth-card.glass[data-tilt],
+:root .experience #algorithms .algorithm-cards .algorithm-card,
+:root .experience #algorithms .algorithm-cards .algorithm-card:is(:hover,.highlighted){background:rgba(var(--glass-rgb),var(--glass-hero-alpha))!important;backdrop-filter:blur(3px) saturate(125%);-webkit-backdrop-filter:blur(3px) saturate(125%)}
+:root .experience #welcome app-welcome-panel .auth-card.glass[data-tilt]::before{background:linear-gradient(116deg,#ffffff0d,transparent 28%,#b6d6ff05)}
+:root .experience :is(#lab,#learning) :is(.card,.controls,app-header .bar){background:rgba(var(--glass-rgb),var(--glass-panel-alpha))!important;backdrop-filter:blur(2px) saturate(120%);-webkit-backdrop-filter:blur(2px) saturate(120%)}
+:root .experience :is(#welcome,#lab,#learning) :is(input:not([type=range]):not([type=checkbox]),select,.table-wrap,.parameters,.formula,.box,.iter,.stage-result){background:rgba(var(--glass-detail-rgb),var(--glass-detail-alpha))!important}
+:root .experience :is(#lab,#learning) app-viewport3d .host{background:rgba(8,15,29,.25)!important}
+:root[data-theme=light] .experience :is(#lab,#learning) app-viewport3d .host{background:rgba(231,237,245,.25)!important}
+/* Native select menus need a solid surface; low-effects keeps contrast without blur. */
+:root .experience select option{background:rgb(var(--glass-detail-rgb));color:var(--text)}
+:root:has(.low-effects){--glass-hero-alpha:.78;--glass-panel-alpha:.82;--glass-detail-alpha:.88}
+:root .low-effects .experience :is(.auth-card,.algorithm-card,.card,.controls,app-header .bar){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+@supports not (backdrop-filter:blur(1px)){:root{--glass-hero-alpha:.78;--glass-panel-alpha:.82;--glass-detail-alpha:.88}}
+
+:root .experience #learning :is(.route-map li,.lesson-command){background:rgba(var(--glass-detail-rgb),var(--glass-detail-alpha))!important}
+
+/* Clear liquid buttons: keep highlights and text, let the universe show through. */
+:root .experience :is(#welcome,#algorithms,#lab,#learning) button:not(.algorithm-card),
+:root .experience #welcome app-welcome-panel .auth-card.glass[data-tilt] button{background:rgba(var(--glass-rgb),.18)!important;backdrop-filter:blur(2px) saturate(125%);-webkit-backdrop-filter:blur(2px) saturate(125%)}
+:root .experience :is(#welcome,#algorithms,#lab,#learning) button:not(.algorithm-card):hover:not(:disabled){background:rgba(var(--glass-rgb),.28)!important}
+:root .experience :is(#welcome,#algorithms,#lab,#learning) button:disabled{background:rgba(var(--glass-rgb),.32)!important}

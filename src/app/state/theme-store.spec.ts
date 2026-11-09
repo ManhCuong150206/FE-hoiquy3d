@@ -89,6 +89,13 @@ describe('ThemeStore', () => {
         expect(storage.setItem).not.toHaveBeenCalled();
     });
 
+    it('does not restore a member preference for Guest', async () => {
+        stored.set(key, 'light');
+        const store = await create('browser', false);
+        expect(store.theme()).toBe('dark');
+        expect(storage.getItem).not.toHaveBeenCalled();
+    });
+
     it('works when accessing the localStorage property itself throws', async () => {
         const getter = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw new Error('blocked'); });
         try {

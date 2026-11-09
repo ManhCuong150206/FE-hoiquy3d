@@ -13,13 +13,13 @@ describe('AlgorithmPicker', () => {
     await fixture.whenStable();
     const controls = () => fixture.nativeElement.querySelector('.account-actions') as HTMLElement;
     expect(controls().textContent).toContain('Đăng nhập');
-    controls().querySelector('button')!.click();
+    controls().querySelector<HTMLButtonElement>('button:not(.theme-toggle)')!.click();
     expect(login).toHaveBeenCalledOnce();
     auth.user.set({ userId: 'person-a', displayName: 'Minh Anh', isAnonymous: false });
     await fixture.whenStable();
     expect(controls().textContent).toContain('Xin chào, Minh Anh');
-    expect(controls().querySelector('button')!.textContent).toBe('Đăng xuất');
-    controls().querySelector('button')!.click();
+    expect(controls().querySelector<HTMLButtonElement>('button:not(.theme-toggle)')!.textContent).toBe('Đăng xuất');
+    controls().querySelector<HTMLButtonElement>('button:not(.theme-toggle)')!.click();
     expect(logout).toHaveBeenCalledOnce();
     auth.guest();await fixture.whenStable();
     expect(controls().textContent).toContain('Đăng nhập');

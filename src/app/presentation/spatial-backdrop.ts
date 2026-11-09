@@ -1,3 +1,4 @@
+import { ThemeStore } from '../state/theme-store';
 import { FrameBudget, recordRender } from './frame-budget';
 import { Component, ElementRef, NgZone, OnDestroy, afterNextRender, effect, inject, input, viewChild } from '@angular/core';
 import * as THREE from 'three';
@@ -10,6 +11,7 @@ import { rotatePair, unitRotation } from '../core/engine/complex-rotation';
   styles: [':host{position:fixed;inset:0;display:block;pointer-events:none;z-index:0}.spatial-host{width:100%;height:100%;overflow:hidden}.spatial-host canvas{display:block;width:100%;height:100%}'],
 })
 export class SpatialBackdrop implements OnDestroy {
+  private readonly themeStore = inject(ThemeStore);
   readonly lowEffects = input(false);
   readonly screen = input('welcome');
   private readonly host = viewChild.required<ElementRef<HTMLDivElement>>('host');
@@ -34,14 +36,14 @@ export class SpatialBackdrop implements OnDestroy {
   private stars?: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
 
   constructor() {
-    effect(() => { this.lowEffects(); this.screen(); this.restart(); });
+    effect(() => { this.lowEffects(); this.screen(); this.themeStore.theme(); this.applyTheme(); this.restart(); });
     afterNextRender(() => {
       if (typeof ResizeObserver === 'undefined') return;
       this.zone.runOutsideAngular(() => {
         try {
           this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'low-power' });
           this.renderer.setPixelRatio(1); this.camera.position.z = 8;
-          this.createStars();this.createMeteor(); this.scene.add(this.group);
+          this.createStars();this.createMeteor();this.applyTheme(); this.scene.add(this.group);
           this.host().nativeElement.appendChild(this.renderer.domElement);
           this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)'); this.reduced.addEventListener('change', this.restart);
           this.resize = new ResizeObserver(this.fit); this.resize.observe(this.host().nativeElement); this.fit();
@@ -52,6 +54,14 @@ export class SpatialBackdrop implements OnDestroy {
     });
   }
 
+  private applyTheme() {
+    if (!this.stars) return;
+    const light = this.themeStore.theme() === 'light';
+    this.stars.material.uniforms['pearl'].value = light ? 1 : 0;
+    this.stars.material.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+    this.stars.material.needsUpdate = true;
+    this.host().nativeElement.dataset['theme'] = light ? 'light' : 'dark';
+  }
   private createStars() {
     const count = 1800, positions = new Float32Array(count * 3), colors = new Float32Array(count * 3), phases = new Float32Array(count * 2), sizes = new Float32Array(count);
     let seed = 814;
@@ -66,7 +76,7 @@ export class SpatialBackdrop implements OnDestroy {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)); geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('starPhase', new THREE.BufferAttribute(phases, 2)); geometry.setAttribute('starSize', new THREE.BufferAttribute(sizes, 1));
     const material = new THREE.ShaderMaterial({
-      uniforms: { clock: { value: this.clock } },
+      uniforms: { clock: { value: this.clock }, pearl: { value: 0 } },
       transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
       vertexShader: `
         attribute vec3 color;
@@ -84,6 +94,7 @@ export class SpatialBackdrop implements OnDestroy {
           gl_Position = projectionMatrix * viewPosition;
         }`,
       fragmentShader: `
+        uniform float pearl;
         varying vec3 tint;
         varying float brightness;
         void main() {
@@ -91,7 +102,7 @@ export class SpatialBackdrop implements OnDestroy {
           if (distanceToCenter > 1.0) discard;
           float halo = pow(1.0 - distanceToCenter, 2.0);
           float core = 1.0 - smoothstep(0.0, 0.38, distanceToCenter);
-          gl_FragColor = vec4(tint * (0.8 + core * 0.3), (halo * 0.65 + core * 0.35) * brightness);
+          gl_FragColor = vec4(mix(tint * (0.8 + core * 0.3), vec3(.23,.36,.58), pearl), (halo * 0.65 + core * 0.35) * brightness);
         }`,
     });
     this.stars = new THREE.Points(geometry, material); this.group.add(this.stars);
