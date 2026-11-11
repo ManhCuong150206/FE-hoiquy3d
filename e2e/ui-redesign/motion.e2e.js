@@ -2,7 +2,7 @@ async(page)=>{
  page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);
  const check=(ok,message)=>{if(!ok)throw new Error(message);};
  const wait=async id=>page.waitForFunction(id=>Boolean(document.getElementById(id) && !document.getElementById(id).hidden && !document.querySelector('.experience').dataset.transition),id);
- await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('http://127.0.0.1:4300/');
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.waitForFunction(()=>!document.querySelector('#welcome').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');
  await page.locator('.experience[data-motion=active]').waitFor();
  const visible=()=>page.locator('[data-screen]:not([hidden])').count();
  check(await visible()===1,'Only welcome visible');

@@ -10,7 +10,7 @@ async(page)=>{
   return card;
  };
  const wait=async id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&!document.querySelector('.experience').dataset.transition,id);
- await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.waitForFunction(()=>!document.querySelector('#welcome').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');
  await portal.waitFor({state:'attached'});await light('.auth-card');
  check(await portal.getAttribute('data-glow-screen')==='welcome','Welcome glow active');
  check(await portal.evaluate(el=>getComputedStyle(el).pointerEvents)==='none','Glow must not capture input');

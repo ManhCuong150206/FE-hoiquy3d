@@ -4,7 +4,7 @@ async(page)=>{
  const idle=id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience').getAttribute('aria-busy')==='false',id);
  const state=()=>page.evaluate(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return {mode:l.mode(),auto:l.auto(),iteration:l.iteration(),phase:l.phase(),snapshot:!!l.snapshot(),status:l.status(),switching:l.switching()};});
  const settled=()=>page.waitForFunction(()=>!window.ng.getComponent(document.querySelector('app-training-controls')).store.switching());
- await page.locator('.guest-button').click();await idle('algorithms');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
+ await idle('algorithms');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
  check(await page.locator('select#learning-mode').count()===0,'Page 3 cannot select teaching mode');
  check((await state()).mode==='normal','Page 3 starts normal');
  await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-training-controls')).store.iteration()===1);

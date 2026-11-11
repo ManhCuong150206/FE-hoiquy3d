@@ -1,4 +1,5 @@
 async (page) => {
+ await page.goto('http://127.0.0.1:4300/');await page.emulateMedia({reducedMotion:'reduce'});
  page.setDefaultTimeout(15000); page.setDefaultNavigationTimeout(30000);
  const check=(ok,message)=>{if(!ok)throw new Error(message);};
  const progress=page.locator('#lab [role=progressbar]');

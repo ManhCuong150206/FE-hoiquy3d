@@ -31,7 +31,7 @@ export class ExperimentsPanel {
     const c = this.compared();
     if (c.length < 2) return [];
     const bestMse = Math.min(...c.map((e) => e.test.mse));
-    const bestR2 = Math.max(...c.map((e) => e.test.r2));
+    const bestR2 = Math.max(...c.map((e) => e.test.r2).filter(Number.isFinite));
     const plain = (label: string, f: (e: SavedExperiment) => string): Row => ({
       label, cells: c.map((e) => ({ text: f(e), best: false })),
     });

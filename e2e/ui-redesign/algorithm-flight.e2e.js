@@ -2,7 +2,7 @@ async(page)=>{
  await page.bringToFront();
  const check=(ok,message)=>{if(!ok)throw new Error(message);};page.setDefaultTimeout(20000);
  const wait=async screen=>page.waitForFunction(screen=>document.querySelector('#'+screen)?.hidden===false && document.querySelector('.experience')?.getAttribute('aria-busy')==='false',screen);
- await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');await page.locator('.guest-button').click();await wait('algorithms');
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');await wait('algorithms');
  const canvas=page.locator('app-algorithm-sphere canvas,.planet-cinema canvas');await canvas.waitFor();await page.emulateMedia({reducedMotion:'no-preference'});
  const sphereBox=await canvas.boundingBox();await canvas.click({position:{x:sphereBox.width/2,y:sphereBox.height/2}});check(await page.locator('#lab').count()===0,'Sphere click disabled');
  // Rotate before the first departure to verify the target is not a hard-coded screen point.

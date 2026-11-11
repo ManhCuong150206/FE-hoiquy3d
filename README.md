@@ -17,7 +17,7 @@ Mở http://localhost:4200 (origin mặc định được backend cho phép). Tr
 
 ## Cách sử dụng
 
-1. Đăng nhập bằng email/mật khẩu hoặc dùng Guest không cần tài khoản, chọn thuật toán bằng thẻ; hành tinh bốn lục địa hỗ trợ rê chuột và kéo xoay.
+1. Mở web sẽ thấy trang chọn thuật toán trên cả máy tính và điện thoại. Có thể dùng Guest ngay, hoặc bấm Đăng nhập ở góc trên; form có nút Đăng ký cho tài khoản mới. Hành tinh bốn lục địa hỗ trợ rê chuột và kéo xoay.
 2. Sinh dữ liệu hoặc nhập CSV; cấu hình tham số và chạy ở trang thực nghiệm.
 3. Mở trang học, bấm **Học từng bước** để chạy đúng một iteration A–F rồi dừng.
 4. Chọn chặng để xem lại số liệu/minh họa; dùng **Đến ghi chú** để đọc công thức.
@@ -43,15 +43,18 @@ Production build ở dist/Hoiquy3d. Dockerfile phục vụ SSR cổng 4000; HTTP
 
 ### Backend và phiên người dùng
 
-Chạy NestJS tại `D:/WEB-UTH/New folder/TS/TS-JS` bằng `npm run start:dev` trước khi dùng đăng ký/đăng nhập hoặc đồng bộ. Dev proxy `/api` đã cấu hình tới `127.0.0.1:3000`. Bản SSR dùng `BACKEND_ORIGIN` nếu địa chỉ backend khác. Đăng nhập tài khoản cần mạng. Guest hoạt động cả khi offline, không tạo tài khoản/phiên trên backend, không ghi danh tính, tùy chọn giao diện hay thí nghiệm xuống bộ nhớ bền vững.
+Chạy NestJS tại thư mục backend của bản checkout (hiện tại `D:/JS,TS`) bằng `npm run start:dev` trước khi dùng đăng ký/đăng nhập hoặc đồng bộ. Dev proxy `/api` đã cấu hình tới `127.0.0.1:3000`. Bản SSR dùng `BACKEND_ORIGIN` nếu địa chỉ backend khác. Đăng nhập tài khoản cần mạng. Guest hoạt động cả khi offline, không tạo tài khoản/phiên trên backend, không ghi danh tính, tùy chọn giao diện hay thí nghiệm xuống bộ nhớ bền vững.
 
-Frontend dùng `POST /auth/login`, `POST /auth/register`, `POST /auth/logout` và khôi phục phiên bằng `GET /auth/me` dưới `/api/v1`. Đăng ký thành công quay về form đăng nhập. Mọi request API đi qua `AuthSession.api` với `credentials: include`; request ghi có `X-Requested-With: XMLHttpRequest`. Không lưu token hoặc tin danh tính cũ trong localStorage. HTTP 401 dừng đồng bộ và xóa trạng thái đăng nhập; dữ liệu offline phân vùng theo `_id` được máy chủ xác nhận. Dữ liệu Guest/anonymous cũ không được nhận vào tài khoản mới.
+Frontend dùng `POST /auth/login`, `POST /auth/register`, `POST /auth/logout` và khôi phục phiên bằng `GET /auth/me` dưới `/api/v1`. Đăng ký thành công quay về form đăng nhập. Mọi request API đi qua `AuthSession.api` với `credentials: include`; request ghi có `X-Requested-With: XMLHttpRequest`. Không lưu token trong localStorage. `regression.lastIdentity` chỉ khôi phục vùng dữ liệu cục bộ khi offline/lỗi mạng; đây không phải xác thực máy chủ. Cookie phiên và BE quyết định quyền truy cập API. HTTP 401 dừng đồng bộ và xóa trạng thái đăng nhập; dữ liệu offline phân vùng theo `_id` được máy chủ xác nhận. Dữ liệu Guest/anonymous cũ không được nhận vào tài khoản mới.
 
 Đồng bộ kiểm tra từng `results[]` của `/sync/batch` và kéo tombstone từ `/sync/changes`. Snapshot để khôi phục mô hình/CSV nằm trong `algorithm.config.snapshot`, là trường cấu hình backend cho phép lưu; các trường snapshot đặt ở cấp cao nhất sẽ bị backend bỏ qua.
 
 Bản lưu CSV giữ split đã xử lý và mô hình, tối đa 8 MiB; bản ghi cũ chưa có snapshot CSV vẫn giữ giới hạn cũ. Đồng bộ có tombstone và xử lý xung đột; xem tài liệu công nghệ mục 12. Auth thật thay thế demo, không dùng header user ID tự khai.
 
-Kiểm thử trình duyệt thật (không mock): mở API riêng bằng `node test/run-browser-backend.mjs` từ repo Backend (cổng 3000 phải trống), chạy FE cổng 4300, rồi dùng Playwright CLI với `e2e/ui-redesign/persistence-live.e2e.js`. Dừng API test và chạy helper cleanup tương ứng sau khi xong. Bộ `e2e/run-ui-redesign.ps1` vẫn dùng fixture cho auth/API để kiểm tra UI/chuyển cảnh độc lập; không coi fixture là kiểm chứng MongoDB.
+Kiểm thử trình duyệt thật cần backend **cô lập**: chạy `npm.cmd run build`, rồi `node test/run-browser-backend.mjs` từ repo Backend. Helper dùng MongoDB tạm với tên `hoi-quy-3d-test`, thư mục upload tạm và cổng **3001**; không đọc `.env` và không kết nối database ứng dụng. Proxy của FE thử nghiệm phải trỏ `/api` về `http://127.0.0.1:3001` (proxy mặc định vẫn là 3000). Ctrl+C dừng helper và dọn dữ liệu tạm. Không chạy script cleanup database ứng dụng.
+
+Bộ `e2e/run-ui-redesign.ps1` mô phỏng auth/API, mở trình duyệt sạch cho từng suite, tiếp tục sau lỗi và tổng hợp `output/playwright/suite-summary.json`. Vì vậy kết quả UI không phải bằng chứng lưu MongoDB thật. Có thể chạy chọn lọc: `./e2e/run-ui-redesign.ps1 -Suites audit-fixes,comparison,page-modes`. Các bài live/PWA riêng cần rà tiền điều kiện server/phiên trước khi dùng; không nằm trong runner UI mặc định.
+
 
 SSR cho phép localhost/127.0.0.1 khi chạy cục bộ. Khi triển khai, đặt `SSR_ALLOWED_HOSTS` thành danh sách hostname thực tế (phân tách bằng dấu phẩy), không dùng wildcard mở toàn bộ host.
 

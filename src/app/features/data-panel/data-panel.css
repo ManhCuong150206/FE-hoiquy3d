@@ -4,3 +4,5 @@
 .row input { min-width: 0; width: 0; flex: 1; }
 .row button { flex: 0 0 80px; }
 .regen { border-radius: var(--radius-control); box-shadow: var(--primary-glow); }
+
+.data-disclosure>summary{display:none}@media(max-width:700px){.data-disclosure>summary{display:list-item;cursor:pointer;font-weight:bold;padding:8px}.data-disclosure[open]>summary{margin-bottom:16px}}

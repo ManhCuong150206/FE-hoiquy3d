@@ -1,5 +1,6 @@
 async (page) => {
  page.setDefaultTimeout(15000); page.setDefaultNavigationTimeout(30000);
+ await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:1440,height:1000});await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.getByLabel('Email',{exact:true}).fill('demo@example.com');await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');await page.locator('.auth-submit').click();await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();
  let stage='import';try {
  const check=(ok,message)=>{if(!ok)throw new Error(message);};
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');
@@ -32,7 +33,7 @@ async (page) => {
   db.close();return rows.find(row=>row.name==='E2E CSV offline');
  });
  check(saved?.dataSource==='csv' && saved?.iterations===1 && saved?.synced===false,'Offline run must be persisted in IndexedDB');
- stage='sync';await page.route('**/api/v1/experiments/bulk',route=>{const rows=route.request().postDataJSON();return route.fulfill({json:{success:true,count:rows.length,items:rows.map(e=>({id:e.id,mutationId:e.mutationId??e.id,syncVersion:(e.serverVersion??0)+1}))}});});
+ stage='sync';
  await page.context().setOffline(false);
  await page.locator('app-experiments-panel .sync').filter({hasText:'Đã đồng bộ'}).waitFor();
  await page.getByRole('button',{name:'Stop',exact:true}).click();

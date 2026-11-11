@@ -526,3 +526,33 @@ Kiểm tra trình duyệt: cả bốn trang ở hai theme có đúng alpha nền
 
 
 Tinh chỉnh tiếp theo theo phản hồi: tăng mức nhìn xuyên nền. Các mức mới thay thế bảng trước: đăng nhập/thẻ thuật toán trong 78%, khung nội dung 74%, chi tiết 62%, nút chức năng 82% (hover 72%), nền canvas 3D 75%. Giảm blur xuống 2–3px để còn thấy mờ sao/dải Ngân Hà thay vì nền bị hòa thành mảng màu. Không giảm opacity của chữ hay vật thể 3D. Các lớp lồng nhau vẫn có độ che phủ cộng dồn. Đã kiểm tra màu nền thực tế trên trình duyệt ở cả hai theme.
+
+
+## Rà soát khả dụng và build — 10/11/2026
+
+Các quy định sau thay thế những mô tả giao diện cũ có khác biệt. Giữ nguyên chuỗi hành tinh, sao bay, camera toàn màn hình, hiệu ứng chuyển theme, liquid glass và glow.
+
+| Phần | Điều chỉnh | Ý nghĩa với người dùng |
+| --- | --- | --- |
+| Điểm vào | Cả desktop/mobile đều mở trang chọn thuật toán; đăng nhập là thao tác tùy chọn | Không có hai luồng khác nhau theo thiết bị |
+| Đăng nhập mobile | Form trước, giới thiệu/hành tinh sau; cột dùng minmax(0,1fr), khung tính cả padding | Thấy form sớm và không phải kéo ngang |
+| Dữ liệu mobile | Khung dữ liệu/CSV trước vùng 3D, thu gọn mặc định; bấm tiêu đề để mở | Đổi dữ liệu nhanh, vẫn dành không gian quan sát mô hình |
+| Kiểu chữ | Geist cho tiêu đề/tên thẻ; Times New Roman cho nội dung, nhãn, ô nhập, nút, bảng | Phân biệt thứ bậc; nhãn phụ chính tối thiểu 12px; bớt glow trên đoạn cần đọc lâu |
+| CSS | Gộp quy tắc trùng/ghi đè ở welcome và chọn thuật toán | Build production dưới budget lỗi 8kB, không tăng budget để bỏ qua lỗi |
+| R² | Giữ NaN trong phép tính khi Y hằng, trình bày “Không xác định” cùng lời giải thích | Không khiến người học hiểu nhầm mô hình bị lỗi |
+| Nhãn điều khiển | Liên kết for/id ở tham số và dữ liệu | Bấm nhãn focus đúng ô; công cụ đọc màn hình có tên điều khiển |
+| Bài học | Thanh thao tác sticky có nền kín riêng và lớp hiển thị cao | Nội dung cuộn không xuyên qua chữ/nút; các khung khác vẫn kính trong |
+| Biểu đồ | Thêm giá trị thang MSE, 0 và iteration đầu/cuối | Đọc được độ lớn và phạm vi đường biểu diễn |
+| So sánh | Cửa sổ rộng riêng, đóng bằng nút hoặc Esc; tên checkbox rõ ràng | Đọc đủ các thí nghiệm, không bị bó trong cột hẹp |
+| R² trong so sánh | Bỏ giá trị không hữu hạn khi chọn R² tốt nhất | Một lần chạy Y hằng không làm mất đánh dấu của lần chạy hợp lệ |
+| Nút khóa | Giảm bão hòa, viền nét đứt, bỏ phản chiếu trên nút disabled | Phân biệt với nút thao tác được, vẫn giữ chữ dễ đọc |
+| CSV mới lỗi | Giữ dữ liệu trước và nêu rõ tên tệp đang giữ | Tránh tưởng bản xem trước thuộc tệp lỗi vừa chọn |
+| Kiểm thử | Suite độc lập, luồng đầu chọn thuật toán; lưu với tài khoản và /sync/batch | Không báo lỗi giả do kỳ vọng UI/API cũ; không bỏ các bài sau lỗi đầu |
+
+**Thuật ngữ:** budget là giới hạn kích thước bản build; sticky là thanh bám khi cuộn; accessible name là tên mà trình đọc màn hình đọc cho một điều khiển; fixture là API giả lập cho test UI, không phải MongoDB thật.
+
+Backend: helper trình duyệt dùng MongoDB tạm `hoi-quy-3d-test`, cổng 3001 và `configureApp` giống cấu hình ứng dụng; Docker cần SESSION_SECRET từ cấu hình triển khai. `regression.lastIdentity` chỉ giúp mở vùng dữ liệu offline; quyền API vẫn do session cookie và BE xác nhận.
+
+Ngày 11/11/2026, FE build production thành công và đạt 211 unit test. Ba CSS component ở mức 4,80–7,52 kB, vượt ngưỡng cảnh báo 4 kB và dưới ngưỡng chặn 8 kB. Cả 26 nhóm UI mặc định đã đạt qua các lượt chạy. `audit-fixes`, `comparison` và `model-integrity` đạt khi chạy lại sau lần sửa thông báo CSV cuối. Báo cáo từng nhóm nằm trong `output/playwright/*-result.log`, còn `suite-summary.json` ghi kết quả lượt chạy gần nhất. Kiểm thử trình duyệt dùng API mô phỏng.
+
+Backend đã đạt build, 33 unit test và 20 E2E với MongoDB tạm. Nginx được cập nhật để chuyển tiếp các API phiên và `/sync/batch`, `/sync/changes` của FE. Compose bật tin cậy đúng một proxy để backend nhận biết HTTPS và gửi cookie phiên `Secure`. `docker compose config --quiet` đã qua. Khi Docker Engine đã bật, kiểm thử phát hiện và sửa lỗi xuống dòng trong lệnh OpenSSL tạo chứng chỉ. Cả hai image build thành công và `nginx -t` đạt. Trên trình duyệt qua HTTPS cục bộ với chứng chỉ tự ký, đã đăng ký, đăng nhập, xác nhận cookie `Secure` và `HttpOnly`, lưu một lần chạy, đọc lại từ MongoDB qua `/sync/changes`, tải lại để khôi phục phiên và đăng xuất. Kiểm tra `/auth/me` sau đăng xuất trả 401. Stack và dữ liệu thử đã được dọn.

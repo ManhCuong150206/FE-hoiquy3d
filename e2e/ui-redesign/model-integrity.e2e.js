@@ -2,7 +2,7 @@ async(page)=>{
  const check=(ok,message)=>{if(!ok)throw new Error(message);};page.setDefaultTimeout(25000);
  const idle=id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience').getAttribute('aria-busy')==='false',id);
  await page.context().setOffline(false);await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:1440,height:1000});
- await page.goto('http://127.0.0.1:4300/');await page.locator('.guest-button').click();await idle('algorithms');
+ await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.getByLabel('Email',{exact:true}).fill('demo@example.com');await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');await page.locator('.auth-submit').click();await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');await idle('algorithms');
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
  await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('#lab app-viewport3d'))?.plane);
  await page.getByLabel('Số đặc trưng',{exact:true}).selectOption('1');await page.getByRole('button',{name:'REGENERATE',exact:true}).click();
@@ -35,9 +35,9 @@ async(page)=>{
  check(persisted.synthetic.kind==='sparse'&&persisted.synthetic.version===1,'IndexedDB preserves applied profile/version');
  await page.getByRole('button',{name:'REGENERATE',exact:true}).click();await saved.getByRole('button',{name:'Áp dụng',exact:true}).click();
  check(await page.evaluate(()=>{const s=window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store;return JSON.stringify({X:s.trainX(),y:s.trainY()})===window.__modelDataset;}),'Applying saved profile reconstructs identical data');
- let payload=[];await page.route('**/api/v1/experiments/bulk',async route=>{payload=route.request().postDataJSON();await route.fulfill({json:{success:true,count:payload.length,items:payload.map(e=>({id:e.id,mutationId:e.mutationId??e.id,syncVersion:(e.serverVersion??0)+1}))}});});
+ let payload=[];const capture=async route=>{payload=route.request().postDataJSON().operations;await route.fallback();};await page.route('**/api/v1/sync/batch',capture);
  await page.context().setOffline(false);await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-experiments-panel')).exp.list().some(e=>e.name==='Integrity sparse profile'&&e.synced));
- check(payload.some(e=>e.name==='Integrity sparse profile'&&e.synthetic?.kind==='sparse'),'Sync sends generation metadata');await page.unrouteAll({behavior:'wait'});
+ check(payload.some(e=>e.payload?.algorithm?.config?.snapshot?.synthetic?.kind==='sparse'),'Sync sends generation metadata');await page.unroute('**/api/v1/sync/batch',capture);
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');await page.locator('#csv-missing').selectOption('mean');await page.getByRole('button',{name:'Dùng dữ liệu này',exact:true}).click();
  check(await page.evaluate(()=>{const s=window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store;const means=s.trainX()[0].map((_,j)=>s.trainX().reduce((a,r)=>a+r[j],0)/s.trainX().length);return s.provenance().fittedOn==='train'&&means.every(v=>Math.abs(v)<1e-10);}), 'CSV training columns centered using train stats');
  await page.locator('#lab .lesson-entry button').click();await idle('learning');

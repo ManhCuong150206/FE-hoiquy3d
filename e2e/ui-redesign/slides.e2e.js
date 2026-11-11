@@ -2,18 +2,12 @@ async(page)=>{
  page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);
  const check=(ok,message)=>{if(!ok)throw new Error(message);};
  await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
- for(const mode of ['login','register','guest']){
-  await page.goto('http://127.0.0.1:4300/');await page.locator('.experience[data-motion=active]').waitFor();
-  if(mode==='guest')await page.getByRole('button',{name:'Tham gia với tư cách Guest',exact:true}).click();
-  else {
-   if(mode==='register'){await page.getByRole('button',{name:'Đăng ký',exact:true}).click();await page.getByLabel('Tên hiển thị').fill('Demo');}
-   await page.getByLabel('Email',{exact:true}).fill('demo@example.com');await page.getByLabel('Mật khẩu',{exact:true}).fill('demo-password');
-   await page.locator('form button[type=submit]').click();
-  }
-  await page.locator('.experience[data-transition=exit]').waitFor();
-  await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden && !document.querySelector('.experience').dataset.transition);
-  await page.waitForFunction(()=>!document.querySelector('.experience').dataset.transition);
- }
+ await page.goto('http://127.0.0.1:4300/');
+ await page.locator('#algorithms .login-button').click();
+ await page.waitForFunction(()=>!document.querySelector('#welcome').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');
+ await page.locator('.guest-button').click();
+ await page.locator('.planet-transfer-stage').waitFor();
+ await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');
  const canvas=page.locator('app-algorithm-sphere canvas');await canvas.waitFor();
  const bounds=await canvas.boundingBox(),hits=new Map();
  for(const y of [.25,.375,.5,.625,.75])for(const x of [.25,.375,.5,.625,.75]){
@@ -52,5 +46,5 @@ async(page)=>{
  await page.evaluate(()=>document.querySelector('#learning').scrollIntoView({behavior:'instant'}));await page.waitForTimeout(650);
  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Learning mobile overflow');
  await page.screenshot({path:'output/playwright/learning-mobile.png'});
- return {suite:'cinematic-slides',passed:['login glow transition','registration glow transition','guest glow transition','visible hemisphere hoverable with other regions on the back','drag rotates without selection','selected algorithm cinematic transition','separate learning page with 3D and notes','six phases visible before training','shared model survives navigation','scroll neither navigates nor trains','buttons drive learning phases','learning mobile no overflow']};
+ return {suite:'cinematic-slides',passed:['explicit login entry and Guest shared-planet transition','visible hemisphere hoverable with other regions on the back','drag rotates without selection','selected algorithm cinematic transition','separate learning page with 3D and notes','six phases visible before training','shared model survives navigation','scroll neither navigates nor trains','buttons drive learning phases','learning mobile no overflow']};
 }

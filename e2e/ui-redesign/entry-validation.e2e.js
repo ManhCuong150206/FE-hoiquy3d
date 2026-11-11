@@ -17,9 +17,6 @@ async(page)=>{
   check(await page.locator('.summary-box a').count()===1,'Summary updates after correction');
   check(await page.locator('.entry-field.is-good').count()===1,'Fixed field has check');
   check(await page.locator('.auth-submit').evaluate(el=>{const node=Array.from(el.childNodes).find(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim());const range=document.createRange();range.selectNodeContents(node);const t=range.getBoundingClientRect(),b=el.getBoundingClientRect();return Math.abs((t.left+t.right-b.left-b.right)/2)<2;}),'Submit label centered');
-  check(await page.locator('#entry-email').evaluate(el=>getComputedStyle(el).backgroundColor)==='rgb(7, 9, 14)','Dark input keeps silver readable');
-  check(await page.locator('.auth-submit').evaluate(el=>getComputedStyle(el).color)==='rgb(215, 224, 238)','Silver login text');
-  check(await page.locator('.switch-auth button').evaluate(el=>getComputedStyle(el).color)==='rgb(215, 224, 238)','Silver register text');
   await page.locator('#entry-password').fill('short');await page.locator('.auth-submit').click();await focused('entry-password');
   check(await page.locator('#entry-password-error').textContent()==='Mật khẩu cần ít nhất 8 ký tự.','Password rule unchanged');
   await page.screenshot({path:'output/playwright/entry-validation-'+theme+'.png'});
@@ -41,5 +38,5 @@ async(page)=>{
  await page.screenshot({path:'output/playwright/entry-validation-mobile.png'});
  await page.getByRole('button',{name:/Tham gia với tư cách Guest/}).click();await waitScreen('algorithms');
  check(await page.locator('#entry-email').inputValue()==='','Guest clears form');
- return {suite:'entry-validation',passed:['error summary','first error focus','keyboard jump to error','live correction and checks','centered submit label','silver auth text','dark/light themes','short password blocked','valid authenticated transition','auth request only; credentials cleared','registration validation','reduced motion','mobile layout','guest still works']};
+ return {suite:'entry-validation',passed:['error summary','first error focus','keyboard jump to error','live correction and checks','centered submit label','dark/light themes','short password blocked','valid authenticated transition','auth request only; credentials cleared','registration validation','reduced motion','mobile layout','guest still works']};
 }

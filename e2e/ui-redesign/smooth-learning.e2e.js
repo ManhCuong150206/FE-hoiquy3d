@@ -1,7 +1,7 @@
 async(page)=>{
  const check=(ok,message)=>{if(!ok)throw new Error(message);};page.setDefaultTimeout(20000);
  await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});
- await page.goto('http://127.0.0.1:4300/');await page.locator('.guest-button').click();
+ await page.goto('http://127.0.0.1:4300/');
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();
  await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();
  await page.locator('app-learning-route').waitFor();

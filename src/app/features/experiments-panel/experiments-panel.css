@@ -227,3 +227,5 @@ td.best {
 button { min-height: 40px; }
 button:disabled { color: var(--muted); background: var(--surface-2); }
 .sync-button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:44px;height:auto!important;margin:0 0 10px;padding:9px 12px;line-height:1.35;text-align:center;white-space:normal;overflow-wrap:anywhere}
+
+.comparison-dialog{box-sizing:border-box;width:min(1100px,calc(100% - 32px));max-height:85svh;overflow:auto;background:var(--sticky-surface,#101827);color:var(--text);border:1px solid var(--border);border-radius:20px;padding:24px}.comparison-dialog::backdrop{background:#0007;backdrop-filter:blur(5px)}.comparison-dialog .cmp{max-width:100%}

@@ -284,7 +284,7 @@ html{scrollbar-gutter:stable}
 .experience app-welcome-panel .status-dot{background:var(--success)}
 
 /* Universe and medium-transparency liquid panels. */
-html,body,.experience,.experience *{font-family:'Times New Roman',Times,serif!important}
+html,body,.experience,.experience *{font-family:var(--font-body,'Times New Roman',Times,serif)!important}
 .starfield-base{position:fixed;inset:0;z-index:0;pointer-events:none;background-color:#02040b;background-image:radial-gradient(ellipse at 20% 25%,#183e6b24,transparent 55%),radial-gradient(ellipse at 80% 70%,#37206420,transparent 55%),radial-gradient(1px 1px at 30px 60px,#c6dcff99 90%,transparent),radial-gradient(1px 1px at 100px 150px,#ffffff77 90%,transparent),radial-gradient(1.4px 1.4px at 49px 31px,#dcecffaa 85%,transparent),radial-gradient(1px 1px at 130px 90px,#95bfff88 80%,transparent),radial-gradient(1.6px 1.6px at 77px 117px,#ffffff88 80%,transparent);background-size:auto,auto,223px 197px,317px 283px,137px 181px,251px 223px,311px 277px}
 .experience{font-size:16px}
 :is(#lab,#learning) :is(.card,.controls,app-header .bar){background:linear-gradient(135deg,#ffffff0e,transparent 55%),rgba(7,14,28,.48)!important;border:1px solid #d9f5ff3b!important;border-radius:24px;box-shadow:inset 0 1px 1px #ffffff38,inset 0 -1px 0 #8ac7ff0c,0 14px 35px #0004;backdrop-filter:blur(4px) saturate(120%);-webkit-backdrop-filter:blur(4px) saturate(120%)}

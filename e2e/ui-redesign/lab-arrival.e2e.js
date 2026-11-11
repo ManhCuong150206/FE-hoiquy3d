@@ -4,7 +4,7 @@ async(page)=>{
  const wait=async id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience')?.getAttribute('aria-busy')==='false',id);
  await page.setViewportSize({width:1440,height:1000});
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');
- await page.locator('.guest-button').click();await wait('algorithms');
+ await wait('algorithms');
  await page.locator('app-algorithm-sphere canvas').waitFor();
  await page.emulateMedia({reducedMotion:'no-preference'});
  await page.evaluate(()=>{

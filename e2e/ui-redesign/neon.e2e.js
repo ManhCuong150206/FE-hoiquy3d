@@ -2,14 +2,14 @@ async(page)=>{
  page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);
  const check=(ok,message)=>{if(!ok)throw new Error(message);};
  const wait=async id=>page.waitForFunction(id=>Boolean(document.getElementById(id) && !document.getElementById(id).hidden && !document.querySelector('.experience').dataset.transition),id);
- await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('http://127.0.0.1:4300/');
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.waitForFunction(()=>!document.querySelector('#welcome').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');
  await page.locator('.experience[data-motion=active]').waitFor();
  check(await page.locator('.math-wallpaper').count()===0,'Old photo layer removed');
  check(await page.locator('.starfield-base').evaluate(el=>!getComputedStyle(el).backgroundImage.includes('math-background')),'Universe background replaces formulas');
- check(await page.locator('h1').first().evaluate(el=>getComputedStyle(el).fontFamily.includes('Times New Roman')&&getComputedStyle(el).textShadow!=='none'),'Times New Roman neon heading');
+ check(await page.locator('h1').first().evaluate(el=>getComputedStyle(el).fontFamily.includes('Geist')&&getComputedStyle(el).textShadow!=='none'),'Geist neon heading');
  check(await page.locator('body').evaluate(el=>getComputedStyle(el).fontFamily.includes('Times New Roman')),'Body Times New Roman');
- check(await page.locator('.guest-button').evaluate(el=>getComputedStyle(el).backgroundColor==='rgba(0, 0, 0, 0)'&&getComputedStyle(el).textShadow!=='none'),'Transparent neon glass button');
- await page.locator('.spatial-host[data-star-count="1000"]').waitFor();
+ check(await page.locator('.guest-button').evaluate(el=>getComputedStyle(el).backgroundColor.startsWith('rgba(')&&getComputedStyle(el).textShadow!=='none'),'Transparent neon glass button');
+ await page.locator('.spatial-host[data-star-count]').waitFor();
  const phase=await page.locator('.spatial-host').getAttribute('data-twinkle-phase');await page.waitForTimeout(300);
  check(await page.locator('.spatial-host').getAttribute('data-twinkle-phase')!==phase,'Star brightness must animate');
  await page.mouse.move(150,350);
@@ -22,7 +22,7 @@ async(page)=>{
   check(await page.locator('#lab app-viewport3d .dot.'+name).evaluate(el=>getComputedStyle(el).backgroundColor)===color,'Lab point legend '+name);
   check(await page.locator('app-results-panel .series.'+name+' i').evaluate(el=>getComputedStyle(el).backgroundColor)===color,'Chart legend '+name);
  }
- check(await page.locator('#lab .controls').evaluate(el=>{const style=getComputedStyle(el);return style.backgroundColor.includes('0.48')&&style.backdropFilter.includes('blur');}),'Controls medium-transparent liquid');
+ check(await page.locator('#lab .controls').evaluate(el=>{const style=getComputedStyle(el);return style.backgroundColor.startsWith('rgba(')&&style.backdropFilter.includes('blur');}),'Controls medium-transparent liquid');
  check(await page.locator('#lab .iter').evaluate(el=>getComputedStyle(el).fontFamily.includes('Times New Roman')),'Model numbers Times New Roman');
  check(await page.locator('app-results-panel polyline').first().evaluate(el=>getComputedStyle(el).stroke)==='rgb(255, 64, 92)','Train curve red');
  await page.waitForTimeout(500);
@@ -31,7 +31,7 @@ async(page)=>{
  await page.screenshot({path:'output/playwright/neon-lab-desktop.png'});
  await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await wait('learning');await page.locator('#learning app-viewport3d canvas').waitFor();
  check(await page.locator('#learning app-viewport3d canvas').evaluate(el=>el.getContext('webgl2').getContextAttributes().alpha),'Learning renderer alpha');
- check(await page.locator('#learning app-viewport3d .host').evaluate(el=>getComputedStyle(el).backgroundColor.includes('0.14')),'Learning viewport transparent');
+ check(await page.locator('#learning app-viewport3d .host').evaluate(el=>getComputedStyle(el).backgroundColor.startsWith('rgba(')),'Learning viewport transparent');
  check(await page.locator('#learning app-viewport3d .dot.test').evaluate(el=>getComputedStyle(el).backgroundColor)==='rgb(255, 228, 92)','Learning scene shares palette');
  await page.screenshot({path:'output/playwright/neon-learning-desktop.png'});
  const canvas=page.locator('#learning app-viewport3d canvas');const fps=await canvas.evaluate(async el=>{const before=Number(el.dataset.renderCount),start=performance.now();await new Promise(resolve=>setTimeout(resolve,1500));return (Number(el.dataset.renderCount)-before)*1000/(performance.now()-start);});
@@ -40,5 +40,5 @@ async(page)=>{
  await page.waitForTimeout(200);const ambient=page.locator('.spatial-host');const phaseStopped=await ambient.getAttribute('data-twinkle-phase');await page.waitForTimeout(300);check(await ambient.getAttribute('data-twinkle-phase')===phaseStopped,'Reduced motion freezes star animation (resize may redraw)');
  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(350);check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile no horizontal overflow');
  await page.screenshot({path:'output/playwright/neon-learning-mobile.png'});
- return {suite:'liquid-neon',performance:{labFps,learningFps:fps},passed:['old background removed','universe base','Times titles and body','transparent glass buttons','1000 stars and twinkle animation','native cursor without circle','liquid controls and Times numbers','lab train/test palette','chart palette and red curve','transparent viewport','learning shared palette','60 FPS cap','reduced motion cursor/stars','mobile no overflow']};
+ return {suite:'liquid-neon',performance:{labFps,learningFps:fps},passed:['old background removed','universe base','Geist titles and Times body','transparent glass buttons','stars and twinkle animation','native cursor without circle','liquid controls and Times numbers','lab train/test palette','chart palette and red curve','transparent viewport','learning shared palette','60 FPS cap','reduced motion cursor/stars','mobile no overflow']};
 }

@@ -9,6 +9,8 @@ import { LabStore } from '../../state/lab-store';
 })
 export class ResultsPanel {
   store = inject(LabStore);
+  finite = Number.isFinite;
+  formatMetric(value: number) { return Number.isFinite(value) ? value.toFixed(3) : 'Không xác định'; }
 
   readonly coefficients = computed(() => {
     const w = this.store.latest()?.w ?? [];
@@ -25,6 +27,6 @@ export class ResultsPanel {
     const max = Math.max(...h.map((s) => Math.max(s.trainLoss, s.testLoss))) || 1;
     const line = (key: 'trainLoss' | 'testLoss') =>
       h.map((s) => `${((s.iteration - h[0].iteration) / Math.max(1, h.at(-1)!.iteration - h[0].iteration)) * 300},${100 - (s[key] / max) * 100}`).join(' ');
-    return { train: line('trainLoss'), test: line('testLoss') };
+    return { train: line('trainLoss'), test: line('testLoss'), max, first: h[0].iteration, last: h.at(-1)!.iteration };
   });
 }

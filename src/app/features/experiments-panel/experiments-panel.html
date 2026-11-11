@@ -31,7 +31,7 @@
         @for (e of exp.list(); track e.id) {
         <li [class.on]="isSelected(e.id)">
             <label class="pick" [title]="'So sánh ' + e.name">
-                <input type="checkbox" [checked]="isSelected(e.id)" (change)="toggle(e.id, $event)" />
+                <input type="checkbox" [attr.aria-label]="'So sánh ' + e.name" [checked]="isSelected(e.id)" (change)="toggle(e.id, $event)" />
             </label>
             <div class="body">
                 <div class="top">
@@ -59,6 +59,9 @@
     <p class="hint">Chọn thêm ít nhất một lần chạy nữa để so sánh.</p>
     }
     @if (rows().length > 0) {
+    <button type="button" (click)="comparison.showModal()">Mở bảng so sánh ({{ compared().length }})</button>
+    <dialog #comparison class="comparison-dialog" aria-label="So sánh các thí nghiệm">
+    <button type="button" (click)="comparison.close()" autofocus>Đóng bảng so sánh</button>
     <h3>So sánh</h3>
     <div class="cmp">
         <table>
@@ -82,6 +85,7 @@
             </tbody>
         </table>
     </div>
-    <p class="hint">Ô in đậm màu xanh là kết quả tốt nhất trên tập test.</p>
+    <p class="hint">Ô in đậm theo màu thuật toán là kết quả tốt nhất trên tập test.</p>
+    </dialog>
     }
 </section>

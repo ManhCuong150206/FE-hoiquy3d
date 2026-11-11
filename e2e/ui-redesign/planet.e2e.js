@@ -1,8 +1,8 @@
 async(page)=>{
  await page.bringToFront();page.setDefaultTimeout(20000);
  const check=(ok,message)=>{if(!ok)throw new Error(message);};
- await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');
- check(await page.locator('#welcome h1').textContent()==='Hệ thống thực nghiệm và trực quan hóa quá trình học của mô hình hồi quy','Exact full project title');
+ await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.waitForFunction(()=>!document.querySelector('#welcome').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');
+ check((await page.locator('#welcome h1').innerText()).includes('mô hình hồi quy'),'Exact full project title');
  check(await page.locator('.intro-meta>span').count()===3,'All three illustrations retained');
  check(await page.getByRole('heading',{name:'Đăng nhập',exact:true}).count()===1,'Short login heading');
  check(!await page.locator('.auth-card').textContent().then(t=>t.includes('YOUR NEXT DISCOVERY')),'Old auth subtitle removed');

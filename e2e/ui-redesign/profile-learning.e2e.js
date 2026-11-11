@@ -1,6 +1,6 @@
 async(page)=>{
  page.setDefaultTimeout(20000);await page.bringToFront();await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'reduce'});
- await page.goto('http://127.0.0.1:4300/');await page.locator('.guest-button').click();await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();
+ await page.goto('http://127.0.0.1:4300/');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();
  await page.locator('app-learning-route').waitFor();await page.locator('.lesson-options>summary').click();await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');await page.locator('.lesson-options>summary').click();
  await page.emulateMedia({reducedMotion:'no-preference'});await page.bringToFront();await page.waitForFunction(()=>document.visibilityState==='visible');await page.waitForTimeout(400);
  await page.evaluate(()=>{

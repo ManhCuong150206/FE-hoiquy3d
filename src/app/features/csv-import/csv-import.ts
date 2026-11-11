@@ -46,7 +46,7 @@ export class CsvImport {
         if (!file) return;
 
         if (file.size > MAX_FILE_BYTES) {
-            this.fail('Tệp quá lớn (tối đa 20 MB).');
+            this.rejectFile('Tệp quá lớn (tối đa 20 MB).');
             input.value = '';
             return;
         }
@@ -55,19 +55,19 @@ export class CsvImport {
         try {
             table = parseCsv(await file.text());
         } catch {
-            this.fail('Không đọc được tệp này.');
+            this.rejectFile('Không đọc được tệp này.');
             input.value = '';
             return;
         }
         input.value = ''; // cho phép chọn lại đúng tệp đó lần sau
 
         if (table.headers.length < 2 || table.rows.length === 0) {
-            this.fail('Tệp cần có dòng tiêu đề, ít nhất 2 cột và 1 dòng dữ liệu.');
+            this.rejectFile('Tệp cần có dòng tiêu đề, ít nhất 2 cột và 1 dòng dữ liệu.');
             return;
         }
         const numIdx = numericColumns(table).flatMap((ok, i) => (ok ? [i] : []));
         if (numIdx.length < 2) {
-            this.fail('Cần ít nhất 2 cột số (1 cho Y, 1 cho X).');
+            this.rejectFile('Cần ít nhất 2 cột số (1 cho Y, 1 cho X).');
             return;
         }
 
@@ -110,7 +110,7 @@ export class CsvImport {
             trainRatio: this.store.trainRatio(), splitSeed: this.store.seed() + 1,
         });
         if (res.error) {
-            this.fail(res.error);
+            this.message.set({ kind: 'error', text: res.error });
             return;
         }
         this.store.loadDataset(res.X, res.y, this.fileName(), res.provenance, res.split);
@@ -123,7 +123,7 @@ export class CsvImport {
         this.message.set({ kind: 'ok', text });
     }
 
-    private fail(text: string) {
-        this.message.set({ kind: 'error', text });
+    private rejectFile(text: string) {
+        this.message.set({ kind: 'error', text: text + (this.table() ? ` Vẫn giữ tệp trước: “${this.fileName()}”. Bản xem trước và nút áp dụng bên dưới thuộc tệp này.` : '') });
     }
 }

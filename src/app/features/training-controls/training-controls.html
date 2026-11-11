@@ -24,8 +24,8 @@
 
     @if (store.algorithm() === 'polynomial') {
     <div class="field">
-        <label>Degree</label>
-        <select (change)="store.setDegree(+$any($event.target).value)">
+        <label for="degree">Degree</label>
+        <select id="degree" (change)="store.setDegree(+$any($event.target).value)">
             @for (v of degreeOptions; track v) {
             <option [value]="v" [selected]="v === store.degree()">{{ v }}</option>
             }
@@ -35,8 +35,8 @@
 
     @if (store.algorithm() === 'ridge' || store.algorithm() === 'lasso') {
     <div class="field">
-        <label>Lambda (λ)</label>
-        <select (change)="store.setLambda(+$any($event.target).value)">
+        <label for="lambda">Lambda (λ)</label>
+        <select id="lambda" (change)="store.setLambda(+$any($event.target).value)">
             @for (v of lambdaOptions; track v) {
             <option [value]="v" [selected]="v === store.lambda()">{{ v }}</option>
             }
@@ -45,8 +45,8 @@
     }
 
     <div class="field">
-        <label>Learning rate</label>
-        <select (change)="store.setLearningRate(+$any($event.target).value)">
+        <label for="learning-rate">Learning rate</label>
+        <select id="learning-rate" (change)="store.setLearningRate(+$any($event.target).value)">
             @for (v of lrOptions; track v) {
             <option [value]="v" [selected]="v === store.learningRate()">{{ v }}</option>
             }
@@ -54,8 +54,8 @@
     </div>
 
     <div class="field">
-        <label>Max iterations</label>
-        <select (change)="store.setMaxIterations(+$any($event.target).value)">
+        <label for="max-iterations">Max iterations</label>
+        <select id="max-iterations" (change)="store.setMaxIterations(+$any($event.target).value)">
             @for (v of iterOptions; track v) {
             <option [value]="v" [selected]="v === store.maxIterations()">{{ v }}</option>
             }
@@ -63,8 +63,8 @@
     </div>
 
     <div class="field">
-        <label>Nhịp chạy iteration</label>
-        <select (change)="store.setSpeed(+$any($event.target).value)">
+        <label for="iteration-speed">Nhịp chạy iteration</label>
+        <select id="iteration-speed" (change)="store.setSpeed(+$any($event.target).value)">
             @for (v of speedOptions; track v) {
             <option [value]="v" [selected]="v === store.speed()">{{ v }}x</option>
             }

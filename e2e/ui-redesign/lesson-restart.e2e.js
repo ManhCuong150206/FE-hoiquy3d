@@ -2,7 +2,7 @@ async(page)=>{
  const check=(ok,message)=>{if(!ok)throw new Error(message);};page.setDefaultTimeout(20000);
  const base='http://127.0.0.1:4300';await page.emulateMedia({reducedMotion:'reduce'});await page.goto(base);
  const idle=id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience').getAttribute('aria-busy')==='false',id);
- await page.locator('.guest-button').click();await idle('algorithms');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
+ await idle('algorithms');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
  await page.evaluate(()=>window.ng.getComponent(document.querySelector('app-training-controls')).store.setMaxIterations(1));
  await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-training-controls')).store.status()==='done');
  await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await idle('learning');
