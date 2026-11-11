@@ -240,3 +240,5 @@ button:disabled { color: var(--muted); background: var(--surface-2); }
     .list .top { justify-content: flex-start; }
     .list .actions { margin: 0; }
 }
+
+.sync-warning { color: var(--warn-fg); font-size: 0.75rem; }

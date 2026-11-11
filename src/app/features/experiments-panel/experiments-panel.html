@@ -16,7 +16,10 @@
             (input)="onName($event)" (keydown.enter)="save()" />
         <button type="button" class="primary" (click)="save()" [disabled]="!exp.canSave()">Lưu</button>
     </div>
-    <button type="button" class="sync-button" aria-label="Đồng bộ với máy chủ" [disabled]="!exp.canPersist() || exp.syncing()" (click)="exp.sync()">{{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ với máy chủ' }}</button>
+    <button type="button" class="sync-button" aria-label="Đồng bộ với máy chủ" [disabled]="!exp.canPersist() || !exp.online() || exp.syncing() || !exp.pendingCount()" (click)="exp.sync()">{{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ với máy chủ' }}</button>
+    @if (exp.pendingCount() > 0) {
+      <small class="sync-warning" role="status">Có {{ exp.pendingCount() }} file đang chờ đồng bộ. Chỉ đồng bộ khi bạn nhấn nút.</small>
+    }
     </div>
     @if(exp.syncError()){<p role="status">{{ exp.syncError() }}</p>}
     @if (exp.canPersist() && !exp.canSave()) {
@@ -43,6 +46,7 @@
                 <div class="meta">{{ meta(e) }}</div>
                 <div class="meta">Train MSE {{ fmt(e.train.mse) }} · Test MSE {{ fmt(e.test.mse) }} · R² {{ fmt(e.test.r2) }} · {{ when(e) }}</div>
                 <div class="actions">
+                    <button type="button" (click)="exp.sync(e.id)" [disabled]="e.synced || !exp.online() || exp.syncing()">Đồng bộ</button>
                     <button type="button" (click)="apply(e)">Áp dụng</button>
                     <button type="button" class="danger" (click)="remove(e.id)">Xoá</button>
                 </div>

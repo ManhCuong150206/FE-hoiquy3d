@@ -19,10 +19,10 @@
         </span>
 
         @if (exp.pendingCount() > 0) {
-        <span class="pending">
-            {{ exp.pendingCount() }} thí nghiệm chờ đồng bộ
-            @if (!exp.online()) { <span>— sẽ tự gửi khi có mạng</span> }
-        </span>
+        <small class="pending" role="status">
+            Có {{ exp.pendingCount() }} file đang chờ đồng bộ.
+            <span>Chỉ đồng bộ khi bạn nhấn nút.</span>
+        </small>
         <button type="button" (click)="exp.sync()" [disabled]="!exp.online() || exp.syncing()">
             {{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ ngay' }}
         </button>
