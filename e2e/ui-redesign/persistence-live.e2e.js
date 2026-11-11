@@ -13,6 +13,7 @@ async(page)=>{
  await page.locator('#entry-email').fill(email);await page.locator('#entry-password').fill(password);await page.locator('.auth-submit').click();await idle('algorithms');
  check(await page.locator('#entry-password').inputValue()==='','Password cleared after authentication');
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
+ await page.getByRole('tab',{name:'Dữ liệu',exact:true}).click();
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');await page.locator('#csv-missing').selectOption('mean');await page.getByRole('button',{name:'Dùng dữ liệu này',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='0');
  await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1');

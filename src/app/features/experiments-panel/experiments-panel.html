@@ -1,5 +1,5 @@
 <section class="card">
-    <h2 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 3h6m-5 0v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 15h8"/></svg>Thí nghiệm</h2>
+    <h2 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 3h6m-5 0v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 15h8"/></svg>Thí nghiệm đã lưu</h2>
 
     @if(!exp.canPersist()) {
       <p class="hint">Guest có thể thử nghiệm mà không cần đăng nhập. Đăng nhập để lưu và đồng bộ kết quả.</p>
@@ -10,13 +10,15 @@
         <button (click)="exp.resolveConflict(true)">Giữ bản cục bộ thành bản sao</button>
       </div>
     }
-    <button type="button" class="sync-button" aria-label="Đồng bộ với máy chủ" [disabled]="!exp.canPersist() || exp.syncing()" (click)="exp.sync()">{{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ với máy chủ' }}</button>
-    @if(exp.syncError()){<p role="status">{{ exp.syncError() }}</p>}
+    <div class="experiment-toolbar">
     <div class="save">
         <input type="text" placeholder="Tên lần chạy (tuỳ chọn)" aria-label="Tên lần chạy" [value]="name()"
             (input)="onName($event)" (keydown.enter)="save()" />
         <button type="button" class="primary" (click)="save()" [disabled]="!exp.canSave()">Lưu</button>
     </div>
+    <button type="button" class="sync-button" aria-label="Đồng bộ với máy chủ" [disabled]="!exp.canPersist() || exp.syncing()" (click)="exp.sync()">{{ exp.syncing() ? 'Đang đồng bộ…' : 'Đồng bộ với máy chủ' }}</button>
+    </div>
+    @if(exp.syncError()){<p role="status">{{ exp.syncError() }}</p>}
     @if (exp.canPersist() && !exp.canSave()) {
     <p class="hint">Chạy ít nhất một bước huấn luyện để có kết quả cần lưu.</p>
     }
@@ -39,7 +41,7 @@
                     <span class="sync" [class.pending]="!e.synced">{{ e.synced ? 'Đã đồng bộ' : 'Chờ đồng bộ' }}</span>
                 </div>
                 <div class="meta">{{ meta(e) }}</div>
-                <div class="meta">Test MSE {{ fmt(e.test.mse) }} · R² {{ fmt(e.test.r2) }} · {{ when(e) }}</div>
+                <div class="meta">Train MSE {{ fmt(e.train.mse) }} · Test MSE {{ fmt(e.test.mse) }} · R² {{ fmt(e.test.r2) }} · {{ when(e) }}</div>
                 <div class="actions">
                     <button type="button" (click)="apply(e)">Áp dụng</button>
                     <button type="button" class="danger" (click)="remove(e.id)">Xoá</button>

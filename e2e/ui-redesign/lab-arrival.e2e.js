@@ -13,7 +13,7 @@ async(page)=>{
    const lab=document.querySelector('#lab');
    if(lab?.dataset.arrival){
     const read=selector=>{const el=lab.querySelector(selector);if(!el)return null;const s=getComputedStyle(el);return {opacity:Number(s.opacity),scale:new DOMMatrixReadOnly(s.transform).a};};
-    window.__arrivalSamples.push({at:performance.now(),cinema:!!document.querySelector('.planet-cinema'),busy:document.querySelector('.experience').getAttribute('aria-busy'),view:read('.workspace > app-viewport3d'),controls:read('app-training-controls'),results:read('app-results-panel')});
+    window.__arrivalSamples.push({at:performance.now(),cinema:!!document.querySelector('.planet-cinema'),busy:document.querySelector('.experience').getAttribute('aria-busy'),view:read('.lab-scene > app-viewport3d'),controls:read('app-training-controls[data-controls=run]'),results:read('app-results-panel[data-result-view=chart]')});
    }
    if(window.__sampleArrival)requestAnimationFrame(tick);
   };requestAnimationFrame(tick);
@@ -30,7 +30,7 @@ async(page)=>{
  check(samples.some(s=>s.view?.scale<.99)&&samples.some(s=>s.view?.scale>1.003),'Small scale overshoot is visible');
  check(samples.every(s=>s.busy==='true'),'Controls locked throughout arrival');
  check(await page.locator('#lab [role=progressbar]').getAttribute('aria-valuenow')==='0','Entrance does not train model');
- const clean=()=>page.locator('#lab').evaluate(lab=>!lab.dataset.arrival&&Array.from(lab.querySelectorAll('.workspace > *,app-training-controls,app-header,.lab-heading,.lesson-entry,.lab-footer')).every(el=>!el.style.transform&&!el.style.opacity&&!el.style.willChange));
+ const clean=()=>page.locator('#lab').evaluate(lab=>!lab.dataset.arrival&&Array.from(lab.querySelectorAll('.workspace > *,.lab-scene > *,.lab-sidebar > *,app-header,.lab-heading,.lesson-entry,.lab-footer')).every(el=>!el.style.transform&&!el.style.opacity&&!el.style.willChange));
  check(await clean(),'All temporary arrival styles cleared');
  await page.screenshot({path:'output/playwright/lab-arrival-complete.png'});
  await page.locator('#lab .change-algorithm').click();await wait('algorithms');

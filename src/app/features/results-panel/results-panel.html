@@ -1,33 +1,28 @@
-<section class="card">
-  <h3 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 3v18h17M8 16v-5m5 5V7m5 9V4"/></svg>KẾT QUẢ</h3>
-  <p class="legend">Mô hình đã áp dụng · iteration {{ store.iteration() }}</p>
-
-  <div class="losses">
-    <div class="box">
-      <span>Test MSE</span>
-      <strong>{{ store.latest()?.testLoss?.toFixed(3) ?? '—' }}</strong>
-    </div>
-    <div class="box">
-      <span>Train MSE</span>
-      <strong class="muted">{{ store.latest()?.trainLoss?.toFixed(3) ?? '—' }}</strong>
-    </div>
-  </div>
-
-  <h4>MSE theo iteration</h4>
-  <svg viewBox="0 0 360 140" class="chart" role="img" aria-label="MSE train và test theo iteration">
+@if (view() === 'chart') {
+<section class="card" aria-labelledby="lab-chart-title">
+  <h3 class="card-title" id="lab-chart-title">MSE theo iteration</h3>
+  <div class="legend"><span class="series train"><i aria-hidden="true"></i> Train</span> <span class="series test"><i aria-hidden="true"></i> Test</span></div>
+  <svg class="chart" role="img" aria-label="MSE train và test theo iteration">
     @if (chart(); as c) {
-      <text x="2" y="16" class="axis-label">{{ c.max.toPrecision(3) }}</text>
-      <text x="30" y="116" class="axis-label">0</text>
-      <text x="50" y="134" class="axis-label">{{ c.first }}</text>
-      <text x="348" y="134" text-anchor="end" class="axis-label">{{ c.last }}</text>
-      <path d="M50 10V110H350" fill="none" stroke="currentColor" opacity=".4" />
-      <polyline transform="translate(50 10)" [attr.points]="c.train" fill="none" stroke="var(--chart-train)" stroke-width="2" />
-      <polyline transform="translate(50 10)" [attr.points]="c.test" fill="none" stroke="var(--color-test)" stroke-width="2" />
+      <text x="5" y="16" class="axis-label">{{ c.max.toPrecision(3) }}</text>
+      <text x="34" y="84%" class="axis-label">0</text>
+      <text x="51" y="96%" class="axis-label">{{ c.first }}</text>
+      <text x="97%" y="96%" text-anchor="end" class="axis-label">{{ c.last }}</text>
+      <svg x="50" y="8%" width="100%" height="75%" viewBox="0 0 300 100" preserveAspectRatio="none" class="plot-lines">
+        <path d="M0 0V100H300" fill="none" stroke="currentColor" opacity=".4" vector-effect="non-scaling-stroke" />
+        <polyline [attr.points]="c.train" fill="none" stroke="var(--chart-train)" stroke-width="2" vector-effect="non-scaling-stroke" />
+        <polyline [attr.points]="c.test" fill="none" stroke="var(--color-test)" stroke-width="2" vector-effect="non-scaling-stroke" />
+      </svg>
+    } @else {
+      <text x="50%" y="50%" text-anchor="middle" class="axis-label">Chạy hoặc bấm Step để xem sai số.</text>
     }
   </svg>
   <div class="legend">Iteration {{ store.history()[0]?.iteration ?? 0 }} → {{ store.iteration() }} · chưa cộng phần phạt</div>
-  <div class="legend"><span class="series train"><i aria-hidden="true"></i> Train</span> <span class="series test"><i aria-hidden="true"></i> Test</span></div>
-
+</section>
+} @else {
+<section class="card" aria-labelledby="lab-results-title">
+  <h3 class="card-title" id="lab-results-title">Chi tiết kết quả</h3>
+  <p class="legend">Mô hình đã áp dụng · iteration {{ store.iteration() }}</p>
   @if (store.metrics(); as m) {
     <h4>Metric</h4>
     <p>{{ store.provenance()?.standardized ? 'y đã chuẩn hóa bằng thống kê train: các metric đang ở thang chuẩn hóa.' : 'Metric dùng thang đo y đang đưa vào mô hình.' }}</p>
@@ -42,6 +37,8 @@
   }
 
   @if (store.latest(); as s) {
+    <details class="model-details">
+    <summary>Hệ số mô hình</summary>
     <h4>Ảnh hưởng của từng đặc trưng</h4>
     <p>Độ dài thanh là |w| so với hệ số lớn nhất. @if (store.algorithm() === 'lasso') { Hệ số đúng 0 được đánh dấu; không dùng ngưỡng làm tròn. }</p>
     <div class="coefficient-list">
@@ -59,5 +56,7 @@
     <p class="mono">b = {{ s.b.toFixed(2) }}</p>
     <p class="mono">Mẫu train / test: {{ store.trainX().length }} / {{ store.testX().length }}</p>
     </div>
+    </details>
   }
 </section>
+}

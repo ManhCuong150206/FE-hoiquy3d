@@ -10,7 +10,7 @@ async (page) => {
   await page.waitForFunction(()=>!document.querySelector('#lab').hidden && !document.querySelector('.experience').dataset.transition);
   check(await page.locator('#selected-algorithm').getAttribute('data-value')===id, 'Wrong algorithm '+id);
   await page.getByRole('button',{name:'Step',exact:true}).click();await waitIteration(1);
-  check(await page.locator('app-results-panel .losses strong').first().innerText() !== '—','Missing metric');
+  check(await page.locator('#lab .lab-overview .train-metric strong').first().innerText() !== '—','Missing metric');
   await page.getByRole('button',{name:'Reset',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[role=progressbar]').getAttribute('aria-valuenow')==='0');
   if(id!=='lasso')await page.locator('.change-algorithm').click();

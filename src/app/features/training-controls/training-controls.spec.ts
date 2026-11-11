@@ -20,6 +20,7 @@ describe('TrainingControls', () => {
     expect(component).toBeTruthy();
   });
   it.each<Algorithm>(['linear','polynomial','ridge','lasso'])('shows only the selected %s algorithm', async (algorithm) => {
+    fixture.componentRef.setInput('view', 'settings');
     component.store.algorithm.set(algorithm); await fixture.whenStable();
     const output = fixture.nativeElement.querySelector('#selected-algorithm') as HTMLOutputElement;
     expect(output.getAttribute('data-value')).toBe(algorithm);

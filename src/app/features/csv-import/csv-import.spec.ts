@@ -5,6 +5,8 @@ describe('CsvImport rejected replacement', () => {
   it('retains the previous preview and explicitly identifies it after an invalid file', async () => {
     const fixture = TestBed.createComponent(CsvImport);
     const component = fixture.componentInstance;
+    // The native dialog is exercised in browser tests; jsdom does not implement showModal.
+    vi.spyOn(component, 'openSettings').mockImplementation(() => {});
     const upload = async (name: string, content: string) => {
       const input = document.createElement('input');
       input.type = 'file';

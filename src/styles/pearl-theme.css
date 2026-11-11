@@ -34,8 +34,8 @@ body{transition:background-color 1.4s ease,color .6s ease}
 :root[data-theme=light] #algorithms .algorithm-card.highlighted,:root[data-theme=light] #algorithms .algorithm-card:hover{background:linear-gradient(135deg,#fff,#e1eaf6)!important;box-shadow:inset 0 1px 2px #fff,0 0 22px color-mix(in srgb,var(--algorithm-accent) 20%,transparent)!important}
 :root[data-theme=light] #algorithms .algorithm-card :is(.card-top,.mini-tag,.mini-tag *,small){color:#526179!important}
 :root[data-theme=light] #algorithms .algorithm-card .algorithm-dot{background:var(--algorithm-accent)!important}
-:root[data-theme=light] .experience app-results-panel .losses .box:first-child strong{color:#806000!important;text-shadow:0 0 12px #ffe45c55}
-:root[data-theme=light] .experience app-results-panel .losses .box:last-child strong{color:#bd153c!important}
+:root[data-theme=light] .experience #lab .lab-overview .test-metric strong{color:#806000!important;text-shadow:0 0 12px #ffe45c55}
+:root[data-theme=light] .experience #lab .lab-overview .train-metric strong{color:#bd153c!important}
 
 /* A soft diagonal galaxy, with a quiet foreground for labels and cards. */
 :root[data-theme=light] .starfield-base::before{inset:-20%;background:radial-gradient(ellipse at 58% 48%,#ffffffed 0%,#e5edffbb 6%,#abc9ed99 13%,#c6b4df80 20%,transparent 35%);filter:blur(18px);transform:rotate(-24deg) scale(1.4,.65);animation:pearl-galaxy 32s ease-in-out infinite alternate;opacity:.85}
@@ -91,4 +91,3 @@ body{transition:background-color 1.4s ease,color .6s ease}
 :root .experience button:disabled{cursor:not-allowed!important;filter:saturate(.25);text-shadow:none!important;box-shadow:inset 0 1px 1px #ffffff15!important;border-style:dashed!important}
 :root .experience button:disabled::before{display:none}
 :root .experience .algorithm-card:disabled{transform:none!important}
-@media(max-width:700px){:root .experience .workspace>app-data-panel{order:-1}.experience .workspace>app-viewport3d{order:0}}

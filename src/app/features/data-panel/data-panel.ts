@@ -1,4 +1,4 @@
-import { Component, inject, signal, afterNextRender, DestroyRef } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { SyntheticKind } from '../../core/models/experiment';
 import { LabStore } from '../../state/lab-store';
 import { CsvImport } from '../csv-import/csv-import';
@@ -11,16 +11,6 @@ import { CsvImport } from '../csv-import/csv-import';
 })
 export class DataPanel {
   store = inject(LabStore);
-  readonly compact = signal(false);
-  constructor() {
-    const destroy = inject(DestroyRef);
-    afterNextRender(() => {
-      const query = matchMedia('(max-width:700px)');
-      const update = () => this.compact.set(query.matches);
-      update(); query.addEventListener('change', update);
-      destroy.onDestroy(() => query.removeEventListener('change', update));
-    });
-  }
   readonly scenarios: {id: SyntheticKind; label: string}[] = [
     {id:'linear',label:'Tuyến tính có nhiễu'}, {id:'curved',label:'Bề mặt cong — minh họa Polynomial'},
     {id:'correlated',label:'Biến tương quan — minh họa Ridge'}, {id:'sparse',label:'Biến không liên quan — minh họa Lasso'},

@@ -5,7 +5,9 @@ async(page)=>{
  await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.getByLabel('Email',{exact:true}).fill('demo@example.com');await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');await page.locator('.auth-submit').click();await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');await idle('algorithms');
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
  await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('#lab app-viewport3d'))?.plane);
+ await page.getByRole('tab',{name:'Dữ liệu',exact:true}).click();
  await page.getByLabel('Số đặc trưng',{exact:true}).selectOption('1');await page.getByRole('button',{name:'REGENERATE',exact:true}).click();
+ await page.locator('#lab .display-options summary').click();
  await page.locator('#experiment-stick-epsilon').fill('0');
  await page.evaluate(()=>window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store.selectSample(1));
  await page.waitForTimeout(150);

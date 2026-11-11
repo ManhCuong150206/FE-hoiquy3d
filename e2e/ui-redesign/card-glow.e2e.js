@@ -25,12 +25,12 @@ async(page)=>{
   check(await page.locator(`.regression-card-glow__card[data-for="${id}"]`).count()===1,'Neighbor cards share spotlight');
  }
  await page.screenshot({path:'output/playwright/card-glow-algorithms.png'});
- await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Khám phá Ridge',exact:true}).click();await wait('lab');await light('#lab app-data-panel .card');
+ await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Khám phá Ridge',exact:true}).click();await wait('lab');await light('#lab .lab-setup');
  check(await page.locator('#lab [data-card-glow]').count()>=5,'Lab panels covered');
  await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>document.querySelector('[role=progressbar]').getAttribute('aria-valuenow')==='1');
  await page.screenshot({path:'output/playwright/card-glow-lab.png'});
  // Check theme mapping through the existing theme control.
- await page.locator('#lab app-header button').click();await light('#lab app-results-panel .card');
+ await page.locator('#lab app-header button').click();await light('#lab app-results-panel[data-result-view=chart] .card');
  await page.waitForFunction(()=>document.querySelector('.regression-card-glow')?.getAttribute('data-theme')==='light');
  await page.screenshot({path:'output/playwright/card-glow-light.png'});await page.locator('#lab app-header button').click();
  await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await wait('learning');await light('#learning .lesson');

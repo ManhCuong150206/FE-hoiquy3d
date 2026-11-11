@@ -1,40 +1,39 @@
-<section class="card">
-<details class="data-disclosure" [open]="!compact()">
-<summary>Thiết lập dữ liệu / CSV</summary>
-  <h3 class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg>DỮ LIỆU</h3>
-  <p class="sub">{{ store.dataSource() === 'csv' ? 'Đang dùng CSV: ' + store.csvName() : 'Dữ liệu tổng hợp (sinh theo seed)' }}</p>
-
-  <label for="synthetic-kind">Loại dữ liệu minh họa</label>
-  <select id="synthetic-kind" [value]="store.syntheticKind()" (change)="chooseScenario($event)">
-    @for (scenario of scenarios; track scenario.id) { <option [value]="scenario.id">{{ scenario.label }}</option> }
-  </select>
-  <p class="sub">Bấm REGENERATE để áp dụng. Đổi thuật toán giữ nguyên dữ liệu. Ridge nên dùng ≥ 2 đặc trưng; Lasso ≥ 3.</p>
-
-  <label for="feature-count">Số đặc trưng (≥ 3 chỉ hiện lát cắt 2 đặc trưng đầu)</label>
-  <select id="feature-count" aria-label="Số đặc trưng" (change)="store.featureCount.set(num($event))">
-    @for (v of [1, 2, 3, 4, 5]; track v) {
-    <option [value]="v" [selected]="v === store.featureCount()">{{ v }}</option>
-    }
-  </select>
-
-  <label for="sample-count">Số mẫu</label>
-  <input id="sample-count" type="number" min="50" max="10000" [value]="store.sampleCount()"
-    (change)="store.sampleCount.set(num($event))" />
-
-  <label for="noise">Noise: {{ store.noise() }}%</label>
-  <input id="noise" type="range" min="0" max="50" step="1" [style.--range-fill]="(store.noise() / 50 * 100) + '%'" [value]="store.noise()" (input)="store.noise.set(num($event))" />
-
-  <label for="train-ratio">Tỉ lệ train/test: {{ (store.trainRatio() * 100).toFixed(0) }}%</label>
-  <input id="train-ratio" type="range" min="10" max="90" step="10" [style.--range-fill]="((store.trainRatio() * 100 - 10) / 80 * 100) + '%'" [value]="store.trainRatio() * 100"
-    (input)="store.trainRatio.set(num($event) / 100)" />
-
-  <label for="seed">Seed</label>
-  <div class="row">
-    <input id="seed" type="number" [value]="store.seed()" (change)="store.seed.set(num($event))" />
-    <button (click)="shuffleSeed()">Xáo seed</button>
-  </div>
-
-  <button class="regen" (click)="store.generateData()">REGENERATE</button>
+<section>
   <app-csv-import />
-</details>
+  <details class="synthetic-options" [open]="store.dataSource() !== 'csv'">
+    <summary>Dữ liệu tổng hợp</summary>
+    <p class="sub">Thiết lập dữ liệu tổng hợp (sinh theo seed)</p>
+
+    <label for="synthetic-kind">Loại dữ liệu minh họa</label>
+    <select id="synthetic-kind" [value]="store.syntheticKind()" (change)="chooseScenario($event)">
+      @for (scenario of scenarios; track scenario.id) { <option [value]="scenario.id">{{ scenario.label }}</option> }
+    </select>
+    <p class="sub">Bấm REGENERATE để áp dụng. Đổi thuật toán giữ nguyên dữ liệu. Ridge nên dùng ≥ 2 đặc trưng; Lasso ≥ 3.</p>
+
+    <label for="feature-count">Số đặc trưng (≥ 3 chỉ hiện lát cắt 2 đặc trưng đầu)</label>
+    <select id="feature-count" aria-label="Số đặc trưng" (change)="store.featureCount.set(num($event))">
+      @for (v of [1, 2, 3, 4, 5]; track v) {
+      <option [value]="v" [selected]="v === store.featureCount()">{{ v }}</option>
+      }
+    </select>
+
+    <label for="sample-count">Số mẫu</label>
+    <input id="sample-count" type="number" min="50" max="10000" [value]="store.sampleCount()"
+      (change)="store.sampleCount.set(num($event))" />
+
+    <label for="noise">Noise: {{ store.noise() }}%</label>
+    <input id="noise" type="range" min="0" max="50" step="1" [style.--range-fill]="(store.noise() / 50 * 100) + '%'" [value]="store.noise()" (input)="store.noise.set(num($event))" />
+
+    <label for="train-ratio">Tỉ lệ train/test: {{ (store.trainRatio() * 100).toFixed(0) }}%</label>
+    <input id="train-ratio" type="range" min="10" max="90" step="10" [style.--range-fill]="((store.trainRatio() * 100 - 10) / 80 * 100) + '%'" [value]="store.trainRatio() * 100"
+      (input)="store.trainRatio.set(num($event) / 100)" />
+
+    <label for="seed">Seed</label>
+    <div class="row">
+      <input id="seed" type="number" [value]="store.seed()" (change)="store.seed.set(num($event))" />
+      <button (click)="shuffleSeed()">Xáo seed</button>
+    </div>
+
+    <button class="regen" (click)="store.generateData()">REGENERATE</button>
+  </details>
 </section>

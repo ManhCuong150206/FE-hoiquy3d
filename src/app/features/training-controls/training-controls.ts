@@ -1,13 +1,15 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { ALGORITHM_LABELS } from '../../core/models/experiment';
 import { LabStore } from '../../state/lab-store';
 
 @Component({
   selector: 'app-training-controls',
+  host: { '[attr.data-controls]': 'view()' },
   templateUrl: './training-controls.html',
   styleUrl: './training-controls.css',
 })
 export class TrainingControls {
+  readonly view = input<'run' | 'settings'>('run');
   store = inject(LabStore);
   readonly labels = ALGORITHM_LABELS;
   lrOptions = [0.0001, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1];

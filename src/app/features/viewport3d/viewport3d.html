@@ -18,7 +18,8 @@
 
     @if (lesson()) { <p class="lesson-illustration" role="status" [attr.data-view-phase]="shownPhase()">{{ lessonCaption() }} Xem lại không thay đổi model đã lưu.</p> }
     <div #host class="host"></div>
-    <details class="display-options" [open]="!lesson()">@if (lesson()) { <summary>Tùy chỉnh hiển thị và hướng dẫn</summary> }
+    <details class="display-options">
+    <summary>Tùy chỉnh hiển thị và hướng dẫn</summary>
     <div class="stick-controls">
         <label [attr.for]="idPrefix() + '-stick-epsilon'"><span class="slider-label">Ngưỡng dính ε <span class="value-pill">{{ (store.stickEpsilon() * 100).toFixed(0) }}% σ</span></span>
             <input [id]="idPrefix() + '-stick-epsilon'" type="range" min="0" max="100" step="1"

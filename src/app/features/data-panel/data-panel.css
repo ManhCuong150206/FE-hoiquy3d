@@ -5,4 +5,6 @@
 .row button { flex: 0 0 80px; }
 .regen { border-radius: var(--radius-control); box-shadow: var(--primary-glow); }
 
-.data-disclosure>summary{display:none}@media(max-width:700px){.data-disclosure>summary{display:list-item;cursor:pointer;font-weight:bold;padding:8px}.data-disclosure[open]>summary{margin-bottom:16px}}
+.synthetic-options { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.synthetic-options summary { cursor: pointer; }
+.synthetic-options[open] summary { margin-bottom: 8px; }

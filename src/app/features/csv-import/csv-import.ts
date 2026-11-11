@@ -1,7 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import {
     CsvTable, MissingStrategy, buildDataset, countMissing, numericColumns, parseCsv,
 } from '../../core/engine/csv';
+import type { DatasetProvenance } from '../../core/models/training-step';
 import { LabStore } from '../../state/lab-store';
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
@@ -21,6 +22,38 @@ export class CsvImport {
     missing = signal<MissingStrategy>('drop');
     standardize = signal(true);
     message = signal<{ kind: 'ok' | 'error'; text: string } | null>(null);
+
+    readonly dialogOpen = signal(false);
+    readonly draftPending = signal(false);
+    private readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('csvDialog');
+    private fileSelection = 0;
+    private readonly confirmedMetadata = signal<{ rows: number; columns: number; provenance?: DatasetProvenance } | null>(null);
+
+    readonly activeCsv = computed(() => {
+        if (this.store.dataSource() !== 'csv') return null;
+        const name = this.store.csvName();
+        if (!name) return null;
+
+        const provenance = this.store.provenance();
+        const metadata = this.confirmedMetadata();
+        const summary = metadata && metadata.provenance === provenance
+            ? `${metadata.rows} dòng · ${metadata.columns} cột`
+            : `${this.store.trainY().length + this.store.testY().length} mẫu đã nạp`;
+        return { name, summary: summary + (provenance?.target ? ` · Y: ${provenance.target}` : '') };
+    });
+
+    openSettings() {
+        const dialog = this.dialog()?.nativeElement;
+        if (!this.table() || !dialog?.isConnected || dialog.open) return;
+        dialog.querySelector('.csv-preview')?.removeAttribute('open');
+        dialog.showModal();
+        this.dialogOpen.set(true);
+    }
+
+    closeSettings() {
+        this.dialog()?.nativeElement.close();
+        this.dialogOpen.set(false);
+    }
 
     numeric = computed(() => {
         const t = this.table();
@@ -44,10 +77,11 @@ export class CsvImport {
         const input = e.target as HTMLInputElement;
         const file = input.files?.[0];
         if (!file) return;
+        const selection = ++this.fileSelection;
+        input.value = ''; // cho phép chọn lại cùng tệp
 
         if (file.size > MAX_FILE_BYTES) {
             this.rejectFile('Tệp quá lớn (tối đa 20 MB).');
-            input.value = '';
             return;
         }
 
@@ -55,11 +89,10 @@ export class CsvImport {
         try {
             table = parseCsv(await file.text());
         } catch {
-            this.rejectFile('Không đọc được tệp này.');
-            input.value = '';
+            if (selection === this.fileSelection) this.rejectFile('Không đọc được tệp này.');
             return;
         }
-        input.value = ''; // cho phép chọn lại đúng tệp đó lần sau
+        if (selection !== this.fileSelection) return;
 
         if (table.headers.length < 2 || table.rows.length === 0) {
             this.rejectFile('Tệp cần có dòng tiêu đề, ít nhất 2 cột và 1 dòng dữ liệu.');
@@ -76,15 +109,19 @@ export class CsvImport {
         this.yCol.set(numIdx[numIdx.length - 1]); // mặc định: cột số cuối là Y
         this.xCols.set(numIdx.slice(0, -1));
         this.message.set(null);
+        this.draftPending.set(true);
+        this.openSettings();
     }
 
     onY(e: Event) {
+        this.draftPending.set(true);
         const i = +(e.target as HTMLSelectElement).value;
         this.yCol.set(i);
         this.xCols.update((x) => x.filter((c) => c !== i));
     }
 
     onX(i: number, e: Event) {
+        this.draftPending.set(true);
         const on = (e.target as HTMLInputElement).checked;
         this.xCols.update((x) =>
             on ? [...x.filter((c) => c !== i), i].sort((a, b) => a - b) : x.filter((c) => c !== i),
@@ -92,10 +129,12 @@ export class CsvImport {
     }
 
     onMissing(e: Event) {
+        this.draftPending.set(true);
         this.missing.set((e.target as HTMLSelectElement).value as MissingStrategy);
     }
 
     onStandardize(e: Event) {
+        this.draftPending.set(true);
         this.standardize.set((e.target as HTMLInputElement).checked);
     }
 
@@ -120,10 +159,30 @@ export class CsvImport {
         if (res.filledCells) parts.push(`điền ${res.filledCells} ô`);
         let text = parts.join(', ') + '.';
         if (this.xCols().length > 2) text += ' Không gian 3D chỉ vẽ 2 đặc trưng đầu tiên.';
+        this.confirmedMetadata.set({ rows: t.rows.length, columns: t.headers.length, provenance: res.provenance });
+        this.draftPending.set(false);
         this.message.set({ kind: 'ok', text });
+        this.closeSettings();
+    }
+
+    removeCsv() {
+        const wasActive = this.store.dataSource() === 'csv';
+        this.fileSelection++;
+        this.table.set(null);
+        this.fileName.set('');
+        this.xCols.set([]);
+        this.yCol.set(-1);
+        this.missing.set('drop');
+        this.standardize.set(true);
+        this.draftPending.set(false);
+        this.confirmedMetadata.set(null);
+        if (wasActive) this.store.generateData();
+        this.message.set({ kind: 'ok', text: wasActive
+            ? 'Đã bỏ CSV. Đang dùng dữ liệu tổng hợp từ vòng lặp 0.'
+            : 'Đã bỏ tệp CSV khỏi phiên hiện tại.' });
     }
 
     private rejectFile(text: string) {
-        this.message.set({ kind: 'error', text: text + (this.table() ? ` Vẫn giữ tệp trước: “${this.fileName()}”. Bản xem trước và nút áp dụng bên dưới thuộc tệp này.` : '') });
+        this.message.set({ kind: 'error', text: text + (this.table() ? ` Vẫn giữ tệp trước: “${this.fileName()}”. Mở phần cấu hình để xem lại tệp này.` : '') });
     }
 }

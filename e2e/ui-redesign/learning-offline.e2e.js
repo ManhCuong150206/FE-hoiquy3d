@@ -3,6 +3,7 @@ async (page) => {
  await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:1440,height:1000});await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.getByLabel('Email',{exact:true}).fill('demo@example.com');await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');await page.locator('.auth-submit').click();await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();
  let stage='import';try {
  const check=(ok,message)=>{if(!ok)throw new Error(message);};
+ await page.getByRole('tab',{name:'Dữ liệu',exact:true}).click();
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');
  await page.locator('#csv-missing').selectOption('mean');
  await page.getByRole('button',{name:'Dùng dữ liệu này',exact:true}).click();

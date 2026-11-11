@@ -39,10 +39,10 @@ export class JourneyMotion {
     this.finish?.();
     const engine = this.engine;
     const veil = this.host.querySelector<HTMLElement>('.scene-wipe');
-    const labPanels = () => Array.from(target.querySelectorAll<HTMLElement>('.workspace > app-viewport3d, app-training-controls, .workspace > app-experiments-panel, .workspace > app-data-panel, .workspace > app-results-panel, .lab-heading, app-header, .lesson-entry, .lab-footer'));
+    const labPanels = () => Array.from(target.querySelectorAll<HTMLElement>('.lab-scene > *, .lab-sidebar > *, .lab-overview, .workspace > app-experiments-panel, .lab-heading, app-header'));
     let arrivalItems: HTMLElement[] = [];
     let outgoingItems: Element[] = [];
-    const panels = () => Array.from(target.querySelectorAll<HTMLElement>('.welcome-grid > *, .algorithm-copy, .sphere-container, .algorithm-cards, .lab-heading, app-training-controls, .workspace > *, .learning-workspace > *, app-algorithm-notes'));
+    const panels = () => Array.from(target.querySelectorAll<HTMLElement>('.welcome-grid > *, .algorithm-copy, .sphere-container, .algorithm-cards, .lab-heading, .lab-scene > *, .lab-sidebar > *, .workspace > :not(.lab-scene, .lab-sidebar), .learning-workspace > *, app-algorithm-notes'));
     let swapped = false;
     const change = () => {
       if (swapped) return; swapped = true;
@@ -108,7 +108,7 @@ export class JourneyMotion {
         const t=engine.timeline({onComplete:()=>{if(!reverse)closePlanetCinema();finish();}});this.timeline=t;
         if(reverse){
           if(from){
-            const outgoing=Array.from(from.querySelectorAll('.workspace > *, app-training-controls'));outgoingItems=outgoing;
+            const outgoing=Array.from(from.querySelectorAll('.lab-scene > *, .lab-sidebar > *, .workspace > :not(.lab-scene, .lab-sidebar)'));outgoingItems=outgoing;
             t.to(outgoing,{opacity:0,scale:.985,y:6,duration:.26,ease:'power2.in'},0);
             t.to(from,{opacity:0,duration:.4},0);
             t.call(()=>engine.set(outgoing,{clearProps:'transform,opacity'}),[],.4);
@@ -125,7 +125,7 @@ export class JourneyMotion {
           // Explicit order: 3D first, controls next, then supporting panels and chrome.
           // A single small overshoot avoids elastic wobble of text and data.
           arrivalItems.sort((a,b)=>{
-            const rank=(el:HTMLElement)=>el.matches('app-viewport3d')?0:el.matches('app-training-controls')?1:el.matches('app-experiments-panel')?2:el.matches('app-data-panel')?3:el.matches('app-results-panel')?4:5;
+            const rank=(el:HTMLElement)=>el.matches('app-viewport3d')?0:el.matches('app-training-controls')?1:el.matches('app-experiments-panel')?2:el.matches('.lab-setup')?3:el.matches('app-results-panel')?4:5;
             return rank(a)-rank(b);
           });
           arrivalItems.forEach((item,index)=>{

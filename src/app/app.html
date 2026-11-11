@@ -16,33 +16,68 @@
   @if (opened()) {
   <section id="lab" [hidden]="activeScreen() !== 'lab'" data-screen class="lab-section" aria-labelledby="lab-title"
     [attr.data-algorithm]="lab.algorithm()">
-    <div class="lab-heading" data-motion>
-      <div>
-        <p class="eyebrow">03 / PHÒNG THỰC NGHIỆM</p>
-        <h2 id="lab-title" tabindex="-1">{{ labels[lab.algorithm()] }} <span>Regression Lab</span></h2>
-      </div><button class="change-algorithm" [disabled]="pageBusy()" (click)="navigate('algorithms')">← Đổi thuật
-        toán</button>
-    </div>
     @defer (when opened()) {
     <app-header />
-    <div class="lesson-entry">
-      <div><p>Muốn hiểu mô hình đã học như thế nào?</p><small>Bấm để mở trang học · chỉ các nút
-        học mới thực hiện tính toán.</small></div>
-      <button class="primary" [disabled]="pageBusy()"
-        (click)="navigate('learning', true)">Học từng bước và ghi chú →</button>
-    </div>
-    <app-training-controls data-motion />
-    <main class="workspace"><app-experiments-panel data-motion data-tilt /><app-data-panel data-motion /><app-viewport3d
-        data-motion idPrefix="experiment" [active]="activeScreen() === 'lab'"
-        [lowQuality]="lowEffects()" /><app-results-panel data-motion data-tilt /></main>
     }
-    <footer class="lab-footer"><span>HỒI QUY 3D · THỬ, QUAN SÁT, THẤU HIỂU.</span></footer>
+    <div class="lab-heading" data-motion>
+      <h2 id="lab-title" tabindex="-1">Thực nghiệm hồi quy 3D <span>{{ labels[lab.algorithm()] }}</span></h2>
+      <div class="lab-navigation">
+        <div class="lesson-entry">
+          <button class="primary" [disabled]="pageBusy()" (click)="navigate('learning', true)">Học từng bước và ghi chú →</button>
+        </div>
+        <button class="change-algorithm" [disabled]="pageBusy()" (click)="navigate('algorithms')">← Đổi thuật toán</button>
+      </div>
+    </div>
+    @defer (when opened()) {
+    <main class="workspace">
+      <section class="lab-overview card" aria-label="Chỉ số tổng quan">
+        <div class="metric-cell train-metric"><span>Train MSE</span><strong>{{ lab.latest()?.trainLoss?.toFixed(3) ?? '—' }}</strong></div>
+        <div class="metric-cell test-metric"><span>Test MSE</span><strong>{{ lab.latest()?.testLoss?.toFixed(3) ?? '—' }}</strong></div>
+        <div class="metric-cell"><span>Test R²</span>
+          @let r2 = lab.metrics()?.test?.r2;
+          <strong>{{ r2 === undefined ? '—' : finite(r2) ? r2.toFixed(3) : 'Không xác định' }}</strong>
+        </div>
+        <div class="metric-cell iteration-group"><span>Vòng lặp</span>
+          <div class="iter"><strong>{{ lab.iteration() }}</strong> / {{ lab.maxIterations() }}</div>
+          <div class="lab-progress" role="progressbar" aria-label="Tiến trình huấn luyện"
+            aria-valuemin="0" [attr.aria-valuenow]="lab.iteration()" [attr.aria-valuemax]="lab.maxIterations()">
+            <span [style.width.%]="lab.iteration() / lab.maxIterations() * 100"></span>
+          </div>
+        </div>
+      </section>
+      <div class="lab-scene">
+        <app-viewport3d data-motion idPrefix="experiment" [active]="activeScreen() === 'lab'" [lowQuality]="lowEffects()" />
+        <app-training-controls view="run" data-motion />
+        <app-results-panel view="chart" data-motion data-tilt />
+      </div>
+      <div class="lab-sidebar">
+        <aside class="lab-setup card" aria-labelledby="lab-setup-title">
+          <h3 class="card-title" id="lab-setup-title">Thiết lập</h3>
+          <div class="lab-tabs" role="tablist" aria-label="Nhóm thiết lập" (keydown)="onSettingsKeydown($event)">
+            <button type="button" id="lab-tab-model" role="tab" aria-controls="lab-settings-model"
+              [attr.aria-selected]="labSettings() === 'model'" [attr.tabindex]="labSettings() === 'model' ? 0 : -1"
+              (click)="labSettings.set('model')">Mô hình</button>
+            <button type="button" id="lab-tab-data" role="tab" aria-controls="lab-settings-data"
+              [attr.aria-selected]="labSettings() === 'data'" [attr.tabindex]="labSettings() === 'data' ? 0 : -1"
+              (click)="labSettings.set('data')">Dữ liệu</button>
+          </div>
+          <div id="lab-settings-model" role="tabpanel" aria-labelledby="lab-tab-model" [hidden]="labSettings() !== 'model'">
+            <app-training-controls view="settings" />
+          </div>
+          <div id="lab-settings-data" role="tabpanel" aria-labelledby="lab-tab-data" [hidden]="labSettings() !== 'data'">
+            <app-data-panel data-motion />
+          </div>
+        </aside>
+        <app-results-panel view="details" data-motion data-tilt />
+      </div>
+      <app-experiments-panel data-motion data-tilt />
+    </main>
+    }
   </section>
   <section id="learning" [hidden]="activeScreen() !== 'learning'" data-screen class="learning-section"
     [attr.data-algorithm]="lab.algorithm()" aria-labelledby="learning-title">
     <div class="lab-heading" data-motion>
       <div>
-        <p class="eyebrow">04 / HIỂU TỪNG BƯỚC</p>
         <h2 id="learning-title">{{ labels[lab.algorithm()] }} <span>Học cùng mô hình 3D</span></h2>
         <p class="learning-hint">Cuộn để đọc. Bấm nút trong phần giải thích để thực hiện các pha học.</p>
       </div><button [disabled]="pageBusy()" (click)="navigate('lab', true)">↑ Về thực nghiệm</button>
@@ -54,8 +89,10 @@
         [active]="activeScreen() === 'learning'" /></div>
     <app-algorithm-notes id="learning-notes" tabindex="-1" data-motion />
     }
-    <footer class="lab-footer"><span>CÙNG DỮ LIỆU · CÙNG MÔ HÌNH · CÙNG ITERATION {{ lab.iteration() }}</span><button
-        [disabled]="pageBusy()" (click)="navigate('algorithms')">Khám phá thuật toán khác ↗</button></footer>
+    <footer class="lab-footer">
+      <button
+        [disabled]="pageBusy()" (click)="navigate('algorithms')">Khám phá thuật toán khác ↗</button>
+    </footer>
   </section>
   }
   <dialog #confirmDialog class="change-dialog glass" aria-labelledby="change-title" (cancel)="pending.set(null)">

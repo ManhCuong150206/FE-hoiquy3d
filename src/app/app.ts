@@ -25,6 +25,8 @@ import { LabStore } from './state/lab-store';
 })
 export class App {
   readonly lab = inject(LabStore);
+  readonly finite = Number.isFinite;
+  readonly labSettings = signal<'model' | 'data'>('model');
   private readonly auth = inject(AuthSession);
   readonly authError = this.auth.error;
   private sessionScope = this.auth.scope();
@@ -53,6 +55,15 @@ export class App {
     });
     inject(DestroyRef).onDestroy(() => { this.destroyed = true; this.picker()?.restoreFlight(); });
   }
+  onSettingsKeydown(event: KeyboardEvent) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === 'Home' ? 'model' : event.key === 'End' ? 'data'
+      : this.labSettings() === 'model' ? 'data' : 'model';
+    this.labSettings.set(next);
+    (event.currentTarget as HTMLElement).querySelector<HTMLButtonElement>('#lab-tab-' + next)?.focus();
+  }
+
   enterGuest() { void this.welcome()?.guest(); }
   enterAlgorithms() {
     // Handle the new identity before starting the transition. Otherwise the

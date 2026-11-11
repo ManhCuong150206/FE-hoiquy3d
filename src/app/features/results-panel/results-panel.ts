@@ -1,13 +1,15 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { polynomialTermNames } from '../../core/engine/polynomial';
 import { LabStore } from '../../state/lab-store';
 
 @Component({
   selector: 'app-results-panel',
+  host: { '[attr.data-result-view]': 'view()' },
   templateUrl: './results-panel.html',
   styleUrl: './results-panel.css',
 })
 export class ResultsPanel {
+  readonly view = input<'chart' | 'details'>('details');
   store = inject(LabStore);
   finite = Number.isFinite;
   formatMetric(value: number) { return Number.isFinite(value) ? value.toFixed(3) : 'Không xác định'; }

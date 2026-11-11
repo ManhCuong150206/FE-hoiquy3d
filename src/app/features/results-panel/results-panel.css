@@ -1,29 +1,3 @@
-.losses {
-    display: flex;
-    gap: 8px;
-}
-
-.box {
-    flex: 1;
-    background: var(--metric-bg);
-    border-radius: var(--radius-control);
-    padding: 10px;
-}
-
-.box span {
-    display: block;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.box strong {
-    font-size: 30px;
-}
-
-.muted {
-    color: var(--muted);
-}
-
 h4 {
     margin: 16px 0 6px;
     font-size: 14px;
@@ -64,9 +38,6 @@ td:first-child {
     margin: 2px 0;
     word-break: break-word;
 }
-.box { min-width: 0; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-.box strong { display: block; font-weight: 800; letter-spacing: -.04em; overflow-wrap: anywhere; }
-.box:first-child strong { color: var(--accent); }
 .chart { border: 1px solid var(--border); border-radius: var(--radius-control); padding: 6px; }
 .legend { margin-top: 8px; line-height: 1.5; }
 .series { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
@@ -81,4 +52,10 @@ td.good { color: var(--ok-fg); background: var(--ok-bg); font-weight: 700; }
 
 .coefficient-list{max-height:220px;overflow:auto}.coefficient-row{margin:8px 0;overflow-wrap:anywhere}.coefficient-track{height:5px;background:var(--border);border-radius:4px}.coefficient-track span{display:block;height:100%;background:var(--algorithm-accent);border-radius:4px}.zero-coefficient{opacity:.75}
 
-.axis-label{fill:var(--text);font-size:12px;text-shadow:none}.chart{height:auto;aspect-ratio:360/140}
+.axis-label{fill:var(--text);font-size:12px;text-shadow:none}
+
+:host { display: block; min-width: 0; }
+.chart { display: block; height: clamp(145px, 15vw, 215px); margin-top: 8px; }
+.plot-lines { width: calc(100% - 65px); overflow: visible; }
+.model-details { margin-top: 12px; }
+.model-details > summary { cursor: pointer; }
