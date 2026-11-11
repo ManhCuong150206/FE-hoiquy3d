@@ -1,0 +1,17 @@
+{
+  "suite": "learning-offline",
+  "setup": "authenticated member in lab, matching previous suite dependency",
+  "status": "PASS",
+  "result": {
+    "suite": "learning/offline",
+    "passed": [
+      "CSV upload and mean imputation",
+      "six phases A-F",
+      "no model commit during A-E",
+      "one commit at F",
+      "offline IndexedDB save",
+      "online sync UI with mocked API (not MongoDB integration)",
+      "stop"
+    ]
+  }
+}

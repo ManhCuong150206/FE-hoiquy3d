@@ -1,0 +1,226 @@
+[
+  {
+    "suite": "pearl-transition",
+    "status": "PASS",
+    "result": {
+      "passed": true,
+      "cinemaFrames": 347,
+      "colors": [
+        "rgba(244, 246, 250, 0)",
+        "rgba(244, 246, 250, 0.01)",
+        "rgba(244, 246, 250, 0.027)",
+        "rgba(244, 246, 250, 0.04)",
+        "rgba(244, 246, 250, 0.114)"
+      ],
+      "directions": [
+        "enter",
+        "return"
+      ]
+    },
+    "errors": []
+  },
+  {
+    "suite": "pearl-theme",
+    "status": "PASS",
+    "result": {
+      "suite": "pearl-theme",
+      "passed": [
+        "1400ms wave",
+        "planet colors",
+        "guest memory",
+        "login retains theme",
+        "member persists",
+        "lab and learning retain theme",
+        "logout resets Guest",
+        "reduced motion",
+        "Guest reload dark"
+      ]
+    },
+    "errors": []
+  },
+  {
+    "suite": "auth-session",
+    "status": "PASS",
+    "result": {
+      "suite": "auth-session",
+      "passed": [
+        "registration requires subsequent login",
+        "credentials clear",
+        "login navigation",
+        "authenticated save and sync",
+        "auth/me restores session",
+        "no stored identity",
+        "logout keeps algorithms visible"
+      ]
+    },
+    "errors": []
+  },
+  {
+    "suite": "guest-memory",
+    "status": "PASS",
+    "result": {
+      "suite": "guest-memory",
+      "passed": [
+        "offline Guest entry",
+        "training works",
+        "save and sync disabled",
+        "zero IndexedDB/localStorage writes",
+        "zero API calls on reconnect",
+        "Guest opens login offline"
+      ]
+    },
+    "errors": []
+  },
+  {
+    "suite": "entry",
+    "status": "PASS",
+    "result": {
+      "suite": "entry",
+      "passed": [
+        "dark default",
+        "lab deferred",
+        "invalid form blocked",
+        "registration UI",
+        "credentials cleared after auth request",
+        "button page navigation",
+        "sphere WebGL"
+      ],
+      "performance": {
+        "renderedFps": 60.5,
+        "p95CpuSubmissionMs": 4.9
+      }
+    },
+    "errors": []
+  },
+  {
+    "suite": "entry-validation",
+    "status": "FAIL",
+    "error": "Dark input keeps silver readable",
+    "errors": []
+  },
+  {
+    "suite": "lab",
+    "status": "PASS",
+    "result": {
+      "suite": "lab",
+      "passed": [
+        "all four algorithms",
+        "step and reset",
+        "finite metrics",
+        "play and pause",
+        "back navigation",
+        "cancel change preserves state",
+        "confirm change applies selection"
+      ]
+    },
+    "errors": []
+  },
+  {
+    "suite": "learning-offline",
+    "status": "FAIL",
+    "error": "Learning stage import: locator.setInputFiles: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('app-csv-import input[type=file]')\u001b[22m\n {\"y\":0}",
+    "errors": []
+  },
+  {
+    "suite": "lesson-restart",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.guest-button')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"guest-button\" _ngcontent-ng-c3586893822=\"\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    36 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "page-modes",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.guest-button')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"guest-button\" _ngcontent-ng-c3586893822=\"\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    34 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "mobile-fallback",
+    "status": "FAIL",
+    "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('heading', { name: 'Đăng nhập' }) to be visible\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "sphere",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Tham gia với tư cách Guest', exact: true })\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "motion",
+    "status": "FAIL",
+    "error": "Wheel must not change pages",
+    "errors": []
+  },
+  {
+    "suite": "slides",
+    "status": "FAIL",
+    "error": "locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Email', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input required=\"\" name=\"email\" type=\"email\" id=\"entry-email\" autocomplete=\"email\" _ngcontent-ng-c1299597625=\"\" placeholder=\"ban@example.com\"/>\u001b[22m\n\u001b[2m    - fill(\"demo@example.com\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "neon",
+    "status": "FAIL",
+    "error": "Times New Roman neon heading",
+    "errors": []
+  },
+  {
+    "suite": "navigation-layout",
+    "status": "FAIL",
+    "error": "locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Email', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input required=\"\" name=\"email\" type=\"email\" id=\"entry-email\" autocomplete=\"email\" _ngcontent-ng-c1299597625=\"\" placeholder=\"ban@example.com\"/>\u001b[22m\n\u001b[2m    - fill(\"guest@example.com\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    27 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "learning-route",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.guest-button')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"guest-button\" _ngcontent-ng-c3586893822=\"\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    35 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "smooth-learning",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.guest-button')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"guest-button\" _ngcontent-ng-c3586893822=\"\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    36 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "card-glow",
+    "status": "FAIL",
+    "error": "locator.scrollIntoViewIfNeeded: Timeout 19876.962ms exceeded.\nCall log:\n\u001b[2m  - attempting scroll into view action\u001b[22m\n\u001b[2m    2 × waiting for element to be stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying scroll into view action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying scroll into view action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    35 × waiting for element to be stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying scroll into view action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "shared-planet",
+    "status": "FAIL",
+    "error": "locator.waitFor: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#welcome-planet-slot app-algorithm-sphere canvas') to be visible\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "lab-arrival",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.guest-button')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"guest-button\" _ngcontent-ng-c3586893822=\"\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    44 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "planet",
+    "status": "FAIL",
+    "error": "Exact full project title",
+    "errors": []
+  },
+  {
+    "suite": "algorithm-flight",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.guest-button')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"guest-button\" _ngcontent-ng-c3586893822=\"\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    34 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "model-integrity",
+    "status": "FAIL",
+    "error": "locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.guest-button')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"guest-button\" _ngcontent-ng-c3586893822=\"\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    45 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+    "errors": []
+  },
+  {
+    "suite": "login-motion",
+    "status": "FAIL",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4301/\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4301/\", waiting until \"load\"\u001b[22m\n",
+    "errors": []
+  }
+]

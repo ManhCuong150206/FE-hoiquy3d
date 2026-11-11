@@ -1,0 +1,11 @@
+[
+  {
+    "case": "121-character name correctly rejected",
+    "pass": true
+  },
+  {
+    "case": "Conflict server",
+    "pass": false,
+    "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('app-experiments-panel [role=alert]') to be visible\u001b[22m\n"
+  }
+]

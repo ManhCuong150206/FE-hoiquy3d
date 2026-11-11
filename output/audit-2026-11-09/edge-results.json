@@ -1,0 +1,31 @@
+[
+  {
+    "case": "long name",
+    "error": "locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Lưu', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" class=\"primary\" _ngcontent-ng-c2527732791=\"\">Lưu</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    25 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n"
+  },
+  {
+    "case": "empty login mobile",
+    "errors": 2,
+    "focused": "entry-email"
+  },
+  {
+    "case": "empty registration mobile",
+    "errors": 0
+  },
+  {
+    "case": "invalid email/password",
+    "summary": "! 2 mục cần kiểm tra\nEmail: Email chưa đúng định dạng, ví dụ ban@example.com.\nMật khẩu: Mật khẩu cần ít nhất 8 ký tự."
+  },
+  {
+    "case": "password reveal",
+    "type": "text"
+  },
+  {
+    "case": "light login mobile",
+    "noOverflow": false
+  },
+  {
+    "case": "WebGL disabled fallback keyboard and training",
+    "alert": "Trình duyệt không tạo được WebGL. Số liệu vẫn dùng được; hãy bật tăng tốc đồ họa để xem 3D."
+  }
+]

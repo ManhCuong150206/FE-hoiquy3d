@@ -1,0 +1,173 @@
+{
+  "stage": "completed",
+  "results": [
+    {
+      "name": "Wrong credentials rejected",
+      "pass": true
+    },
+    {
+      "name": "Registration requires explicit login",
+      "pass": true
+    },
+    {
+      "name": "Password cleared",
+      "pass": true
+    },
+    {
+      "name": "CSV import mean strategy and training step",
+      "pass": true
+    },
+    {
+      "name": "Saved experiment exists in real BE",
+      "pass": true
+    },
+    {
+      "name": "Exact weights CSV and metrics round trip",
+      "pass": true
+    },
+    {
+      "name": "Export JSON downloads",
+      "pass": true
+    },
+    {
+      "name": "Export CSV downloads",
+      "pass": true
+    },
+    {
+      "name": "Auth restore and remote CSV/model restore after local record loss",
+      "pass": true
+    },
+    {
+      "name": "Compare two runs table",
+      "pass": true
+    },
+    {
+      "name": "Second device update via BE",
+      "pass": true
+    },
+    {
+      "name": "Pull remote update",
+      "pass": true
+    },
+    {
+      "name": "Offline delete syncs tombstone",
+      "pass": true
+    },
+    {
+      "name": "Separate account cannot see test account data",
+      "pass": true
+    },
+    {
+      "name": "Logout revokes backend session",
+      "pass": true
+    }
+  ],
+  "network": [
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sync/changes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/sync/batch",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sync/changes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sync/changes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/sync/batch",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sync/changes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sync/changes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/sync/batch",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/sync/changes",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "status": 200
+    }
+  ],
+  "errors": []
+}

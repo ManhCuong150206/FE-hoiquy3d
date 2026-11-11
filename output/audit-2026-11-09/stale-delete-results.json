@@ -1,0 +1,30 @@
+{
+  "initial": {
+    "operationId": "ee0b8c4d-a6f3-41fa-bc1d-0a79c1444312",
+    "idempotencyKey": "ee0b8c4d-a6f3-41fa-bc1d-0a79c1444312",
+    "entityType": "experiment",
+    "entityClientId": "4e8a2041-1160-40da-99bd-ce05d8f5b502",
+    "status": "applied",
+    "serverVersion": 1
+  },
+  "remote": {
+    "status": 200,
+    "version": 2,
+    "name": "Remote edit to preserve"
+  },
+  "deleteResponse": {
+    "operationId": "8d9c254d-6cb9-4625-883e-daf3f40597c8",
+    "idempotencyKey": "8d9c254d-6cb9-4625-883e-daf3f40597c8",
+    "entityType": "experiment",
+    "entityClientId": "4e8a2041-1160-40da-99bd-ce05d8f5b502",
+    "status": "applied",
+    "serverVersion": 3
+  },
+  "final": [
+    {
+      "name": "Remote edit to preserve",
+      "version": 3,
+      "deletedAt": "2026-11-09T17:08:38.720Z"
+    }
+  ]
+}

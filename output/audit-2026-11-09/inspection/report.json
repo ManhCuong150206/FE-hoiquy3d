@@ -1,0 +1,1668 @@
+{
+ "url": "http://127.0.0.1:4300",
+ "at": "2026-11-09T16:55:00.246Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.95,
+    1
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 956,
+     "screens": 1.1,
+     "words": 175,
+     "img": 0,
+     "video": 0,
+     "canvas": 2,
+     "svg": 2,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [
+      "☀",
+      "✦"
+     ],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "một khả năng.",
+     "words": 3,
+     "chars": 13,
+     "lines": 1,
+     "size": 72,
+     "vw": 5,
+     "font": "Geist",
+     "weight": 650,
+     "tracking": -0.05,
+     "leading": 1.02,
+     "top": 351,
+     "tag": "span",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "Mỗi dữ liệu, một khả năng.",
+      "words": 6,
+      "chars": 26,
+      "lines": 2,
+      "size": 72.1,
+      "vw": 5,
+      "font": "Geist",
+      "weight": 650,
+      "tracking": -0.052,
+      "leading": 1.02,
+      "upper": false,
+      "italic": true,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.36,
+      "top": 282,
+      "mixedFonts": [
+       "Geist",
+       "Geist italic"
+      ],
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 1
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Geist",
+       "share": 0.64,
+       "mono": false
+      },
+      {
+       "family": "Times New Roman",
+       "share": 0.36,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      7,
+      8,
+      9,
+      11,
+      12,
+      15,
+      16,
+      17,
+      18,
+      20,
+      23,
+      68,
+      72
+     ],
+     "sizeCount": 13,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 72.1,
+      "vw": 5,
+      "font": "Geist",
+      "text": "một khả năng."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 2,
+     "microLabelShare": 0.045,
+     "microSamples": [
+      "EXPLORE THE SURFACE",
+      "CHỌN ĐỂ BẮT ĐẦU"
+     ],
+     "upperShare": 0.05,
+     "centerShare": 0.02,
+     "smallText": 19
+    },
+    "eyebrows": [],
+    "numbered": [
+     {
+      "text": "01 / Linear REGRESSION",
+      "size": 9,
+      "top": 610
+     },
+     {
+      "text": "02 / Polynomial REGRESSION",
+      "size": 9,
+      "top": 615
+     },
+     {
+      "text": "03 / Ridge REGRESSION",
+      "size": 9,
+      "top": 615
+     },
+     {
+      "text": "04 / Lasso REGRESSION",
+      "size": 9,
+      "top": 615
+     }
+    ],
+    "color": {
+     "bodyBg": "#07090e",
+     "bodyBgHsl": {
+      "h": 223,
+      "s": 0.33,
+      "l": 0.04
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#02040b",
+       "top": 0,
+       "hsl": {
+        "h": 227,
+        "s": 0.69,
+        "l": 0.03
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#aab6c9",
+       "share": 0.35
+      },
+      {
+       "color": "#bec9da",
+       "share": 0.27
+      },
+      {
+       "color": "#d7e0ee",
+       "share": 0.19
+      },
+      {
+       "color": "#f4f7ff",
+       "share": 0.11
+      },
+      {
+       "color": "#ffd166",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#10141d",
+      "hsl": {
+       "h": 222,
+       "s": 0.29,
+       "l": 0.09
+      },
+      "fg": "#f4f7ff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 3,
+     "radius": 18,
+     "height": 44,
+     "withShadow": 2,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Tiếp tục với tư cách Guest",
+      "☀ Sáng",
+      "Đăng nhập"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 6,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "button.theme-toggle → rgba(255, 255, 255, 0.48) 0px 1px 2px 0px inset, rgba(141, 221, 255, 0.047) 0px ",
+      "button.login-button → rgba(255, 255, 255, 0.48) 0px 1px 2px 0px inset, rgba(141, 221, 255, 0.047) 0px ",
+      "button.algorithm-card.highlighted → rgba(255, 255, 255, 0.11) 0px 1px 0px 0px inset, color(srgb 0.85098 0.815686 0.7",
+      "button.algorithm-card → rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.18) 0px 14px 32"
+     ],
+     "gradients": 2,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.starfield-base → radial-gradient(at 20% 25%, rgba(24, 62, 107, 0.14), rgba(0, 0, 0, 0) 55%), radial-gradient(at 80% 70%, rgba(5",
+      "section#algorithms.journey-section.algorithm-section → radial-gradient(at 67% 38%, rgba(68, 41, 91, 0.094), rgba(0, 0, 0, 0) 46%)"
+     ],
+     "gradientText": 0,
+     "hairlines": 1,
+     "hairlineSamples": [
+      "div.section-heading 1281px"
+     ],
+     "outlinedBoxes": 4,
+     "dashed": 0,
+     "blurred": 6,
+     "roundedBoxes": 4,
+     "boxRadius": 18,
+     "squareMedia": 2,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 37,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 596
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "canvas",
+      "ratio": 0.99
+     },
+     {
+      "type": "canvas",
+      "ratio": 0.26
+     }
+    ],
+    "nav": null,
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 956,
+    "margins": {
+     "left": 72,
+     "right": 87
+    },
+    "sections": [
+     {
+      "sel": "div.algorithm-stage",
+      "tag": "div",
+      "top": 171,
+      "height": 430,
+      "words": 35,
+      "media": 1,
+      "middle": 70,
+      "heading": {
+       "text": "một khả năng.",
+       "size": 72,
+       "tag": "h2"
+      },
+      "left": 72,
+      "right": 87,
+      "textLeft": 72,
+      "textRight": 87,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.algorithm-cards",
+      "tag": "div",
+      "top": 601,
+      "height": 201,
+      "words": 113,
+      "media": 0,
+      "middle": 75,
+      "heading": {
+       "text": "Linear",
+       "size": 23,
+       "tag": "strong"
+      },
+      "left": 92,
+      "right": 87,
+      "textLeft": 92,
+      "textRight": 125,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [
+     {
+      "text": "Không khôi phục được phiên. Bạn vẫn có thể dùng Gu",
+      "side": "left",
+      "px": 0
+     }
+    ],
+    "edges": [
+     {
+      "x": 72,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 2,
+    "bodySize": 12,
+    "stage": true,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": true,
+    "ground": "#07090e",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 0,
+     "right": 15
+    },
+    "hero": {
+     "text": "một khả năng.",
+     "words": 3,
+     "chars": 13,
+     "lines": 1,
+     "size": 72,
+     "vw": 5,
+     "font": "Geist",
+     "weight": 650,
+     "tracking": -0.05,
+     "leading": 1.02,
+     "top": 351,
+     "tag": "span",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 4,
+     "firstScreen": 4,
+     "ragged": [],
+     "voids": [
+      {
+       "gap": 65,
+       "at": 694,
+       "panel": "01 / Linear REGRESSION"
+      },
+      {
+       "gap": 65,
+       "at": 699,
+       "panel": "04 / Lasso REGRESSION"
+      }
+     ]
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 4,
+     "radii": [
+      [
+       18,
+       4
+      ]
+     ],
+     "heavyBorders": 4,
+     "borderSamples": [
+      "#dad0b8 on #07090e (12.99:1)",
+      "#bed2f0 on #07090e (12.96:1)",
+      "#bed2f0 on #07090e (12.96:1)"
+     ],
+     "heavyShadows": 1,
+     "softShadows": 4,
+     "shadowSamples": [
+      "color(srgb 0.85098 0.815686 0.721569 / 0.13) 0px 0px 20px 0px"
+     ],
+     "glass": 4
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.6,
+     "tiny": 23,
+     "tinySamples": [
+      "LEARN 9px",
+      "EXPERIMENT 9px",
+      "VISUALIZE 9px",
+      "hoặc khám phá ngay 9px"
+     ],
+     "sizes": [
+      7,
+      8,
+      9,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      22,
+      23,
+      25,
+      54,
+      60,
+      68,
+      72
+     ]
+    },
+    "title": null,
+    "colourShare": 0.009
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.97,
+    1
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1080,
+     "screens": 1.1,
+     "words": 175,
+     "img": 0,
+     "video": 0,
+     "canvas": 2,
+     "svg": 2,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [
+      "☀",
+      "✦"
+     ],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "một khả năng.",
+     "words": 3,
+     "chars": 13,
+     "lines": 2,
+     "size": 57,
+     "vw": 7.5,
+     "font": "Geist",
+     "weight": 650,
+     "tracking": -0.05,
+     "leading": 1.02,
+     "top": 311,
+     "tag": "span",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "Mỗi dữ liệu, một khả năng.",
+      "words": 6,
+      "chars": 26,
+      "lines": 3,
+      "size": 57.2,
+      "vw": 7.4,
+      "font": "Geist",
+      "weight": 650,
+      "tracking": -0.052,
+      "leading": 1.02,
+      "upper": false,
+      "italic": true,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.35,
+      "top": 256,
+      "mixedFonts": [
+       "Geist",
+       "Geist italic"
+      ],
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 3,
+     "over2Lines": 1,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 1
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Geist",
+       "share": 0.64,
+       "mono": false
+      },
+      {
+       "family": "Times New Roman",
+       "share": 0.36,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      7,
+      8,
+      9,
+      11,
+      12,
+      15,
+      16,
+      17,
+      18,
+      20,
+      23,
+      54,
+      57
+     ],
+     "sizeCount": 13,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 57.2,
+      "vw": 7.4,
+      "font": "Geist",
+      "text": "một khả năng."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 2,
+     "microLabelShare": 0.045,
+     "microSamples": [
+      "EXPLORE THE SURFACE",
+      "CHỌN ĐỂ BẮT ĐẦU"
+     ],
+     "upperShare": 0.05,
+     "centerShare": 0.02,
+     "smallText": 19
+    },
+    "eyebrows": [],
+    "numbered": [
+     {
+      "text": "01 / Linear REGRESSION",
+      "size": 9,
+      "top": 610
+     },
+     {
+      "text": "02 / Polynomial REGRESSION",
+      "size": 9,
+      "top": 615
+     },
+     {
+      "text": "03 / Ridge REGRESSION",
+      "size": 9,
+      "top": 831
+     },
+     {
+      "text": "04 / Lasso REGRESSION",
+      "size": 9,
+      "top": 831
+     }
+    ],
+    "color": {
+     "bodyBg": "#07090e",
+     "bodyBgHsl": {
+      "h": 223,
+      "s": 0.33,
+      "l": 0.04
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#02040b",
+       "top": 0,
+       "hsl": {
+        "h": 227,
+        "s": 0.69,
+        "l": 0.03
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#aab6c9",
+       "share": 0.35
+      },
+      {
+       "color": "#bec9da",
+       "share": 0.27
+      },
+      {
+       "color": "#d7e0ee",
+       "share": 0.19
+      },
+      {
+       "color": "#f4f7ff",
+       "share": 0.11
+      },
+      {
+       "color": "#ffd166",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#10141d",
+      "hsl": {
+       "h": 222,
+       "s": 0.29,
+       "l": 0.09
+      },
+      "fg": "#f4f7ff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 3,
+     "radius": 18,
+     "height": 44,
+     "withShadow": 2,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Tiếp tục với tư cách Guest",
+      "☀ Sáng",
+      "Đăng nhập"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 6,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "button.theme-toggle → rgba(255, 255, 255, 0.48) 0px 1px 2px 0px inset, rgba(141, 221, 255, 0.047) 0px ",
+      "button.login-button → rgba(255, 255, 255, 0.48) 0px 1px 2px 0px inset, rgba(141, 221, 255, 0.047) 0px ",
+      "button.algorithm-card.highlighted → rgba(255, 255, 255, 0.11) 0px 1px 0px 0px inset, color(srgb 0.85098 0.815686 0.7",
+      "button.algorithm-card → rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.18) 0px 14px 32"
+     ],
+     "gradients": 2,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.starfield-base → radial-gradient(at 20% 25%, rgba(24, 62, 107, 0.14), rgba(0, 0, 0, 0) 55%), radial-gradient(at 80% 70%, rgba(5",
+      "section#algorithms.journey-section.algorithm-section → radial-gradient(at 67% 38%, rgba(68, 41, 91, 0.094), rgba(0, 0, 0, 0) 46%)"
+     ],
+     "gradientText": 0,
+     "hairlines": 1,
+     "hairlineSamples": [
+      "div.section-heading 676px"
+     ],
+     "outlinedBoxes": 4,
+     "dashed": 0,
+     "blurred": 6,
+     "roundedBoxes": 4,
+     "boxRadius": 18,
+     "squareMedia": 2,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 37,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 596
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "canvas",
+      "ratio": 0.98
+     },
+     {
+      "type": "canvas",
+      "ratio": 0.22
+     }
+    ],
+    "nav": null,
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1080,
+    "margins": {
+     "left": 38,
+     "right": 53
+    },
+    "sections": [
+     {
+      "sel": "div.algorithm-stage",
+      "tag": "div",
+      "top": 171,
+      "height": 430,
+      "words": 35,
+      "media": 1,
+      "middle": 20,
+      "heading": {
+       "text": "một khả năng.",
+       "size": 57,
+       "tag": "h2"
+      },
+      "left": 38,
+      "right": 53,
+      "textLeft": 38,
+      "textRight": 53,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.algorithm-cards",
+      "tag": "div",
+      "top": 601,
+      "height": 418,
+      "words": 113,
+      "media": 0,
+      "middle": 15,
+      "heading": {
+       "text": "Linear",
+       "size": 23,
+       "tag": "strong"
+      },
+      "left": 38,
+      "right": 53,
+      "textLeft": 58,
+      "textRight": 78,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [
+     {
+      "text": "Không khôi phục được phiên. Bạn vẫn có thể dùng Gu",
+      "side": "left",
+      "px": 0
+     }
+    ],
+    "edges": [
+     {
+      "x": 38,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 2,
+    "bodySize": 12,
+    "stage": true,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": true,
+    "ground": "#07090e",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 0,
+     "right": 15
+    },
+    "hero": {
+     "text": "một khả năng.",
+     "words": 3,
+     "chars": 13,
+     "lines": 2,
+     "size": 57,
+     "vw": 7.5,
+     "font": "Geist",
+     "weight": 650,
+     "tracking": -0.05,
+     "leading": 1.02,
+     "top": 311,
+     "tag": "span",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 4,
+     "firstScreen": 4,
+     "ragged": [],
+     "voids": [
+      {
+       "gap": 65,
+       "at": 694,
+       "panel": "01 / Linear REGRESSION"
+      },
+      {
+       "gap": 65,
+       "at": 915,
+       "panel": "04 / Lasso REGRESSION"
+      }
+     ]
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 4,
+     "radii": [
+      [
+       18,
+       4
+      ]
+     ],
+     "heavyBorders": 4,
+     "borderSamples": [
+      "#dad0b8 on #07090e (12.99:1)",
+      "#bed2f0 on #07090e (12.96:1)",
+      "#bed2f0 on #07090e (12.96:1)"
+     ],
+     "heavyShadows": 1,
+     "softShadows": 4,
+     "shadowSamples": [
+      "color(srgb 0.85098 0.815686 0.721569 / 0.13) 0px 0px 20px 0px"
+     ],
+     "glass": 4
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.6,
+     "tiny": 23,
+     "tinySamples": [
+      "LEARN 8px",
+      "EXPERIMENT 8px",
+      "VISUALIZE 8px",
+      "hoặc khám phá ngay 9px"
+     ],
+     "sizes": [
+      7,
+      8,
+      9,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      22,
+      23,
+      25,
+      48,
+      54,
+      57,
+      60
+     ]
+    },
+    "title": null,
+    "colourShare": 0.004
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    1,
+    1
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 1402,
+     "screens": 1.7,
+     "words": 167,
+     "img": 0,
+     "video": 0,
+     "canvas": 2,
+     "svg": 2,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [
+      "☀"
+     ],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "một khả năng.",
+     "words": 3,
+     "chars": 13,
+     "lines": 1,
+     "size": 46,
+     "vw": 11.7,
+     "font": "Geist",
+     "weight": 650,
+     "tracking": -0.05,
+     "leading": 1.02,
+     "top": 216,
+     "tag": "span",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "Mỗi dữ liệu, một khả năng.",
+      "words": 6,
+      "chars": 26,
+      "lines": 2,
+      "size": 45.8,
+      "vw": 11.7,
+      "font": "Geist",
+      "weight": 650,
+      "tracking": -0.053,
+      "leading": 1.02,
+      "upper": false,
+      "italic": true,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.89,
+      "top": 171,
+      "mixedFonts": [
+       "Geist",
+       "Geist italic"
+      ],
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 1
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Geist",
+       "share": 0.68,
+       "mono": false
+      },
+      {
+       "family": "Times New Roman",
+       "share": 0.32,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      8,
+      9,
+      11,
+      14,
+      16,
+      17,
+      18,
+      19,
+      44,
+      46
+     ],
+     "sizeCount": 10,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 45.8,
+      "vw": 11.7,
+      "font": "Geist",
+      "text": "một khả năng."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.02,
+     "smallText": 17
+    },
+    "eyebrows": [],
+    "numbered": [
+     {
+      "text": "01 / Linear REGRESSION",
+      "size": 8,
+      "top": 647
+     },
+     {
+      "text": "02 / Polynomial REGRESSION",
+      "size": 8,
+      "top": 841
+     },
+     {
+      "text": "03 / Ridge REGRESSION",
+      "size": 8,
+      "top": 1030
+     },
+     {
+      "text": "04 / Lasso REGRESSION",
+      "size": 8,
+      "top": 1219
+     }
+    ],
+    "color": {
+     "bodyBg": "#07090e",
+     "bodyBgHsl": {
+      "h": 223,
+      "s": 0.33,
+      "l": 0.04
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#02040b",
+       "top": 0,
+       "hsl": {
+        "h": 227,
+        "s": 0.69,
+        "l": 0.03
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#aab6c9",
+       "share": 0.36
+      },
+      {
+       "color": "#bec9da",
+       "share": 0.29
+      },
+      {
+       "color": "#d7e0ee",
+       "share": 0.15
+      },
+      {
+       "color": "#f4f7ff",
+       "share": 0.11
+      },
+      {
+       "color": "#ffd166",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#10141d",
+      "hsl": {
+       "h": 222,
+       "s": 0.29,
+       "l": 0.09
+      },
+      "fg": "#f4f7ff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 3,
+     "radius": 18,
+     "height": 44,
+     "withShadow": 2,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Tiếp tục với tư cách Guest",
+      "☀ Sáng",
+      "Đăng nhập"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 6,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "button.theme-toggle → rgba(255, 255, 255, 0.48) 0px 1px 2px 0px inset, rgba(141, 221, 255, 0.047) 0px ",
+      "button.login-button → rgba(255, 255, 255, 0.48) 0px 1px 2px 0px inset, rgba(141, 221, 255, 0.047) 0px ",
+      "button.algorithm-card.highlighted → rgba(255, 255, 255, 0.11) 0px 1px 0px 0px inset, color(srgb 0.85098 0.815686 0.7",
+      "button.algorithm-card → rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.18) 0px 14px 32"
+     ],
+     "gradients": 2,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.starfield-base → radial-gradient(at 20% 25%, rgba(24, 62, 107, 0.14), rgba(0, 0, 0, 0) 55%), radial-gradient(at 80% 70%, rgba(5",
+      "section#algorithms.journey-section.algorithm-section → radial-gradient(at 67% 38%, rgba(68, 41, 91, 0.094), rgba(0, 0, 0, 0) 46%)"
+     ],
+     "gradientText": 0,
+     "hairlines": 1,
+     "hairlineSamples": [
+      "div.section-heading 346px"
+     ],
+     "outlinedBoxes": 4,
+     "dashed": 0,
+     "blurred": 6,
+     "roundedBoxes": 4,
+     "boxRadius": 18,
+     "squareMedia": 2,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 34,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 634
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "canvas",
+      "ratio": 1
+     },
+     {
+      "type": "canvas",
+      "ratio": 0.34
+     }
+    ],
+    "nav": null,
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 1402,
+    "margins": {
+     "left": 22,
+     "right": 22
+    },
+    "sections": [
+     {
+      "sel": "div.algorithm-stage",
+      "tag": "div",
+      "top": 151,
+      "height": 488,
+      "words": 28,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "một khả năng.",
+       "size": 46,
+       "tag": "h2"
+      },
+      "left": 22,
+      "right": 22,
+      "textLeft": 22,
+      "textRight": 87,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.algorithm-cards",
+      "tag": "div",
+      "top": 639,
+      "height": 742,
+      "words": 113,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 22,
+      "right": 22,
+      "textLeft": 39,
+      "textRight": 51,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [
+     {
+      "text": "Không khôi phục được phiên. Bạn vẫn có thể dùng Gu",
+      "side": "left",
+      "px": 0
+     }
+    ],
+    "edges": [
+     {
+      "x": 22,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 2,
+    "bodySize": 11,
+    "stage": true,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": true,
+    "ground": "#07090e",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 0,
+     "right": 0
+    },
+    "hero": {
+     "text": "một khả năng.",
+     "words": 3,
+     "chars": 13,
+     "lines": 1,
+     "size": 46,
+     "vw": 11.7,
+     "font": "Geist",
+     "weight": 650,
+     "tracking": -0.05,
+     "leading": 1.02,
+     "top": 216,
+     "tag": "span",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 4,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": [
+      {
+       "gap": 46,
+       "at": 725,
+       "panel": "01 / Linear REGRESSION"
+      },
+      {
+       "gap": 46,
+       "at": 919,
+       "panel": "02 / Polynomial REGRESSION"
+      },
+      {
+       "gap": 46,
+       "at": 1108,
+       "panel": "03 / Ridge REGRESSION"
+      },
+      {
+       "gap": 46,
+       "at": 1297,
+       "panel": "04 / Lasso REGRESSION"
+      }
+     ]
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 4,
+     "radii": [
+      [
+       18,
+       4
+      ]
+     ],
+     "heavyBorders": 4,
+     "borderSamples": [
+      "#dad0b8 on #07090e (12.99:1)",
+      "#bed2f0 on #07090e (12.96:1)",
+      "#bed2f0 on #07090e (12.96:1)"
+     ],
+     "heavyShadows": 1,
+     "softShadows": 4,
+     "shadowSamples": [
+      "color(srgb 0.85098 0.815686 0.721569 / 0.13) 0px 0px 20px 0px"
+     ],
+     "glass": 4
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.6,
+     "tiny": 23,
+     "tinySamples": [
+      "LEARN 8px",
+      "EXPERIMENT 8px",
+      "VISUALIZE 8px",
+      "hoặc khám phá ngay 9px"
+     ],
+     "sizes": [
+      7,
+      8,
+      9,
+      11,
+      12,
+      13,
+      14,
+      16,
+      19,
+      22,
+      23,
+      25,
+      31,
+      35,
+      40,
+      44,
+      46
+     ]
+    },
+    "title": null,
+    "colourShare": 0.006
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "mixed-font-headline",
+   "width": 1440,
+   "message": "1 headline(s) switch typeface or to italic mid-line (the \"one italic serif word\" move).",
+   "fix": "Set the whole headline in one face. Emphasis comes from the words.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "2 tiny uppercase letter-spaced label(s): \"EXPLORE THE SURFACE\", \"CHỌN ĐỂ BẮT ĐẦU\"",
+   "fix": "Prefer sentence case at body size.",
+   "alsoAt": [
+    768
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "emoji",
+   "width": 1440,
+   "message": "Emoji in the page: ☀ ✦",
+   "fix": "Remove. Use words or real imagery.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "gradient",
+   "width": 1440,
+   "message": "2 gradient fill(s): div.starfield-base → radial-gradient(at 20% 25%, rgba(24, 62, 107, 0.14), rgba(0, 0, 0, 0) 55%), radial-gradient(at 80% 70%, rgba(5 | section#algorithms.journey-section.algorithm-section → radial-gradient(at 67% 38%, rgba(68, 41, 91, 0.094), rgba(0, 0, 0, 0) 46%)",
+   "fix": "Use a flat colour or a real image. The only gradient allowed by default is a neutral scrim over a photo for legibility.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "text-shadow",
+   "width": 1440,
+   "message": "37 text-shadow(s).",
+   "fix": "Remove; fix legibility with a scrim or a different crop.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "button-fx",
+   "width": 1440,
+   "message": "Buttons with shadow/glow.",
+   "fix": "Flat fill, one colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "dev-server",
+   "width": 1440,
+   "message": "This page is served by a development server (Vite, webpack or Next in dev mode).",
+   "fix": "Run the last gate on the production build too (vite build && vite preview, next build && next start, or the built index.html): minifiers and bundlers change the CSS a visitor receives.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "edge-text",
+   "width": 1440,
+   "message": "1 text block(s) sit within 16px of the screen edge: \"Không khôi phục được phiên. Bạ\" (0px from the left)",
+   "fix": "Keep text inside the page margin (16–32px or more). Only display type deliberately bled past the edge may touch it.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "heavy-shadow",
+   "width": 1440,
+   "message": "1 panel shadow(s) heavy enough to read as floating: color(srgb 0.85098 0.815686 0.721569 / 0.13) 0px 0px 20px 0px",
+   "fix": "Panels sit on the ground: separate them with a fill one step from the ground or a quiet 1px border. A shadow, if any, is under 8% black with a small blur. Real overlays (menus, dialogs, popovers) may float.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "heavy-borders",
+   "width": 1440,
+   "message": "4 panel borders are dark against their ground: #dad0b8 on #07090e (12.99:1) | #bed2f0 on #07090e (12.96:1) | #bed2f0 on #07090e (12.96:1)",
+   "fix": "A panel border is a whisper: about 1.1–1.3:1 against its ground on a light screen (#e5e7eb–#ededed on white), and about 1.2–1.5:1 on a dark one (#1a1a1a on #000, #2e2e2e on #111). Darker lines turn the screen into a grid of boxes; keep the stronger line for controls.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 1440,
+   "message": "23 text blocks under 11px: LEARN 9px, EXPERIMENT 9px, VISUALIZE 9px, hoặc khám phá ngay 9px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "panel-void",
+   "width": 1440,
+   "message": "2 card(s) hold a blank band inside: 65px in \"01 / Linear REGRESSION\", 65px in \"04 / Lasso REGRESSION\".",
+   "fix": "A card stretches to its neighbour only when it has content to fill. Keep a legend or a note directly under its chart (only an action or a total may sit at a stretched card's foot), let a short card keep its own height (align-items: start), and let a filtered block shrink to its rows."
+  },
+  {
+   "level": "FAIL",
+   "id": "no-title",
+   "width": 1440,
+   "message": "The screen has no h1.",
+   "fix": "Name the screen in an h1 at the top of the canvas (18–28px): \"Overview\", \"Payouts\", the project's name.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "headline-lines",
+   "width": 768,
+   "message": "1 headline(s) wrap past two lines at 768px: \"Mỗi dữ liệu, một khả năng.\" → 3 lines (6 words, 57.2px)",
+   "fix": "Cut words first (a headline is a title, not a sentence). Then give it a wider measure. Lower the size only as a last resort and never below the scale you chose. A real statement paragraph belongs in a <p> or <blockquote> at 32px or less."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "D:\\WEB-UTH\\New folder\\Angular\\Hoiquy3d\\output\\audit-2026-11-09\\inspection\\desktop-fold.jpg",
+   "pages": [
+    "D:\\WEB-UTH\\New folder\\Angular\\Hoiquy3d\\output\\audit-2026-11-09\\inspection\\desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "D:\\WEB-UTH\\New folder\\Angular\\Hoiquy3d\\output\\audit-2026-11-09\\inspection\\tablet-fold.jpg",
+   "pages": [
+    "D:\\WEB-UTH\\New folder\\Angular\\Hoiquy3d\\output\\audit-2026-11-09\\inspection\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "D:\\WEB-UTH\\New folder\\Angular\\Hoiquy3d\\output\\audit-2026-11-09\\inspection\\mobile-fold.jpg",
+   "pages": [
+    "D:\\WEB-UTH\\New folder\\Angular\\Hoiquy3d\\output\\audit-2026-11-09\\inspection\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

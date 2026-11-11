@@ -1,0 +1,282 @@
+{
+  "stage": "completed",
+  "results": [
+    {
+      "name": "Linear step and metrics",
+      "pass": true
+    },
+    {
+      "name": "Linear reset",
+      "pass": true
+    },
+    {
+      "name": "Polynomial step and metrics",
+      "pass": true
+    },
+    {
+      "name": "Polynomial reset",
+      "pass": true
+    },
+    {
+      "name": "Ridge step and metrics",
+      "pass": true
+    },
+    {
+      "name": "Ridge reset",
+      "pass": true
+    },
+    {
+      "name": "Lasso step and metrics",
+      "pass": true
+    },
+    {
+      "name": "Lasso reset",
+      "pass": true
+    },
+    {
+      "name": "Pause stops iterations",
+      "pass": true
+    },
+    {
+      "name": "Stop control works",
+      "pass": true
+    },
+    {
+      "name": "Cancel algorithm switch preserves model",
+      "pass": true
+    },
+    {
+      "name": "Confirm changes algorithm",
+      "pass": true
+    },
+    {
+      "name": "Generate profile linear",
+      "pass": true
+    },
+    {
+      "name": "Generate profile curved",
+      "pass": true
+    },
+    {
+      "name": "Generate profile correlated",
+      "pass": true
+    },
+    {
+      "name": "Generate profile sparse",
+      "pass": true
+    },
+    {
+      "name": "WebGL canvas and camera controls",
+      "pass": true
+    },
+    {
+      "name": "Guest save disabled",
+      "pass": true
+    },
+    {
+      "name": "Invalid CSV shows error",
+      "pass": true
+    },
+    {
+      "name": "Lab no horizontal overflow 1440",
+      "pass": true
+    },
+    {
+      "name": "Lab no horizontal overflow 768",
+      "pass": true
+    },
+    {
+      "name": "Lab no horizontal overflow 390",
+      "pass": true
+    },
+    {
+      "name": "Learning A-F commits exactly one iteration",
+      "pass": true
+    },
+    {
+      "name": "Review phase 0 preserves iteration",
+      "pass": true
+    },
+    {
+      "name": "CONFIRMED contradictory CSV preprocessing explanation",
+      "pass": true
+    },
+    {
+      "name": "Review phase 1 preserves iteration",
+      "pass": true
+    },
+    {
+      "name": "Review phase 2 preserves iteration",
+      "pass": true
+    },
+    {
+      "name": "Review phase 3 preserves iteration",
+      "pass": true
+    },
+    {
+      "name": "Review phase 4 preserves iteration",
+      "pass": true
+    },
+    {
+      "name": "Review phase 5 preserves iteration",
+      "pass": true
+    },
+    {
+      "name": "Learning no horizontal overflow 1440",
+      "pass": true
+    },
+    {
+      "name": "Learning no horizontal overflow 768",
+      "pass": true
+    },
+    {
+      "name": "Learning no horizontal overflow 390",
+      "pass": true
+    },
+    {
+      "name": "Notes shortcut focuses notes",
+      "pass": true
+    }
+  ],
+  "layout": [
+    {
+      "width": 1440,
+      "scrollWidth": 1425,
+      "unlabelled": [
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Learning rate"
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Max iterations"
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Nhịp chạy iteration"
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "near": "Số mẫu"
+        },
+        {
+          "tag": "INPUT",
+          "type": "range",
+          "near": "Noise: 8%"
+        },
+        {
+          "tag": "INPUT",
+          "type": "range",
+          "near": "Tỉ lệ train/test: 80%"
+        },
+        {
+          "tag": "INPUT",
+          "type": "number"
+        }
+      ],
+      "smallText": [
+        {
+          "text": "03 / PHÒNG THỰC NGHIỆM",
+          "size": "9px"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "scrollWidth": 753,
+      "unlabelled": [
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Learning rate"
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Max iterations"
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Nhịp chạy iteration"
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "near": "Số mẫu"
+        },
+        {
+          "tag": "INPUT",
+          "type": "range",
+          "near": "Noise: 8%"
+        },
+        {
+          "tag": "INPUT",
+          "type": "range",
+          "near": "Tỉ lệ train/test: 80%"
+        },
+        {
+          "tag": "INPUT",
+          "type": "number"
+        }
+      ],
+      "smallText": [
+        {
+          "text": "03 / PHÒNG THỰC NGHIỆM",
+          "size": "9px"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "scrollWidth": 375,
+      "unlabelled": [
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Learning rate"
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Max iterations"
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "near": "Nhịp chạy iteration"
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "near": "Số mẫu"
+        },
+        {
+          "tag": "INPUT",
+          "type": "range",
+          "near": "Noise: 8%"
+        },
+        {
+          "tag": "INPUT",
+          "type": "range",
+          "near": "Tỉ lệ train/test: 80%"
+        },
+        {
+          "tag": "INPUT",
+          "type": "number"
+        }
+      ],
+      "smallText": [
+        {
+          "text": "03 / PHÒNG THỰC NGHIỆM",
+          "size": "9px"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

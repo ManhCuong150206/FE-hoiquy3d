@@ -91,6 +91,10 @@ export class AuthSession {
 
     async restore() {
         if (!this.browser) return;
+        // Chưa từng đăng nhập trên trình duyệt này -> khỏi hỏi server, đỡ 401 trong console
+        let hadLogin = false;
+        try { hadLogin = !!localStorage.getItem(IDENTITY_KEY); } catch { /* storage bị tắt */ }
+        if (!hadLogin) return;
         // TODO(BE-confirm): verify offline reload with the production service worker after its first online install.
         if (!navigator.onLine) { this.restoreLocal(); return; }
         const generation = this.generation;

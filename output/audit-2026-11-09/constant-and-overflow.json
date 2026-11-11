@@ -1,0 +1,47 @@
+[
+  {
+    "case": "constant y",
+    "text": "\tTrain\tTest\nMSE\t0.000\t0.000\nRMSE\t0.000\t0.000\nMAE\t0.000\t0.000\nR²\tNaN\tNaN"
+  },
+  {
+    "case": "invalid CSV after valid",
+    "text": "NHẬP CSV\nconstant.csv\n\nTệp cần có dòng tiêu đề, ít nhất 2 cột và 1 dòng dữ liệu.\n\n20 dòng · 2 cột · phân tách bằng dấu phẩy\n\nx\ty\n0\t5\n1\t5\n2\t5\n3\t5\n4\t5\n5\t5\n\n Y    X\n\nBiến mục tiêu (Y)\nx\ny\nĐặc trưng (X)\nx\ny\nÔ trống / không hợp lệ\nBỏ các dòng đó\nĐiền bằng trung bình cột\nĐiền bằng 0\n\n0 ô trống trong các cột đã chọn. Dòng thiếu Y luôn bị bỏ.\n\nChuẩn hoá z-score (giúp gradient descent hội tụ)\nDùng dữ liệu này",
+    "applyVisible": true
+  },
+  {
+    "case": "login horizontal overflow confirmed",
+    "layout": {
+      "innerWidth": 390,
+      "clientWidth": 390,
+      "scrollWidth": 399,
+      "scrollX": 24,
+      "elements": [
+        {
+          "tag": "DIV",
+          "cls": "starfield-base",
+          "right": 399
+        },
+        {
+          "tag": "APP-SPATIAL-BACKDROP",
+          "cls": "",
+          "right": 399
+        },
+        {
+          "tag": "DIV",
+          "cls": "spatial-host",
+          "right": 399
+        },
+        {
+          "tag": "CANVAS",
+          "cls": "",
+          "right": 399
+        },
+        {
+          "tag": "DIV",
+          "cls": "scene-wipe",
+          "right": 399
+        }
+      ]
+    }
+  }
+]

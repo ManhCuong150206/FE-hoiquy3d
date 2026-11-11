@@ -1,0 +1,24 @@
+[
+  {
+    "case": "setup",
+    "register": 201,
+    "login": 200,
+    "me": 200
+  },
+  {
+    "case": "edge run",
+    "error": "page.waitForFunction: Timeout 20000ms exceeded."
+  },
+  {
+    "case": "settled light login 390px",
+    "layout": {
+      "width": 390,
+      "scrollWidth": 399,
+      "overflow": []
+    }
+  },
+  {
+    "case": "settled registration empty",
+    "errors": 3
+  }
+]
