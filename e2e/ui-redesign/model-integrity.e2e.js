@@ -1,4 +1,8 @@
 async(page)=>{
+ const syncRequests = [];
+ page.on('request', request => {
+  if (new URL(request.url()).pathname === '/api/v1/experiments/bulk' && request.method() === 'POST') syncRequests.push(request);
+ });
  const check=(ok,message)=>{if(!ok)throw new Error(message);};page.setDefaultTimeout(25000);
  const idle=id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience').getAttribute('aria-busy')==='false',id);
  await page.context().setOffline(false);await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:1440,height:1000});
@@ -37,9 +41,18 @@ async(page)=>{
  check(persisted.synthetic.kind==='sparse'&&persisted.synthetic.version===1,'IndexedDB preserves applied profile/version');
  await page.getByRole('button',{name:'REGENERATE',exact:true}).click();await saved.getByRole('button',{name:'Áp dụng',exact:true}).click();
  check(await page.evaluate(()=>{const s=window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store;return JSON.stringify({X:s.trainX(),y:s.trainY()})===window.__modelDataset;}),'Applying saved profile reconstructs identical data');
- let payload=[];const capture=async route=>{payload=route.request().postDataJSON().operations;await route.fallback();};await page.route('**/api/v1/sync/batch',capture);
- await page.context().setOffline(false);await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-experiments-panel')).exp.list().some(e=>e.name==='Integrity sparse profile'&&e.synced));
- check(payload.some(e=>e.payload?.algorithm?.config?.snapshot?.synthetic?.kind==='sparse'),'Sync sends generation metadata');await page.unroute('**/api/v1/sync/batch',capture);
+ const syncButton = page.getByRole('button', { name: 'Đồng bộ với máy chủ', exact: true });
+ check(await syncButton.isDisabled(), 'Sync is disabled offline');
+ await page.context().setOffline(false);
+ await page.waitForFunction(() => document.querySelector('app-experiments-panel .sync-button')?.disabled === false);
+ await page.waitForTimeout(500);
+ await saved.getByText('Chờ đồng bộ', { exact: true }).waitFor();
+ check(syncRequests.length === 0, 'Reconnecting must not upload the model automatically');
+ await syncButton.click();
+ await saved.getByText('Đã đồng bộ', { exact: true }).waitFor();
+ check(syncRequests.length === 1, 'Manual sync sends exactly one bulk request');
+ const payload = syncRequests[0].postDataJSON();
+ check(payload.some(row => row.id === persisted.id && row.algorithm === 'lasso' && row.synthetic?.kind === 'sparse' && row.synthetic?.version === 1), 'Bulk sync preserves applied algorithm and generation metadata');
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');await page.locator('#csv-missing').selectOption('mean');await page.getByRole('button',{name:'Dùng dữ liệu này',exact:true}).click();
  check(await page.evaluate(()=>{const s=window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store;const means=s.trainX()[0].map((_,j)=>s.trainX().reduce((a,r)=>a+r[j],0)/s.trainX().length);return s.provenance().fittedOn==='train'&&means.every(v=>Math.abs(v)<1e-10);}), 'CSV training columns centered using train stats');
  await page.locator('#lab .lesson-entry button').click();await idle('learning');
@@ -49,5 +62,5 @@ async(page)=>{
  await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1');
  await page.screenshot({path:'output/playwright/model-integrity-learning.png'});
  await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile layout has no horizontal overflow');
- return {suite:'model-integrity',passed:['1D/zero epsilon/sample-change regression','phase A hides line and surface','four algorithms and datasets','coefficient labels and count','applied config instead of draft','IndexedDB profile/version persistence','saved data reconstruction','sync metadata with mock API','train-only CSV centering','CSV A–F iteration','mobile layout']};
+ return {suite:'model-integrity',passed:['1D/zero epsilon/sample-change regression','phase A hides line and surface','four algorithms and datasets','coefficient labels and count','applied config instead of draft','IndexedDB profile/version persistence','saved data reconstruction','reconnect waits for user approval','manual bulk sync preserves metadata','train-only CSV centering','CSV A–F iteration','mobile layout']};
 }

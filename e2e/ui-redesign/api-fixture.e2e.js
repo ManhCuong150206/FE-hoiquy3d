@@ -11,9 +11,23 @@ async(page)=>{
   return route.fulfill({status:404,json:{message:'Unknown auth endpoint'}});
  });
  await page.route('**/api/v1/sync/changes',route=>route.fulfill({json:{changes:{experiments:[],datasets:[],trainingRuns:[]}}}));
- await page.route('**/api/v1/sync/batch',route=>{
-  const rows=route.request().postDataJSON().operations;
-  return route.fulfill({json:{success:true,results:rows.map(e=>({operationId:e.operationId,idempotencyKey:e.idempotencyKey,entityType:e.entityType,entityClientId:e.entityClientId,status:'applied',serverVersion:e.clientVersion+1}))}});
+ const versions = new Map();
+ await page.route('**/api/v1/experiments/bulk', route => {
+  const request = route.request();
+  if (!user) return route.fulfill({ status: 401, json: { message: 'Login required' } });
+  if (request.method() !== 'POST' || request.headers()['x-requested-with'] !== 'XMLHttpRequest') {
+   return route.fulfill({ status: 403, json: { message: 'Expected POST with CSRF header' } });
+  }
+  const rows = request.postDataJSON();
+  if (!Array.isArray(rows) || !rows.length || rows.some(row => !row || typeof row.id !== 'string' || !row.id)) {
+   return route.fulfill({ status: 400, json: { message: 'Expected experiment array with IDs' } });
+  }
+  const items = rows.map(row => {
+   const syncVersion = (versions.get(row.id) ?? 0) + 1;
+   versions.set(row.id, syncVersion);
+   return { id: row.id, syncVersion };
+  });
+  return route.fulfill({ json: { success: true, items } });
  });
  return {fixture:'UI API simulation only; no live database writes'};
 }

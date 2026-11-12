@@ -1,4 +1,8 @@
 async(page)=>{
+ const syncRequests = [];
+ page.on('request', request => {
+  if (new URL(request.url()).pathname === '/api/v1/experiments/bulk' && request.method() === 'POST') syncRequests.push(request);
+ });
  const check=(value,message)=>{if(!value)throw new Error(message);};
  const idle=id=>page.waitForFunction(id=>document.querySelector('#'+id)?.hidden===false&&document.querySelector('.experience')?.getAttribute('aria-busy')==='false',id);
  const base='http://127.0.0.1:4300';
@@ -23,7 +27,14 @@ async(page)=>{
  await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]')?.getAttribute('aria-valuenow')==='1');
  await page.getByLabel('Tên lần chạy',{exact:true}).fill('Authenticated snapshot');
  await page.getByRole('button',{name:'Lưu',exact:true}).click();
- await page.locator('app-experiments-panel li').filter({hasText:'Authenticated snapshot'}).getByText('Đã đồng bộ',{exact:true}).waitFor();
+ const saved = page.locator('app-experiments-panel li').filter({ hasText: 'Authenticated snapshot' });
+ await saved.getByText('Chờ đồng bộ', { exact: true }).waitFor();
+ await page.waitForTimeout(500);
+ check(syncRequests.length === 0, 'Saving online must not sync without user approval');
+ await page.getByRole('button', { name: 'Đồng bộ với máy chủ', exact: true }).click();
+ await saved.getByText('Đã đồng bộ', { exact: true }).waitFor();
+ check(syncRequests.length === 1, 'One sync click sends one bulk request');
+ check(syncRequests[0].postDataJSON().some(row => row.name === 'Authenticated snapshot'), 'Bulk request includes the selected run');
  await page.reload();await idle('algorithms');
  await page.locator('#algorithms .account-greeting').filter({hasText:'Member'}).waitFor();
  check(await page.evaluate(()=>localStorage.getItem('regression.identity'))===null,'No local identity token');
@@ -31,5 +42,5 @@ async(page)=>{
  await page.getByRole('button',{name:'Đăng xuất',exact:true}).click();
  await page.locator('#algorithms').getByRole('button',{name:'Đăng nhập',exact:true}).waitFor();await idle('algorithms');
  check(await page.locator('#algorithms .account-greeting').count()===0,'Logout clears the greeting');
- return {suite:'auth-session',passed:['registration requires subsequent login','credentials clear','login navigation','authenticated save and sync','auth/me restores session','no stored identity','logout keeps algorithms visible']};
+ return {suite:'auth-session',passed:['registration requires subsequent login','credentials clear','login navigation','online save waits for explicit sync','bulk sync after user click','auth/me restores session','no stored identity','logout keeps algorithms visible']};
 }

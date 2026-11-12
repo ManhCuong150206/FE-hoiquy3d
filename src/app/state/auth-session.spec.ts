@@ -9,6 +9,7 @@ const reply = (data: unknown, status = 200) => new Response(JSON.stringify(data)
 describe('cookie session authentication', () => {
     let auth: AuthSession;
     const fetchMock = vi.fn<typeof fetch>();
+    const cache = () => localStorage.setItem('regression.lastIdentity', JSON.stringify({ userId: user._id, displayName: user.displayName, email: user.email }));
     beforeEach(() => {
         localStorage.clear();
         vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
@@ -40,13 +41,17 @@ describe('cookie session authentication', () => {
         expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).displayName).toBe('Linh');
     });
     it('restores using auth/me and treats 401 as an ordinary unauthenticated visit', async () => {
+        cache();
         fetchMock.mockResolvedValueOnce(reply({ message: 'Vui lòng đăng nhập' }, 401));
         await auth.restore();
         expect(auth.error()).toBeNull();
         expect(auth.authenticated()).toBe(false);
+        expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
+        cache();
         fetchMock.mockResolvedValueOnce(reply(user));
         await auth.restore();
         expect(auth.scope()).toBe('person-a');
+        expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(fetchMock.mock.calls.every(([url]) => url === '/api/v1/auth/me')).toBe(true);
     });
     it('guest enters and exits offline without API calls or storage writes', async () => {
@@ -61,6 +66,7 @@ describe('cookie session authentication', () => {
         expect(write).not.toHaveBeenCalled();
     });
     it('does not allow a delayed restore to replace the chosen Guest mode', async () => {
+        cache();
         let finish!: (response: Response) => void;
         fetchMock.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
         const restoring = auth.restore();
@@ -105,7 +111,6 @@ describe('cookie session authentication', () => {
         await expect(auth.enter(credentials, false)).rejects.toThrow('Lỗi thứ nhất\nLỗi thứ hai');
         expect(auth.authenticated()).toBe(false);
     });
-    const cache = () => localStorage.setItem('regression.lastIdentity', JSON.stringify({ userId: user._id, displayName: user.displayName, email: user.email }));
     it('restores offline identity without contacting the API and ensure waits for connectivity', async () => {
         cache(); vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
         await auth.restore();
@@ -127,6 +132,7 @@ describe('cookie session authentication', () => {
         await auth.restore(); expect(auth.user()).toBeNull(); expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
     });
     it('refreshes the cached identity from auth/me and replaces it on another login', async () => {
+        cache();
         fetchMock.mockResolvedValueOnce(reply(user)); await auth.restore();
         expect(JSON.parse(localStorage.getItem('regression.lastIdentity')!).userId).toBe(user._id);
         fetchMock.mockResolvedValueOnce(reply({ ...user, _id: 'person-b' })); await auth.enter(credentials, false);
@@ -148,4 +154,40 @@ describe('cookie session authentication', () => {
         const restoring = auth.restore(); auth.guest(); fail(new TypeError('Failed to fetch')); await restoring;
         expect(auth.scope()).toBe('guest');
     });
+
+    it('keeps a first visit unauthenticated without calling the API', async () => {
+        await expect(auth.restore()).resolves.toBeUndefined();
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(auth.scope()).toBe('guest');
+        expect(auth.user()).toBeNull();
+        expect(auth.error()).toBeNull();
+    });
+    it('reports a readable login error on network failure without storing a user', async () => {
+        fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+        await expect(auth.enter(credentials, false)).rejects.toThrow('Không kết nối được máy chủ');
+        expect(auth.authenticated()).toBe(false);
+        expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
+    });
+    it.each([null, { ...user, _id: '' }, { ...user, email: null }])('rejects malformed login identity %j', async data => {
+        fetchMock.mockResolvedValue(reply(data));
+        await expect(auth.enter(credentials, false)).rejects.toThrow('Máy chủ chưa xác nhận tài khoản');
+        expect(auth.authenticated()).toBe(false);
+        expect(localStorage.getItem('regression.lastIdentity')).toBeNull();
+    });
+    it('handles an invalid JSON response during startup without rejecting restore', async () => {
+        cache();
+        fetchMock.mockResolvedValue(new Response('<html>Bad gateway</html>', { status: 200 }));
+        await expect(auth.restore()).resolves.toBeUndefined();
+        expect(auth.authenticated()).toBe(false);
+        expect(auth.error()).toBeTruthy();
+    });
+    it('keeps the local session when logout fails so the user can retry', async () => {
+        fetchMock.mockResolvedValueOnce(reply(user));
+        await auth.enter(credentials, false);
+        fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+        await expect(auth.logout()).rejects.toThrow('Không kết nối được máy chủ');
+        expect(auth.scope()).toBe(user._id);
+        expect(localStorage.getItem('regression.lastIdentity')).not.toBeNull();
+    });
+
 });

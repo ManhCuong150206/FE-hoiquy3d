@@ -2,7 +2,6 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 
 export interface Identity { userId: string; displayName: string; email?: string; isAnonymous: boolean }
-interface ApiUser { _id: string; displayName: string; email: string; role: 'user' | 'admin'; status: 'active' | 'disabled' }
 const IDENTITY_KEY = 'regression.lastIdentity';
 
 export function apiMessage(value: unknown, fallback: string): string {
@@ -62,7 +61,14 @@ export class AuthSession {
         if (['POST', 'PATCH', 'PUT', 'DELETE'].includes((options.method ?? 'GET').toUpperCase())) {
             headers.set('X-Requested-With', 'XMLHttpRequest');
         }
-        const response = await fetch(path, { ...options, headers, credentials: 'include', cache: 'no-store', signal: this.requests.signal });
+        let response: Response;
+        try {
+            response = await fetch(path, { ...options, headers, credentials: 'include', cache: 'no-store', signal: this.requests.signal });
+        } catch (error) {
+            if (generation !== this.generation) throw new Error('Phiên làm việc đã thay đổi.');
+            if (error instanceof Error && error.name === 'AbortError') throw error;
+            throw new Error('Không kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại.', { cause: error });
+        }
         if (generation !== this.generation) throw new Error('Phiên làm việc đã thay đổi.');
         if (response.status === 401 && protectedRequest) {
             this.set(null);
@@ -71,7 +77,7 @@ export class AuthSession {
         return response;
     }
 
-    private async request(path: string, body?: object, protectedRequest = false): Promise<ApiUser> {
+    private async request(path: string, body?: object, protectedRequest = false): Promise<unknown> {
         const response = await this.api('/api/v1/auth/' + path, {
             method: body ? 'POST' : 'GET',
             headers: body ? { 'Content-Type': 'application/json' } : undefined,
@@ -79,11 +85,15 @@ export class AuthSession {
         }, protectedRequest);
         const data: unknown = await response.json().catch(() => null);
         if (!response.ok) throw new Error(apiMessage(data, `Không xác thực được với máy chủ (HTTP ${response.status}).`));
-        return data as ApiUser;
+        return data;
     }
 
-    private identity(user: ApiUser): Identity {
-        if (!user || typeof user._id !== 'string' || typeof user.displayName !== 'string' || user.status !== 'active') {
+    private identity(user: unknown): Identity {
+        if (!user || typeof user !== 'object'
+            || !('_id' in user) || typeof user._id !== 'string' || !user._id.trim() || user._id === 'guest'
+            || !('displayName' in user) || typeof user.displayName !== 'string' || !user.displayName.trim()
+            || !('email' in user) || typeof user.email !== 'string' || !user.email.trim()
+            || !('status' in user) || user.status !== 'active') {
             throw new Error('Máy chủ chưa xác nhận tài khoản.');
         }
         return { userId: user._id, displayName: user.displayName, email: user.email, isAnonymous: false };

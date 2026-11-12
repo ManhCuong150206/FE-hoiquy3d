@@ -1,4 +1,8 @@
 async (page) => {
+ const syncRequests = [];
+ page.on('request', request => {
+  if (new URL(request.url()).pathname === '/api/v1/experiments/bulk' && request.method() === 'POST') syncRequests.push(request);
+ });
  page.setDefaultTimeout(15000); page.setDefaultNavigationTimeout(30000);
  await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:1440,height:1000});await page.goto('http://127.0.0.1:4300/');await page.locator('#algorithms .login-button').click();await page.getByLabel('Email',{exact:true}).fill('demo@example.com');await page.getByLabel('Mật khẩu',{exact:true}).fill('password123');await page.locator('.auth-submit').click();await page.waitForFunction(()=>!document.querySelector('#algorithms').hidden&&document.querySelector('.experience').getAttribute('aria-busy')==='false');await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();
  let stage='import';try {
@@ -35,9 +39,20 @@ async (page) => {
  });
  check(saved?.dataSource==='csv' && saved?.iterations===1 && saved?.synced===false,'Offline run must be persisted in IndexedDB');
  stage='sync';
+ const savedRow = page.locator('app-experiments-panel li').filter({ hasText: 'E2E CSV offline' });
+ const syncButton = page.getByRole('button', { name: 'Đồng bộ với máy chủ', exact: true });
+ check(await syncButton.isDisabled(), 'Sync is unavailable while offline');
  await page.context().setOffline(false);
- await page.locator('app-experiments-panel .sync').filter({hasText:'Đã đồng bộ'}).waitFor();
+ await page.waitForFunction(() => document.querySelector('app-experiments-panel .sync-button')?.disabled === false);
+ await page.waitForTimeout(500);
+ await savedRow.getByText('Chờ đồng bộ', { exact: true }).waitFor();
+ check(syncRequests.length === 0, 'Reconnecting must keep the run local until the user chooses sync');
+ await syncButton.click();
+ await savedRow.getByText('Đã đồng bộ', { exact: true }).waitFor();
+ check(syncRequests.length === 1, 'One user click sends one bulk request');
+ const uploaded = syncRequests[0].postDataJSON();
+ check(uploaded.some(row => row.id === saved.id && row.dataSource === 'csv' && row.iterations === 1), 'Manual sync sends the saved CSV run');
  await page.getByRole('button',{name:'Stop',exact:true}).click();
- return {suite:'learning/offline',passed:['CSV upload and mean imputation','six phases A-F','no model commit during A-E','one commit at F','offline IndexedDB save','online sync UI with mocked API (not MongoDB integration)','stop']};
+ return {suite:'learning/offline',passed:['CSV upload and mean imputation','six phases A-F','no model commit during A-E','one commit at F','offline IndexedDB save','reconnect keeps pending data','manual bulk sync with mocked API','stop']};
  }catch(error){const state=await page.evaluate(()=>({y:scrollY,top:document.querySelector('#learning')?.getBoundingClientRect().top,transition:document.querySelector('.experience')?.dataset.transition}));throw new Error(`Learning stage ${stage}: ${error.message} ${JSON.stringify(state)}`);}
 }
