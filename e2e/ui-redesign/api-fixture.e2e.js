@@ -22,12 +22,25 @@ async(page)=>{
   if (!Array.isArray(rows) || !rows.length || rows.some(row => !row || typeof row.id !== 'string' || !row.id)) {
    return route.fulfill({ status: 400, json: { message: 'Expected experiment array with IDs' } });
   }
-  const items = rows.map(row => {
-   const syncVersion = (versions.get(row.id) ?? 0) + 1;
-   versions.set(row.id, syncVersion);
-   return { id: row.id, syncVersion };
+  const items = [];
+  const conflicts = [];
+  for (const row of rows) {
+   const existing = versions.get(row.id);
+   const currentVersion = existing?.syncVersion ?? 0;
+   if (existing?.mutationId === row.lastMutationId && row.expectedVersion === currentVersion - 1) {
+    items.push({ id: row.id, syncVersion: currentVersion });
+   } else if (row.expectedVersion !== currentVersion) {
+    conflicts.push({ id: row.id, syncVersion: existing?.syncVersion ?? null });
+   } else {
+    const syncVersion = currentVersion + 1;
+    versions.set(row.id, { syncVersion, mutationId: row.lastMutationId });
+    items.push({ id: row.id, syncVersion });
+   }
+  }
+  return route.fulfill({
+   status: conflicts.length ? 409 : 200,
+   json: { success: !conflicts.length, count: items.length, items, conflicts },
   });
-  return route.fulfill({ json: { success: true, items } });
  });
  return {fixture:'UI API simulation only; no live database writes'};
 }

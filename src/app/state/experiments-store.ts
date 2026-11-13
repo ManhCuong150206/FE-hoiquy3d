@@ -5,7 +5,42 @@ import { ALGORITHM_LABELS, SavedExperiment } from '../core/models/experiment';
 import { experimentDb } from '../core/storage/experiment-db';
 import { LabStore } from './lab-store';
 import { AuthSession, apiMessage } from './auth-session';
-const SYNC_URL = '/api/v1/experiments/bulk';
+const EXPERIMENTS_URL = '/api/v1/experiments';
+const SYNC_URL = EXPERIMENTS_URL + '/bulk';
+const MAX_BATCH_ITEMS = 100;
+const MAX_BATCH_BYTES = 10 * 1024 * 1024;
+
+interface BulkAcknowledgement {
+    success?: boolean;
+    items?: { id: string; syncVersion: number }[];
+    conflicts?: { id: string; syncVersion: number | null }[];
+}
+
+function syncBody(e: SavedExperiment) {
+    return { ...payload(e), lastMutationId: e.mutationId, expectedVersion: e.serverVersion ?? 0 };
+}
+
+function* syncBatches(experiments: SavedExperiment[]) {
+    const encoder = new TextEncoder();
+    let records: SavedExperiment[] = [];
+    let entries: string[] = [];
+    let bytes = 2; // Array brackets
+    for (const experiment of experiments) {
+        const entry = JSON.stringify(syncBody(experiment));
+        const entryBytes = encoder.encode(entry).byteLength;
+        if (entryBytes + 2 > MAX_BATCH_BYTES) throw new Error('Một thí nghiệm vượt giới hạn đồng bộ.');
+        if (records.length === MAX_BATCH_ITEMS || bytes + entryBytes + Number(records.length > 0) > MAX_BATCH_BYTES) {
+            yield { records, body: '[' + entries.join(',') + ']' };
+            records = [];
+            entries = [];
+            bytes = 2;
+        }
+        bytes += entryBytes + Number(records.length > 0);
+        records.push(experiment);
+        entries.push(entry);
+    }
+    if (records.length) yield { records, body: '[' + entries.join(',') + ']' };
+}
 function newId() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`; }
 // Dịch lỗi IndexedDB sang thông báo dễ hiểu (đầy dung lượng hoặc lỗi chung).
 function storageMessage(error: unknown): string {
@@ -99,6 +134,21 @@ export class ExperimentsStore {
         this.conflict.set(null);
         if (conflict.invalidServer) this.syncError.set('Không đọc được bản server. Đã giữ dữ liệu local thành bản sao, chờ đồng bộ.');
     }
+    private async readConflict(id: string, scope: string): Promise<SavedExperiment | null> {
+        try {
+            const response = await this.auth.api(EXPERIMENTS_URL + '/' + encodeURIComponent(id));
+            if (!response.ok) return null;
+            const raw = await response.json() as Record<string, unknown> | null;
+            if (!raw || raw['clientId'] !== id || raw['ownerId'] !== scope || !Number.isSafeInteger(raw['syncVersion'])) return null;
+            const saved = readExperiment(raw);
+            if (!Object.hasOwn(ALGORITHM_LABELS, saved.algorithm) || !saved.train || !saved.test
+                || !Array.isArray(saved.w) || (saved.dataSource !== 'csv' && saved.dataSource !== 'synthetic')) return null;
+            return { ...saved, scopeId: scope, synced: true, serverVersion: Number(raw['syncVersion']) };
+        } catch {
+            return null;
+        }
+    }
+
     async sync(id?: string) {
         if (!this.isBrowser || !this.online() || !this.canPersist() || this.syncing()) return;
         this.syncing.set(true); this.syncError.set(null);
@@ -107,34 +157,65 @@ export class ExperimentsStore {
         try {
             await this.scopeLoad; await this.writes;
             if (!active() || this.loadedScope !== scope) return;
+            const pending = (e: SavedExperiment) =>
+                e.scopeId === scope && !e.deletedAt && !e.synced && (id === undefined || e.id === id);
+            if (this.all().some(e => pending(e) && !e.mutationId)) {
+                this.all.update(list => list.map(e => pending(e) && !e.mutationId ? { ...e, mutationId: newId() } : e));
+                await this.persist();
+                if (!active()) return;
+            }
             // Freeze this click's selection; later saves and edits wait for another click.
-            const batch = structuredClone(this.all().filter(e => e.scopeId === scope && !e.deletedAt && !e.synced && (id === undefined || e.id === id)));
-            if (!batch.length) return;
+            const selected = structuredClone(this.all().filter(pending));
+            if (!selected.length) return;
             const user = await this.auth.ensure();
             if (!user || user.userId !== scope || !active()) return;
-            const res = await this.auth.api(SYNC_URL, {
-                method: 'POST', credentials: 'include',
-                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                body: JSON.stringify(batch.map(payload)),
-            });
-            const ack = await res.json().catch(() => null) as { success?: boolean; items?: { id: string; syncVersion: number }[] } | null;
-            if (!res.ok || ack?.success !== true || !Array.isArray(ack.items)) {
-                throw new Error(apiMessage(ack, 'Đồng bộ thất bại. Dữ liệu vẫn được giữ cục bộ.'));
-            }
-            if (!active()) return;
-            const sentById = new Map(batch.map(e => [e.id, e]));
-            const versions = new Map(ack.items.filter(item => item && typeof item.id === 'string'
-                && Number.isInteger(item.syncVersion) && item.syncVersion > 0).map(item => [item.id, item.syncVersion]));
-            this.all.update(list => list.map(local => {
-                const sent = sentById.get(local.id), version = versions.get(local.id);
-                if (local.scopeId !== scope || !sent || version === undefined) return local;
-                const unchanged = local.mutationId === sent.mutationId && local.deletedAt === sent.deletedAt
-                    && JSON.stringify(payload(local)) === JSON.stringify(payload(sent));
-                return { ...local, synced: unchanged, serverVersion: version };
-            }));
-            await this.persist();
-            if (active() && batch.some(e => !versions.has(e.id))) {
-                this.syncError.set('Máy chủ chưa xác nhận đủ từng thí nghiệm. Dữ liệu còn chờ đồng bộ.');
+            for (const batch of syncBatches(selected)) {
+                if (!active()) return;
+                const res = await this.auth.api(SYNC_URL, {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: batch.body,
+                });
+                const ack = await res.json().catch(() => null) as BulkAcknowledgement | null;
+                if (!active()) return;
+                const accepted = res.ok && ack?.success === true;
+                const partial = [400, 409, 500].includes(res.status) && ack?.success === false;
+                const sentById = new Map(batch.records.map(e => [e.id, e]));
+                const versions = new Map<string, number>();
+                if ((accepted || partial) && Array.isArray(ack?.items)) {
+                    for (const item of ack.items) {
+                        const sent = item && sentById.get(item.id);
+                        if (sent && Number.isSafeInteger(item.syncVersion) && item.syncVersion > (sent.serverVersion ?? 0)) {
+                            versions.set(item.id, item.syncVersion);
+                        }
+                    }
+                }
+                if (versions.size) {
+                    this.all.update(list => list.map(local => {
+                        const sent = sentById.get(local.id), version = versions.get(local.id);
+                        if (local.scopeId !== scope || !sent || version === undefined) return local;
+                        const unchanged = local.mutationId === sent.mutationId && local.deletedAt === sent.deletedAt
+                            && JSON.stringify(payload(local)) === JSON.stringify(payload(sent));
+                        return { ...local, synced: unchanged, serverVersion: version };
+                    }));
+                    await this.persist();
+                    if (!active()) return;
+                }
+                const conflict = res.status === 409 && Array.isArray(ack?.conflicts)
+                    ? ack.conflicts.find(item => item && sentById.has(item.id))
+                    : undefined;
+                if (conflict) {
+                    const server = await this.readConflict(conflict.id, scope);
+                    if (!active()) return;
+                    this.conflict.set({ id: conflict.id, server, invalidServer: !server });
+                }
+                if (!accepted) {
+                    throw new Error(apiMessage(ack, 'Đồng bộ thất bại. Dữ liệu còn chờ được giữ cục bộ.'));
+                }
+                if (versions.size < batch.records.length) {
+                    this.syncError.set('Máy chủ chưa xác nhận đủ từng thí nghiệm. Dữ liệu còn chờ đồng bộ.');
+                    return;
+                }
             }
         } catch (error) {
             if (active()) this.syncError.set(error instanceof Error ? error.message : 'Chưa đồng bộ được. Dữ liệu vẫn được giữ cục bộ.');

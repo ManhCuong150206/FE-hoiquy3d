@@ -77,7 +77,11 @@ describe('manual bulk synchronization', () => {
   await store.sync(); expect(disk.get(a.id)?.synced).toBe(false);
   window.dispatchEvent(new Event('online')); await settle(); expect(fetch).toHaveBeenCalledTimes(1);
   await store.sync(); expect(disk.get(a.id)?.synced).toBe(true);
-  expect(JSON.parse(String(vi.mocked(fetch).mock.calls[1][1]?.body))[0].id).toBe(a.id);
+  const requests = vi.mocked(fetch).mock.calls;
+  expect(requests[1][1]?.body).toBe(requests[0][1]?.body);
+  expect(JSON.parse(String(requests[1][1]?.body))[0]).toMatchObject({
+   id: a.id, lastMutationId: a.mutationId, expectedVersion: 0,
+  });
  });
  it('does not acknowledge a response after switching accounts', async () => {
   const a = store.save('A')!; await settle(); let finish!: (response: Response) => void;
@@ -86,4 +90,22 @@ describe('manual bulk synchronization', () => {
   finish(new Response(JSON.stringify({ success: true, items: [{ id: a.id, syncVersion: 1 }] })));
   await running; expect(disk.get(a.id)?.synced).toBe(false); expect(store.list()).toEqual([]);
  });
+ it('persists acknowledged items from a partial 409 and offers the server snapshot for the conflicted item', async () => {
+  const a = store.save('A')!, b = store.save('B')!; await settle();
+  vi.mocked(fetch)
+   .mockResolvedValueOnce(new Response(JSON.stringify({
+    success: false, items: [{ id: b.id, syncVersion: 1 }],
+    conflicts: [{ id: a.id, syncVersion: 2 }],
+   }), { status: 409 }))
+   .mockResolvedValueOnce(new Response(JSON.stringify({
+    ...a, name: 'Server version', clientId: a.id, ownerId: a.scopeId, syncVersion: 2,
+   })));
+  await store.sync();
+  expect(disk.get(a.id)?.synced).toBe(false);
+  expect(disk.get(b.id)).toMatchObject({ synced: true, serverVersion: 1 });
+  expect(store.conflict()?.server).toMatchObject({ name: 'Server version', serverVersion: 2 });
+  await store.resolveConflict(false);
+  expect(disk.get(a.id)).toMatchObject({ name: 'Server version', synced: true, serverVersion: 2 });
+ });
+
 });
