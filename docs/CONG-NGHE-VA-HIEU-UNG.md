@@ -287,9 +287,9 @@ IndexedDB là nơi lưu cục bộ; không dùng được IndexedDB thì fallbac
 
 ### Đăng nhập thật và ranh giới phiên
 
-NestJS có AuthModule với register/login/guest/session/logout. Mật khẩu dùng scrypt và salt ngẫu nhiên; token phiên ngẫu nhiên chỉ lưu hash trên server, cookie HttpOnly/SameSite=Lax ở trình duyệt. Khi NODE_ENV=production, cookie có Secure và cần HTTPS. Không chấp nhận x-user-id hoặc Bearer chứa ID tự khai. Có giới hạn thử đăng nhập và giới hạn tạo Guest theo IP. API lọc chủ sở hữu ở danh sách, chi tiết, thay đổi, tải tệp và sync; metadata không được gán storage key của tệp server.
+NestJS dùng LoginModule với register/login/me/logout dưới /api/v1/auth. Mật khẩu băm bằng bcrypt, phiên lưu trên máy chủ; trình duyệt giữ cookie hq3d.sid HttpOnly/SameSite=Lax, Secure khi production. Không chấp nhận x-user-id hoặc Bearer chứa ID tự khai. Login/register có giới hạn yêu cầu theo IP. Mã AuthModule cũ và các route guest/session của nó đã được xóa. API lọc quyền sở hữu tài nguyên ở tầng Service.
 
-Guest có ID riêng. Guest offline lưu vào scope cục bộ; khi có mạng, tạo phiên Guest thật rồi chuyển chính hàng đợi cục bộ đó sang phiên mới trước khi đẩy lên. Không tự chuyển dữ liệu tài khoản này sang tài khoản khác. Đăng xuất hoặc chuyển danh tính xóa dữ liệu/mô hình đang xem, hủy component nhập CSV; dữ liệu đã lưu của từng scope còn nguyên. Đăng xuất offline báo không thể thu hồi phiên, không giả báo thành công. Guest là phiên tạm gắn với cookie; nên dùng tài khoản cho dữ liệu cần truy cập lâu dài. Chưa có xác minh email, quên mật khẩu hoặc 2FA.
+Guest chỉ dùng trạng thái tạm trong trình duyệt, không tạo tài khoản hoặc cookie guest trên server. Cần đăng nhập để lưu lâu dài và đồng bộ. IndexedDB phân vùng dữ liệu theo tài khoản, không tự chuyển dữ liệu tài khoản này sang tài khoản khác. Frontend đồng bộ theo lựa chọn qua /experiments/bulk. Chưa có xác minh email, quên mật khẩu hoặc 2FA.
 
 ### Chạy và kiểm thử
 
