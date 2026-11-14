@@ -12,8 +12,9 @@ export function modelPredictions(rows: number[][], w: number[], b: number, algor
 }
 
 /** One policy shared by the model geometry and phase effects. */
-export function modelVisibility(features: number, lesson: boolean, phase: number, eps: number, invalid: boolean) {
-  const show = !invalid && features > 0 && (!lesson || phase > 0);
+export function modelVisibility(features: number, _lesson: boolean, _phase: number, eps: number, invalid: boolean) {
+  // Keep the same fitted surface/line visible on both pages, including input phase A.
+  const show = !invalid && features > 0;
   return { plane: show && features >= 2, line: show && features === 1,
     bands: show && Number.isFinite(eps) && eps > 0 };
 }

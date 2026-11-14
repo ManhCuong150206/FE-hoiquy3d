@@ -26,9 +26,12 @@ export interface MetricSet {
 /** Một lần chạy được người dùng lưu lại để so sánh / xuất / đồng bộ. */
 export interface CsvSnapshot {
     trainX:number[][];trainY:number[];testX:number[][];testY:number[];trainIndices:number[];
+    validationX?: number[][]; validationY?: number[];
     provenance?:import('./training-step').DatasetProvenance;
 }
 export interface SavedExperiment {
+    learningReport?: { protocol: 'train-validation-test-v1'; computeMs: number; setupMs: number; reason: string;
+        hypothesis: string; conclusion?: string; mode?: 'normal' | 'learn' | 'mixed'; validation: MetricSet; finalTestViewed: boolean };
     scopeId?:string; mutationId?:string; serverVersion?:number; deletedAt?:number;
     csvData?:CsvSnapshot;
     id: string;

@@ -1,4 +1,5 @@
 import { trainTestSplit } from './synthetic';
+import { learningSplit } from './experiment-workflow';
 
 // Đọc CSV và dựng tập dữ liệu (X, y). Không phụ thuộc Angular nên test được độc lập.
 
@@ -105,9 +106,10 @@ export interface BuildOptions {
     standardize: boolean;
     trainRatio?: number;
     splitSeed?: number;
+    validation?: boolean;
 }
 
-export interface PreparedSplit { trainIndices: number[]; testIndices: number[] }
+export interface PreparedSplit { trainIndices: number[]; testIndices: number[]; validationIndices?: number[] }
 
 export interface BuildResult {
     split?: PreparedSplit;
@@ -167,8 +169,10 @@ export function buildDataset(t: CsvTable, o: BuildOptions): BuildResult {
 
     const ratio = o.trainRatio ?? .8;
     if (!Number.isFinite(ratio) || ratio <= 0 || ratio >= 1) return fail('Tỉ lệ train/test phải nằm giữa 0 và 1.');
-    const partition = trainTestSplit(X, y, ratio, o.splitSeed ?? 43);
-    const split = { trainIndices: partition.train.indices, testIndices: partition.test.indices };
+    if (o.validation && (Math.floor(X.length * ratio) < 2 || Math.floor(X.length * ratio) >= X.length)) return fail('Cần đủ mẫu trong train, validation và test; hãy tăng số mẫu hoặc điều chỉnh tỷ lệ.');
+    const partition = o.validation ? learningSplit(X, y, ratio, o.splitSeed ?? 43) : { ...trainTestSplit(X, y, ratio, o.splitSeed ?? 43), validation: undefined };
+    const split: PreparedSplit = { trainIndices: partition.train.indices, testIndices: partition.test.indices,
+        ...(partition.validation ? { validationIndices: partition.validation.indices } : {}) };
     if (!split.trainIndices.length || !split.testIndices.length) return fail('Cần có mẫu trong cả train và test.');
     const trainRows = () => split.trainIndices.map(i => X[i]);
     const fillValues = Array.from({length: k}, (_, j) => {

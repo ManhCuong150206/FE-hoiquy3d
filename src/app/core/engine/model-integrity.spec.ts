@@ -31,7 +31,7 @@ describe('model integrity regressions', () => {
     expect(modelVisibility(1,false,5,0,false)).toEqual({plane:false,line:true,bands:false});
     expect(modelVisibility(2,false,0,.2,false)).toEqual({plane:true,line:false,bands:true});
     for (const dimension of [1,2,5]) {
-      expect(modelVisibility(dimension,true,0,.2,false)).toEqual({plane:false,line:false,bands:false});
+      expect(modelVisibility(dimension,true,0,.2,false)).toEqual({plane:dimension >= 2,line:dimension === 1,bands:true});
       expect(modelVisibility(dimension,false,5,.2,true)).toEqual({plane:false,line:false,bands:false});
     }
   });

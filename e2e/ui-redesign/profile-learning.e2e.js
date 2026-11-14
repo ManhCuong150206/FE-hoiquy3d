@@ -13,7 +13,7 @@ async(page)=>{
    if(now-p.started<3700)requestAnimationFrame(tick);else{observer.disconnect();p.done=true;}
   };requestAnimationFrame(tick);
  });
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();await page.waitForFunction(()=>window.__learningProfile?.done);
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();await page.waitForFunction(()=>window.__learningProfile?.done);
  return await page.evaluate(()=>{
   const p=window.__learningProfile,stages=p.headings.filter(s=>s.phase&&s.phase!=='F');let movement=0;
   for(let i=1;i<stages.length;i++)for(let j=0;j<6;j++)movement=Math.max(movement,Math.abs(stages[i].positions[j]-stages[i-1].positions[j]));

@@ -17,7 +17,7 @@ async(page)=>{
  await page.locator('app-csv-import input[type=file]').setInputFiles('docs/examples/learning-demo.csv');await page.locator('#csv-missing').selectOption('mean');await page.getByRole('button',{name:'Dùng dữ liệu này',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='0');
  await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1');
- await page.getByLabel('Tên lần chạy',{exact:true}).fill('Live CSV round trip');await page.getByRole('button',{name:'Lưu',exact:true}).click();
+ await page.getByLabel('Tên lần chạy',{exact:true}).fill('Live CSV round trip');await page.getByRole('button',{name:'4 · Đánh giá',exact:true}).click();await page.getByRole('button',{name:'Chọn cấu hình hiện tại & đánh giá test',exact:true}).click();await page.getByRole('button',{name:'Lưu',exact:true}).click();
  await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-experiments-panel')).exp.list().some(e=>e.name==='Live CSV round trip'&&e.synced));
  const saved=await page.evaluate(()=>window.ng.getComponent(document.querySelector('app-experiments-panel')).exp.list().find(e=>e.name==='Live CSV round trip'));
  const response=await page.request.get('http://127.0.0.1:4300/api/v1/experiments/'+saved.id);check(response.ok(),'Read saved record through API');

@@ -1,6 +1,6 @@
 <section class="reading-route" aria-label="Lộ trình đọc sáu pha">
   <h3>Lộ trình khám phá và kết quả</h3>
-  <p class="hint">Chạy một bước rồi chọn chặng để xem lại minh họa và kết quả.</p>
+  <p class="hint">Bấm Tiếp tục để đi từng pha. Chọn chặng đã thực hiện để xem lại hình 3D và phép tính; cuộn trang không tự huấn luyện.</p>
   <p class="actual" aria-live="polite">{{ locked() ? 'Đang học' : 'Đang xem' }}: <strong>{{ titles[selected() ?? phase() ?? 0] }}</strong> · {{ phase() === 5 ? 'Đã hoàn tất một iteration' : 'Mô hình chỉ cập nhật ở F' }}</p>
   <div #map class="route-map" [class.static]="reduced()" [attr.data-reading-progress]="progress()">
     <svg [attr.viewBox]="'0 0 76 '+height()" preserveAspectRatio="none" aria-hidden="true">

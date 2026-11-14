@@ -61,7 +61,7 @@ export class AlgorithmNotes {
   // Nhận xét nhanh dựa trên kết quả hiện tại
   hint = computed<{ kind: 'warn' | 'info'; text: string } | null>(() => {
     const s = this.store.latest();
-    const m = this.store.metrics();
+    const m = this.store.evaluation();
     if (!s || !m) return null;
 
     if (!Number.isFinite(s.trainLoss) || !Number.isFinite(s.testLoss)) {
@@ -69,18 +69,19 @@ export class AlgorithmNotes {
     }
     if (s.iteration < 20) return null; // những bước đầu chưa nói lên điều gì
 
-    if (m.test.r2 < 0) {
+    if (!m.validation) return { kind: 'info', text: 'Bản dữ liệu cũ chưa có validation riêng. Tạo lại dữ liệu trước khi dùng chỉ số đánh giá để chọn tham số.' };
+    if (m.validation.r2 < 0) {
       return {
         kind: 'warn',
-        text: 'R² trên tập test đang âm: mô hình dự đoán tệ hơn việc luôn đoán giá trị trung bình. Hãy chạy thêm vòng lặp, hoặc thử learning rate lớn hơn nếu loss giảm quá chậm.',
+        text: 'R² validation âm: sai số lớn hơn cách luôn dự đoán trung bình của tập validation. Kiểm tra dữ liệu, thang đo và đường loss trước khi đặt giả thuyết điều chỉnh; chưa kết luận nguyên nhân chỉ từ R².',
       };
     }
     if (s.trainLoss > 0 && s.testLoss > 1.5 * s.trainLoss) {
       return {
         kind: 'warn',
-        text: 'Test loss cao hơn train loss khá nhiều — dấu hiệu khớp thừa (overfit). Thử thêm dữ liệu, giảm bậc/độ phức tạp, hoặc dùng Ridge/Lasso.',
+        text: 'Validation loss cao hơn train loss khá nhiều. Đây là dấu hiệu cần kiểm tra khả năng khớp thừa, cách chia dữ liệu hoặc độ nhiễu, chưa phải bằng chứng chắc chắn. Hãy thử một thay đổi và so sánh lại trên cùng các tập.',
       };
     }
-    return { kind: 'info', text: 'Train loss và test loss khá gần nhau: mô hình đang tổng quát hoá tốt trên dữ liệu này.' };
+    return { kind: 'info', text: 'Chưa thấy khoảng cách train/validation lớn theo quy tắc gợi ý này. Hai loss gần nhau vẫn có thể cùng cao; hãy so với mốc ban đầu và mục tiêu bài toán. Test giữ cho đánh giá cuối.' };
   });
 }

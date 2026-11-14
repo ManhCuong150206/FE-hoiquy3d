@@ -1,5 +1,13 @@
 # Công nghệ, công cụ và hiệu ứng — Hồi quy 3D
 
+> Luồng dành cho người mới 14/11/2026: đổi “Học qua thực nghiệm” thành “Thử nghiệm & so sánh cấu hình”. Lần đầu chạy để có mốc, không hỏi giả thuyết. Lần sau có câu hỏi gợi ý theo thuật toán, có thể tự viết hoặc bỏ qua; chọn câu hỏi không tự thay cấu hình. Đánh giá hỏi điều quan sát được, đặt validation MSE, thời gian tính và số vòng cạnh mốc cùng dữ liệu. Phần thực nghiệm chỉ hướng dẫn theo dõi/so sánh, phép tính chi tiết tập trung ở trang học từng bước; giao diện nhắc hai trang dùng chung phiên mô hình. Retry giữ nhật ký cũ và xóa câu hỏi/nhận xét cho lần mới. Kiểm chứng: 203/203 unit tests, gồm 4 kiểm thử luồng người mới; production build đạt với các cảnh báo CSS có sẵn. Playwright xác nhận lần đầu không cần giả thuyết, câu hỏi gợi ý/tự viết, hai bản ghi, bảng so sánh, test cuối và học A–F.
+
+> Đường hồi quy ở trang học 14/11/2026: thêm đường xanh sáng theo x₁, giữ x₂ và các biến còn lại tại mẫu đang chọn. Đường dùng dự đoán thật của mô hình, dịch chuyển cùng bề mặt khi xem hệ số đề xuất ở E; F mới cập nhật thật. Điểm dữ liệu không di chuyển. Khi hệ thống yêu cầu giảm chuyển động, hiển thị trực tiếp kết quả. Kiểm chứng: 201/201 unit tests, production build đạt (còn cảnh báo dung lượng CSS đã có), Playwright `lesson-trace` đạt chuyển động E, dự đoán chính xác, điểm giữ nguyên, F cập nhật và xem lại không train thêm; đã xem ảnh kết quả trên trình duyệt.
+
+> Tinh chỉnh bố cục 14/11/2026: Học qua thực nghiệm mặc định thu gọn; mở theo bước, giới hạn chiều cao nội dung, tự đóng khi chạy. Các chỉ số vẫn hiện phía trên khi cuộn. Bề mặt/đường hồi quy của trang học luôn hiện xuyên suốt A–F như trang chạy mô hình; E là đề xuất và F mới commit thật.
+
+> Cập nhật quy trình học 14/11/2026: trang học mặc định dừng sau từng pha A–F, có nút tự trình diễn riêng. Mô hình 3D bên trái theo đúng pha giải thích bên phải; chỉ F cập nhật thật. Trang thực nghiệm thêm giả thuyết, nhật ký so sánh và đo thời gian worker. Dữ liệu mới chia train/validation/test; test mở theo lựa chọn đánh giá cuối. Với 500 mẫu mặc định: 320 train, 80 validation, 100 test. Bản lưu cũ giữ cách chia cũ. Nhật ký tối đa 30 dòng trong phiên, có xuất JSON. Các kết quả kiểm thử/luồng tự chạy trong các mốc cũ bên dưới là lịch sử, không thay thế bản cập nhật này.
+
 Cập nhật: 03/11/2026. Đây là tài liệu chính về giao diện, hiệu ứng, luồng học và kiểm thử frontend. Nội dung đã được gộp và biên tập theo các quyết định mới nhất, thay cho năm file giao diện/học từng bước trước đây. [README](../README.md) chỉ giữ cách cài đặt và chạy nhanh.
 
 Mã nguồn là căn cứ kiểm tra hành vi thực tế. Các con số kiểm thử bên dưới ghi theo lần chạy cụ thể, không tự động thay đổi khi code thay đổi.

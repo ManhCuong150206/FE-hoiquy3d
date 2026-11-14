@@ -26,7 +26,7 @@ async(page)=>{
  await page.getByRole('button',{name:'Step',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]')?.getAttribute('aria-valuenow')==='1');
  await page.getByLabel('Tên lần chạy',{exact:true}).fill('Authenticated snapshot');
- await page.getByRole('button',{name:'Lưu',exact:true}).click();
+ await page.getByRole('button',{name:'4 · Đánh giá',exact:true}).click();await page.getByRole('button',{name:'Chọn cấu hình hiện tại & đánh giá test',exact:true}).click();await page.getByRole('button',{name:'Lưu',exact:true}).click();
  const saved = page.locator('app-experiments-panel li').filter({ hasText: 'Authenticated snapshot' });
  await saved.getByText('Chờ đồng bộ', { exact: true }).waitFor();
  await page.waitForTimeout(500);

@@ -15,6 +15,7 @@ describe('LabStore', () => {
   });
 
   it('ignores hidden-feature magnitude when fitting the displayed coordinates', () => {
+    service.validationX.set([]); service.validationY.set([]);
     service.trainX.set([[1,2,1e12]]);service.testX.set([[2,3,-1e12]]);
     service.trainY.set([4]);service.testY.set([2]);expect(service.dataScale()).toBe(1);
   });

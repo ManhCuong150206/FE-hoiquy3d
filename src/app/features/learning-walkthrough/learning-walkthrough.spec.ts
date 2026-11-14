@@ -4,17 +4,21 @@ import { LearningWalkthrough } from './learning-walkthrough';
 import { LabStore } from '../../state/lab-store';
 
 describe('lesson run and restart controls',()=>{
+ beforeEach(() => {
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true, addEventListener() {}, removeEventListener() {} })));
+  vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
+ });
  async function setup(){
   TestBed.configureTestingModule({imports:[LearningWalkthrough]});
   const lab=TestBed.inject(LabStore);
-  const play=vi.spyOn(lab,'playIteration').mockImplementation(()=>{});
+  const play=vi.spyOn(lab,'nextPhase').mockImplementation(()=>{});
   vi.spyOn(lab,'setMode').mockImplementation(mode=>lab.mode.set(mode));
   const fixture=TestBed.createComponent(LearningWalkthrough);fixture.componentRef.setInput('active',false);
   await fixture.whenStable();
   const button=()=>fixture.nativeElement.querySelector('.run-iteration') as HTMLButtonElement;
   return {lab,play,fixture,button};
  }
- afterEach(()=>vi.restoreAllMocks());
+ afterEach(()=>{ vi.restoreAllMocks(); vi.unstubAllGlobals(); });
  it('lets a completed model restart explicitly while retaining its data and configuration',async()=>{
   const {lab,play,fixture,button}=await setup();const x=lab.trainX(),y=lab.trainY();
   lab.algorithm.set('ridge');lab.iteration.set(100);lab.status.set('done');const reset=vi.spyOn(lab,'reset');

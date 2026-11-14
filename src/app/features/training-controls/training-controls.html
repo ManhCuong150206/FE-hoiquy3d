@@ -7,7 +7,7 @@
     <button (click)="store.reset()">Reset</button>
     </div>
     <div class="field">
-        <label for="iteration-speed">Nhịp chạy iteration</label>
+        <label for="iteration-speed">Nhịp trình diễn (không phải tốc độ học)</label>
         <select id="iteration-speed" (change)="store.setSpeed(+$any($event.target).value)">
             @for (v of speedOptions; track v) {
             <option [value]="v" [selected]="v === store.speed()">{{ v }}x</option>
@@ -53,7 +53,7 @@
     }
 
     <div class="field">
-        <label for="learning-rate">Learning rate</label>
+        <label for="learning-rate">Learning rate · độ lớn bước cập nhật</label>
         <select id="learning-rate" (change)="store.setLearningRate(+$any($event.target).value)">
             @for (v of lrOptions; track v) {
             <option [value]="v" [selected]="v === store.learningRate()">{{ v }}</option>
@@ -62,7 +62,7 @@
     </div>
 
     <div class="field">
-        <label for="max-iterations">Max iterations</label>
+        <label for="max-iterations">Max iterations · số vòng tối đa</label>
         <select id="max-iterations" (change)="store.setMaxIterations(+$any($event.target).value)">
             @for (v of iterOptions; track v) {
             <option [value]="v" [selected]="v === store.maxIterations()">{{ v }}</option>

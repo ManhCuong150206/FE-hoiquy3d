@@ -82,7 +82,7 @@
         },
         "test": {
           "builder": "@angular/build:unit-test",
-          "options": {}
+          "options": { "isolate": true }
         }
       }
     }

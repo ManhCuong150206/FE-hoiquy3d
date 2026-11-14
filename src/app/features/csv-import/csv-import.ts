@@ -146,7 +146,7 @@ export class CsvImport {
             yCol: this.yCol(),
             missing: this.missing(),
             standardize: this.standardize(),
-            trainRatio: this.store.trainRatio(), splitSeed: this.store.seed() + 1,
+            trainRatio: this.store.trainRatio(), splitSeed: this.store.seed() + 1, validation: true,
         });
         if (res.error) {
             this.message.set({ kind: 'error', text: res.error });

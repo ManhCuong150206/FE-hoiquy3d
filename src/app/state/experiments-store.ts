@@ -58,7 +58,7 @@ export class ExperimentsStore {
     online = signal(true); syncing = signal(false); syncError = signal<string | null>(null);
     conflict = signal<{ id: string; server: SavedExperiment | null; invalidServer?: boolean } | null>(null);
     readonly canPersist = computed(() => this.auth.authenticated());
-    pendingCount = computed(() => this.canPersist() ? this.all().filter(e => e.scopeId === this.auth.scope() && !e.deletedAt && !e.synced).length : 0); canSave = computed(() => this.canPersist() && this.lab.latest() !== null);
+    pendingCount = computed(() => this.canPersist() ? this.all().filter(e => e.scopeId === this.auth.scope() && !e.deletedAt && !e.synced).length : 0); canSave = computed(() => this.canPersist() && this.lab.latest() !== null && this.lab.status() !== 'running' && !this.lab.busy() && !this.lab.auto() && (!this.lab.hasValidation() || this.lab.finalTest() !== null));
     private loadedScope = ''; private revision = 0; private scopeLoad: Promise<void> = Promise.resolve(); private writes = Promise.resolve();
     constructor() {
         effect(() => { this.auth.scope(); this.auth.user(); if (this.isBrowser) untracked(() => { this.scopeLoad = this.loadScope(); }); });
@@ -89,6 +89,8 @@ export class ExperimentsStore {
     }
     save(name: string): SavedExperiment | null {
         if (!this.canPersist()) return null;
+        if (this.lab.status() === 'running' || this.lab.busy() || this.lab.auto()) { this.syncError.set('Tạm dừng huấn luyện trước khi lưu bản kết quả.'); return null; }
+        if (this.lab.hasValidation() && !this.lab.finalTest()) { this.syncError.set('Ghi nhận lần thử để so sánh. Khi chọn cấu hình cuối, hãy đánh giá test trước khi lưu kết quả đầy đủ.'); return null; }
         const state = this.lab.latest(), metrics = this.lab.metrics(); if (!state || !metrics) return null;
         if (this.loadedScope !== this.auth.scope()) { this.syncError.set('Đang mở vùng dữ liệu. Vui lòng thử lưu lại.'); return null; }
         const exp: SavedExperiment = {
@@ -97,10 +99,13 @@ export class ExperimentsStore {
             algorithm: this.lab.algorithm(), learningRate: this.lab.learningRate(), maxIterations: this.lab.maxIterations(),
             degree: this.lab.algorithm() === 'polynomial' ? this.lab.degree() : undefined, lambda: ['ridge', 'lasso'].includes(this.lab.algorithm()) ? this.lab.lambda() : undefined,
             dataSource: this.lab.dataSource(), csvName: this.lab.csvName(), synthetic: this.lab.appliedSynthetic() ?? undefined,
-            sampleCount: this.lab.trainX().length + this.lab.testX().length, featureCount: this.lab.dataFeatures(),
+            sampleCount: this.lab.trainX().length + this.lab.validationX().length + this.lab.testX().length, featureCount: this.lab.dataFeatures(),
             noise: this.lab.appliedSynthetic()?.noise ?? this.lab.noise(), seed: this.lab.appliedSynthetic()?.seed ?? this.lab.seed(), trainRatio: this.lab.appliedSynthetic()?.trainRatio ?? this.lab.trainRatio(),
             iterations: state.iteration, w: [...state.w], b: state.b, train: metrics.train, test: metrics.test, synced: false,
-            csvData: this.lab.dataSource() === 'csv' ? structuredClone({ trainX: this.lab.trainX(), trainY: this.lab.trainY(), testX: this.lab.testX(), testY: this.lab.testY(), trainIndices: this.lab.trainIndices(), provenance: this.lab.provenance() ?? undefined }) : undefined
+            learningReport: this.lab.hasValidation() ? { protocol: 'train-validation-test-v1', computeMs: this.lab.computeMs(), setupMs: this.lab.setupMs(),
+                reason: this.lab.reasonLabel(), hypothesis: this.lab.hypothesis(), conclusion: this.lab.conclusion(), mode: this.lab.timingMode(), validation: { ...this.lab.evaluation()!.validation! }, finalTestViewed: this.lab.testWasOpened() } : undefined,
+            csvData: this.lab.dataSource() === 'csv' ? structuredClone({ trainX: this.lab.trainX(), trainY: this.lab.trainY(), testX: this.lab.testX(), testY: this.lab.testY(),
+                validationX: this.lab.validationX(), validationY: this.lab.validationY(), trainIndices: this.lab.trainIndices(), provenance: this.lab.provenance() ?? undefined }) : undefined
         };
         if (exp.name.length > 120) { this.syncError.set('Tên thí nghiệm tối đa 120 ký tự.'); return null; }
         if (new TextEncoder().encode(JSON.stringify(exp)).byteLength > 8 * 1024 * 1024) { this.syncError.set('Bản lưu vượt 8 MiB. Hãy giảm dữ liệu CSV trước khi lưu; mô hình đang chạy được giữ nguyên.'); return null; }
@@ -233,6 +238,7 @@ export class ExperimentsStore {
             'synthetic_kind', 'synthetic_version', 'w', 'b',
             'train_mse', 'train_rmse', 'train_mae', 'train_r2',
             'test_mse', 'test_rmse', 'test_mae', 'test_r2',
+            'validation_mse', 'compute_ms', 'setup_ms', 'stop_reason', 'hypothesis', 'conclusion', 'evaluation_protocol',
         ];
         const esc = (v: unknown) => {
             const s = String(v ?? '');
@@ -245,6 +251,8 @@ export class ExperimentsStore {
             e.w.join(' '), e.b,
             e.train.mse, e.train.rmse, e.train.mae, e.train.r2,
             e.test.mse, e.test.rmse, e.test.mae, e.test.r2,
+            e.learningReport?.validation.mse, e.learningReport?.computeMs, e.learningReport?.setupMs, e.learningReport?.reason,
+            e.learningReport?.hypothesis, e.learningReport?.conclusion, e.learningReport?.protocol,
         ].map(esc).join(','));
         // BOM để Excel đọc đúng tiếng Việt
         this.download('hoiquy3d-experiments.csv', '\uFEFF' + [cols.join(','), ...lines].join('\r\n'), 'text/csv;charset=utf-8');

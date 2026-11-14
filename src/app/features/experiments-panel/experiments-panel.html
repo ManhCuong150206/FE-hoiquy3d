@@ -23,7 +23,7 @@
     </div>
     @if(exp.syncError()){<p role="status">{{ exp.syncError() }}</p>}
     @if (exp.canPersist() && !exp.canSave()) {
-    <p class="hint">Chạy ít nhất một bước huấn luyện để có kết quả cần lưu.</p>
+    <p class="hint">Chạy mô hình; dùng nhật ký để so sánh các lần thử. Khi chọn cấu hình cuối, bấm đánh giá test trong phần hướng dẫn trước khi lưu kết quả đầy đủ.</p>
     }
     @if (note(); as n) {
     <p class="note" role="status">{{ n }}</p>
@@ -69,6 +69,7 @@
     <dialog #comparison class="comparison-dialog" aria-label="So sánh các thí nghiệm">
     <button type="button" (click)="comparison.close()" autofocus>Đóng bảng so sánh</button>
     <h3>So sánh</h3>
+    <p>Dùng validation để thử tham số trong nhật ký thực nghiệm. Bảng này còn giữ test của các kết quả đã lưu; chỉ đối chiếu cùng dữ liệu, cách chia và thang đo. Không chọn tiếp siêu tham số theo test.</p>
     <div class="cmp">
         <table>
             <thead>

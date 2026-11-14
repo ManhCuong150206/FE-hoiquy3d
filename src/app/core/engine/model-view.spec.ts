@@ -1,4 +1,14 @@
-import { countStuck, modelPredictions, sliceRow } from './model-view';
+import { countStuck, modelPredictions, sliceRow, modelVisibility } from './model-view';
+
+it('keeps the same surface visible in every teaching phase, including A', () => {
+  const normal = modelVisibility(2, false, 0, .3, false);
+  expect(normal.plane).toBe(true);
+  for (let phase = 0; phase < 6; phase++) {
+    expect(modelVisibility(2, true, phase, .3, false)).toEqual(normal);
+    expect(modelVisibility(1, true, phase, 0, false)).toEqual({ plane: false, line: true, bands: false });
+  }
+  expect(modelVisibility(2, true, 0, .3, true).plane).toBe(false);
+});
 
 describe('countStuck', () => {
   it('uses the strict absolute residual threshold, including negative y', () => {

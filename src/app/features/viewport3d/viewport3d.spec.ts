@@ -116,6 +116,7 @@ describe('Viewport3d', () => {
     const store = component.store;
     store.trainX.set([[1, 2, 3], [1, 2, 4]]); store.trainY.set([7, 9]);
     store.testX.set([[1, 2, 5]]); store.testY.set([11]);
+    store.validationX.set([]); store.validationY.set([]);
     store.history.set([{ iteration: 1, w: [0, 0, 2], b: 1, trainLoss: 0, testLoss: 0 }]);
     const state = component.stuck();
     expect(state.train).toBe(2); expect(state.test).toBe(1);
@@ -168,6 +169,29 @@ describe('Viewport3d', () => {
     expect(view.bands.every((band: THREE.Mesh) => !band.visible)).toBe(true);
     for (const object of [view.plane, ...view.bands, view.modelLine]) { object.geometry.dispose(); object.material.dispose(); }
   });
+  it('draws the lesson regression trace through the selected multi-feature slice using the real model', () => {
+    const view = component as any;
+    fixture.componentRef.setInput('lesson', true);
+    const geometry = new THREE.PlaneGeometry(10, 10, 40, 40); geometry.rotateX(-Math.PI / 2);
+    view.plane = new THREE.Mesh(geometry);
+    view.lessonTrace = new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 81 }, () => new THREE.Vector3())));
+    view.updatePlane([2, 3, 4], 1, 2, 'linear', 1, 3, [1, 2, 3], .1);
+    const positions = view.lessonTrace.geometry.attributes.position;
+    expect(view.lessonTrace.visible).toBe(true);
+    for (const i of [0, 40, 80]) {
+      expect(positions.getZ(i)).toBe(4);
+      // y_display = (2*x1 + 3*x2 + 4*x3 + b) * scale.
+      expect(positions.getY(i)).toBeCloseTo(2 * positions.getX(i) + 38, 5);
+    }
+    view.updatePlane([2, 3, 4], 1, 2, 'linear', 1, 3, [1, -1, 2], .1);
+    expect(positions.getZ(40)).toBe(-2);
+    expect(positions.getY(40)).toBe(12);
+    fixture.componentRef.setInput('lesson', false);
+    view.applyModelVisibility(3, .1);
+    expect(view.lessonTrace.visible).toBe(false);
+    for (const object of [view.plane, view.lessonTrace]) { object.geometry.dispose(); object.material.dispose(); }
+  });
+
   it('reviews snapshot before/proposed/after without mutating committed model', () => {
     const store=component.store;
     const before={iteration:0,w:[1,2],b:0,trainLoss:1,testLoss:1};

@@ -16,11 +16,12 @@ import { Algorithm, ALGORITHM_LABELS } from './core/models/experiment';
 import { JourneyMotion } from './presentation/journey-motion';
 import { SpatialBackdrop } from './presentation/spatial-backdrop';
 import { LabStore } from './state/lab-store';
+import { ExperimentWorkflow } from './features/experiment-workflow/experiment-workflow';
 
 @Component({
   selector: 'app-root',
   host: { '[class.low-effects]': 'lowEffects()' },
-  imports: [CardGlow, Header, TrainingControls, ExperimentsPanel, DataPanel, Viewport3d, ResultsPanel, AlgorithmNotes, LearningWalkthrough, WelcomePanel, AlgorithmPicker, JourneyMotion, SpatialBackdrop],
+  imports: [ExperimentWorkflow, CardGlow, Header, TrainingControls, ExperimentsPanel, DataPanel, Viewport3d, ResultsPanel, AlgorithmNotes, LearningWalkthrough, WelcomePanel, AlgorithmPicker, JourneyMotion, SpatialBackdrop],
   templateUrl: './app.html', styleUrl: './app.css',
 })
 export class App {

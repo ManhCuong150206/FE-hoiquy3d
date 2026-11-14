@@ -25,6 +25,11 @@
 #lab .workspace > *, #lab .lab-scene > *, #lab .lab-sidebar > * { min-width: 0; }
 #lab .lab-overview, #lab app-experiments-panel { grid-column: 1 / -1; }
 #lab .lab-overview {
+  position: sticky;
+  top: 8px;
+  z-index: 12;
+  background: var(--sticky-surface, var(--surface)) !important;
+  backdrop-filter: none !important;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;

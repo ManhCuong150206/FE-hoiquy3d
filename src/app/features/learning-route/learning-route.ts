@@ -22,7 +22,7 @@ export class LearningRoute {
     'So sánh dự đoán với giá trị thật: residual = ŷ − y.',
     'Tổng hợp sai số trên train và phần phạt nếu có.',
     'Quan sát gradient và các hệ số mới được đề xuất.',
-    'Pha F áp dụng một cập nhật, rồi đánh giá train/test.',
+    'Pha F áp dụng một cập nhật, rồi đánh giá train/validation.',
   ];
   readonly points = signal<{x:number,y:number}[]>([]);
   readonly path = signal('M24 50 L48 200');
@@ -44,7 +44,6 @@ export class LearningRoute {
   private scrollMotion?: {panel:HTMLElement;from:number;to:number;started:number;duration:number};
   private entryAnimation?: Animation;
   private previousPhase: number | null = null;
-  private wasFollowing = false;
   private stopFollowing = () => { this.scrollMotion=undefined; this.host.nativeElement.removeAttribute('data-scrolling'); };
 
   private schedule: (() => void) | undefined;
@@ -61,8 +60,8 @@ export class LearningRoute {
     afterNextRender(() => {
       const ref = afterRenderEffect(() => {
         const i=this.phase(), selected=this.selected(), locked=this.locked();this.cycle();
-        const follow=locked || (this.wasFollowing && i!==this.previousPhase);
-        this.wasFollowing=locked;this.previousPhase=i;
+        const follow=locked || (i !== null && i !== this.previousPhase);
+        this.previousPhase=i;
         if(!this.active()) {this.stopFollowing();return;}
         const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
         this.entryAnimation?.cancel();

@@ -27,3 +27,12 @@ it('reads both compact server data and old local snapshots', () => {
  const legacy={...saved,synthetic:undefined};
  expect(experimentPayload(legacy)).toHaveProperty('synthetic.kind','linear');
 });
+it('ignores malformed optional learning reports instead of crashing the comparison view', () => {
+ const raw = { ...saved, learningReport: { protocol: 'train-validation-test-v1', validation: null } };
+ expect(readExperiment(raw as unknown as SavedExperiment).learningReport).toBeUndefined();
+ const report = { protocol: 'train-validation-test-v1', computeMs: 2, setupMs: 1, reason: 'done', hypothesis: 'baseline', finalTestViewed: true, validation: saved.test };
+ expect(readExperiment({ ...saved, learningReport: report } as SavedExperiment).learningReport).toEqual(report);
+ for (const r2 of [null, NaN]) {
+  expect(readExperiment({ ...saved, learningReport: { ...report, validation: { ...saved.test, r2 } } } as unknown as SavedExperiment).learningReport).toBeDefined();
+ }
+});

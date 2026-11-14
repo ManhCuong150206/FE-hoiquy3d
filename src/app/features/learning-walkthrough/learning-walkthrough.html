@@ -6,8 +6,13 @@
     </div>
   </div>
   <div id="lesson-content">
+    <div class="lesson-principle"><strong>Một vòng học, sáu pha — bạn quyết định khi nào đi tiếp.</strong>
+      <p>Mỗi vòng dùng toàn bộ {{ lab.trainY().length }} mẫu train để tính gradient. Mẫu được chọn chỉ là ví dụ minh họa. A–E chưa thay trọng số thật; F mới áp dụng một cập nhật. Validation không tham gia gradient; test dành cho đánh giá cuối.</p>
+      <p>Mô hình 3D bên trái biểu diễn đúng pha đang xem ở cột này. Bạn có thể mở lại pha đã thực hiện mà không huấn luyện thêm.</p>
+    </div>
     <div class="lesson-command">
       <button class="primary run-iteration" type="button" (click)="runIteration()" [disabled]="lab.busy() || lab.switching() || !!lab.lrError()" aria-describedby="lesson-run-status">{{ runLabel() }}</button>
+      <button type="button" [disabled]="lab.busy() || lab.switching() || !!lab.lrError() || restartRequired()" (click)="lab.auto() ? lab.pausePresentation() : lab.playIteration()">{{ lab.auto() ? 'Tạm dừng trình diễn' : 'Tự trình diễn một vòng A–F' }}</button>
       <span class="iteration-badge">Iteration {{ lab.iteration() }} · {{ lab.auto() ? 'Đang trình diễn A–F' : 'Sẵn sàng xem kết quả' }}</span>
       <button type="button" class="notes-link" (click)="notes()">Đến ghi chú ↓</button>
     </div>
@@ -19,7 +24,7 @@
         {{ lab.status() === 'done' ? 'Mô hình đã kết thúc ở iteration ' + lab.iteration() + '.' : 'Phiên học gặp lỗi.' }}
         Bấm “Học lại từ đầu” để chạy một vòng A–F với cùng dữ liệu và thuật toán. Tiến trình hiện tại sẽ được đặt lại; các bản đã lưu vẫn được giữ.
       }
-      @else { Bấm nút học để chạy đúng một iteration qua A–F, rồi dừng để xem kết quả. }
+      @else { Bấm nút học để thực hiện pha tiếp theo, rồi dừng để đọc. Chỉ nút “Tự trình diễn” mới tự chuyển các pha A–F. }
     </p>
     <details class="lesson-options">
       <summary>Tùy chọn · mẫu train và tốc độ</summary>
@@ -86,14 +91,13 @@
         </tbody>
       </table>
     </div>
-    @if (lab.provenance()?.fittedOn === 'train') { <p>Giá trị điền thiếu và thống kê chuẩn hóa chỉ được tính từ train, rồi áp dụng chung cho train/test.</p> }
+    @if (lab.provenance()?.fittedOn === 'train') { <p>Giá trị điền thiếu và thống kê chuẩn hóa chỉ được tính từ train, rồi áp dụng chung cho train/validation/test.</p> }
     @if (lab.provenance()?.standardized) {
     <p>Đã chuẩn hóa cả X và y: z = (giá trị sau xử lý thiếu − trung bình) / độ lệch chuẩn. Loss bên dưới dùng đơn vị
       chuẩn hóa.</p>
     @for (r of inputs(); track $index) { <p class="formula">{{ r.label }}: ({{ fmt(r.filled) }} − {{ fmt(r.stats?.mean)
       }}) / {{ fmt(r.stats?.sd) }} ≈ {{ fmt(r.value) }}</p> }
-    <p class="subtle">Tiền xử lý hiện được tính trước khi chia train/test. Đợt này giữ nguyên cách tính; đây là hạn chế
-      đã ghi nhận riêng.</p>
+    <p class="subtle">Chia tập trước; chỉ dùng train để tính giá trị điền thiếu, trung bình và độ lệch chuẩn, rồi áp dụng cho validation/test.</p>
     } @else { <p>Không áp dụng z-score. Phép co điểm cho vừa khung 3D chỉ thay đổi cách hiển thị, không đổi dữ liệu học.
     </p> }
         }
@@ -179,7 +183,7 @@
         <dd>{{ fmt(s.before.trainLoss + s.penaltyBefore) }}</dd>
       </div>
     </dl>
-    <p>Test MSE trước: {{ fmt(s.before.testLoss) }}. Con số này không được dùng để cập nhật trọng số.</p>
+    <p>{{ lab.assessmentLabel() }} MSE trước: {{ fmt(s.before.testLoss) }}. Con số này không được dùng để cập nhật trọng số.</p>
         }
     </details>
     }
@@ -261,7 +265,7 @@
             <td>{{ signed(s.after.trainLoss + s.penaltyAfter - s.before.trainLoss - s.penaltyBefore) }}</td>
           </tr>
           <tr>
-            <th>MSE test · chỉ đánh giá</th>
+            <th>MSE {{ lab.assessmentLabel() }} · chỉ đánh giá</th>
             <td>{{ fmt(s.before.testLoss) }}</td>
             <td>{{ fmt(s.after.testLoss) }}</td>
             <td>{{ signed(s.after.testLoss - s.before.testLoss) }}</td>

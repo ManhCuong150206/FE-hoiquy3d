@@ -5,10 +5,11 @@ let runId = 0;
 let speed = 1;
 let timer: ReturnType<typeof setTimeout> | undefined;
 const send = (data: object) => postMessage({ ...data, runId });
-const report = () => { if (session) send({ type: 'step', ...session.current, done: session.done }); };
+const telemetry = () => ({ computeMs: session?.computeMs ?? 0, setupMs: session?.setupMs ?? 0, stopReason: session?.done ? session.stopReason : null });
+const report = () => { if (session) send({ type: 'step', ...session.current, done: session.done, ...telemetry() }); };
 function fail(error: unknown) {
   clearTimeout(timer);
-  send({ type: 'error', message: error instanceof Error ? error.message : 'Không tính được bước học.' });
+  send({ type: 'error', message: error instanceof Error ? error.message : 'Không tính được bước học.', ...telemetry() });
 }
 function loop() {
   try {
@@ -29,7 +30,7 @@ addEventListener('message', ({ data }) => {
       case 'pause': clearTimeout(timer); send({ type: 'paused', requestId: data.requestId }); break;
       case 'step': clearTimeout(timer); if (session?.step()) report(); break;
       case 'prepare':
-        clearTimeout(timer); send({ type: 'prepared', snapshot: session?.prepare() ?? null }); break;
+        clearTimeout(timer); send({ type: 'prepared', snapshot: session?.prepare() ?? null, ...telemetry() }); break;
       case 'commit': if (session?.commit(data.iteration)) report(); break;
       case 'discard': session?.discard(); break;
       case 'speed': speed = data.speed; break;

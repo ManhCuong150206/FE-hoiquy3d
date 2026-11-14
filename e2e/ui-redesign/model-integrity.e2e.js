@@ -19,7 +19,7 @@ async(page)=>{
  check(!visible.plane&&visible.line&&visible.bands.every(x=>!x),'1D and zero epsilon survive sample changes');
  await page.locator('#lab .lesson-entry button').click();await idle('learning');
  await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('#learning app-viewport3d'))?.modelLine);
- check(await page.evaluate(()=>{const v=window.ng.getComponent(document.querySelector('#learning app-viewport3d'));return !v.plane.visible&&!v.modelLine.visible&&v.bands.every(x=>!x.visible);}), 'A hides every prediction primitive');
+ check(await page.evaluate(()=>{const v=window.ng.getComponent(document.querySelector('#learning app-viewport3d'));return !v.plane.visible&&v.modelLine.visible&&v.bands.every(x=>!x.visible);}), 'A keeps the current 1D model visible');
  await page.locator('#learning .lab-heading button').click();await idle('lab');
  for(const [algorithm,profile] of [['Linear','linear'],['Polynomial','curved'],['Ridge','correlated'],['Lasso','sparse']]){
   if(algorithm!=='Linear'){await page.locator('#lab .change-algorithm').click();await idle('algorithms');await page.getByRole('button',{name:'Khám phá '+algorithm,exact:true}).click();
@@ -34,7 +34,7 @@ async(page)=>{
  // Save the applied sparse configuration, not an un-applied profile draft.
  await page.evaluate(()=>{const s=window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store;window.__modelDataset=JSON.stringify({X:s.trainX(),y:s.trainY()});});
  await page.locator('#synthetic-kind').selectOption('curved');
- await page.context().setOffline(true);await page.getByLabel('Tên lần chạy',{exact:true}).fill('Integrity sparse profile');await page.getByRole('button',{name:'Lưu',exact:true}).click();
+ await page.context().setOffline(true);await page.getByLabel('Tên lần chạy',{exact:true}).fill('Integrity sparse profile');await page.getByRole('button',{name:'4 · Đánh giá',exact:true}).click();await page.getByRole('button',{name:'Chọn cấu hình hiện tại & đánh giá test',exact:true}).click();await page.getByRole('button',{name:'Lưu',exact:true}).click();
  const saved=page.locator('app-experiments-panel li').filter({hasText:'Integrity sparse profile'}).last();await saved.waitFor();
  await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-experiments-panel')).exp.list().some(e=>e.name==='Integrity sparse profile'&&e.synthetic?.kind==='sparse'));
  const persisted=await page.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('hoiquy3d',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});const all=await new Promise((resolve,reject)=>{const r=db.transaction('experiments').objectStore('experiments').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});db.close();return all.find(e=>e.name==='Integrity sparse profile');});
@@ -57,10 +57,10 @@ async(page)=>{
  check(await page.evaluate(()=>{const s=window.ng.getComponent(document.querySelector('#lab app-viewport3d')).store;const means=s.trainX()[0].map((_,j)=>s.trainX().reduce((a,r)=>a+r[j],0)/s.trainX().length);return s.provenance().fittedOn==='train'&&means.every(v=>Math.abs(v)<1e-10);}), 'CSV training columns centered using train stats');
  await page.locator('#lab .lesson-entry button').click();await idle('learning');
  await page.locator('.lesson-options>summary').click();await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');await page.locator('.lesson-options>summary').click();
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  for(let phase=0;phase<6;phase++)await page.waitForFunction(i=>document.querySelector('#learning .lesson-illustration')?.getAttribute('data-view-phase')===String(i),phase);
  await page.waitForFunction(()=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1');
  await page.screenshot({path:'output/playwright/model-integrity-learning.png'});
  await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile layout has no horizontal overflow');
- return {suite:'model-integrity',passed:['1D/zero epsilon/sample-change regression','phase A hides line and surface','four algorithms and datasets','coefficient labels and count','applied config instead of draft','IndexedDB profile/version persistence','saved data reconstruction','reconnect waits for user approval','manual bulk sync preserves metadata','train-only CSV centering','CSV A–F iteration','mobile layout']};
+ return {suite:'model-integrity',passed:['1D/zero epsilon/sample-change regression','phase A keeps current model visible','four algorithms and datasets','coefficient labels and count','applied config instead of draft','IndexedDB profile/version persistence','saved data reconstruction','reconnect waits for user approval','manual bulk sync preserves metadata','train-only CSV centering','CSV A–F iteration','mobile layout']};
 }

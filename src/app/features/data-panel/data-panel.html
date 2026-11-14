@@ -24,8 +24,9 @@
     <label for="noise">Noise: {{ store.noise() }}%</label>
     <input id="noise" type="range" min="0" max="50" step="1" [style.--range-fill]="(store.noise() / 50 * 100) + '%'" [value]="store.noise()" (input)="store.noise.set(num($event))" />
 
-    <label for="train-ratio">Tỉ lệ train/test: {{ (store.trainRatio() * 100).toFixed(0) }}%</label>
-    <input id="train-ratio" type="range" min="10" max="90" step="10" [style.--range-fill]="((store.trainRatio() * 100 - 10) / 80 * 100) + '%'" [value]="store.trainRatio() * 100"
+    <label for="train-ratio">Phần dữ liệu phát triển: {{ (store.trainRatio() * 100).toFixed(0) }}% · phần còn lại là test</label>
+    <p class="sub">Trong phần phát triển, 80% dành cho train và 20% cho validation. Bấm REGENERATE để áp dụng cách chia; đổi siêu tham số giữ nguyên các tập.</p>
+    <input id="train-ratio" type="range" min="50" max="90" step="10" [style.--range-fill]="((store.trainRatio() * 100 - 50) / 40 * 100) + '%'" [value]="store.trainRatio() * 100"
       (input)="store.trainRatio.set(num($event) / 100)" />
 
     <label for="seed">Seed</label>

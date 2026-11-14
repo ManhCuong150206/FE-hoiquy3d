@@ -26,8 +26,23 @@ describe('manual bulk synchronization', () => {
   TestBed.configureTestingModule({ providers: [{ provide: AuthSession, useValue: auth }] });
   store = TestBed.inject(ExperimentsStore); lab = TestBed.inject(LabStore); await settle();
   store.online.set(true); lab.history.set([{ iteration: 2, w: [1, 2], b: .5, trainLoss: .1, testLoss: .2 }]);
+  lab.finalTest.set({ mse: .2, rmse: Math.sqrt(.2), mae: .2, r2: .5 });
  });
  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+ it('keeps held-out test behind explicit evaluation and includes validation/timing in the saved payload', async () => {
+  lab.finalTest.set(null);
+  expect(store.save('Before final test')).toBeNull();
+  expect(store.list()).toEqual([]); expect(fetch).not.toHaveBeenCalled();
+  lab.computeMs.set(12.5); lab.setupMs.set(1.2);
+  lab.finalTest.set({ mse: .2, rmse: Math.sqrt(.2), mae: .2, r2: .5 });
+  lab.testWasOpened.set(true);
+  const saved = store.save('Chosen configuration')!;
+  expect(saved.learningReport).toMatchObject({ protocol: 'train-validation-test-v1', computeMs: 12.5, setupMs: 1.2, finalTestViewed: true });
+  expect(saved.sampleCount).toBe(lab.trainY().length + lab.validationY().length + lab.testY().length);
+  await settle(); await store.sync(saved.id);
+  const sent = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body))[0];
+  expect(sent.learningReport).toMatchObject(saved.learningReport!);
+ });
  it('never sends on load, save, delete, or reconnect', async () => {
   const a = store.save('A')!; store.save('B'); store.remove(a.id);
   window.dispatchEvent(new Event('offline')); window.dispatchEvent(new Event('online')); await settle();

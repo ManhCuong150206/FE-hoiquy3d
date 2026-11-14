@@ -6,7 +6,7 @@ async(page)=>{
  await page.getByRole('button',{name:'Khám phá Linear',exact:true}).click();await idle('lab');
  for(let i=1;i<=2;i++){
   await page.getByRole('button',{name:'Step',exact:true}).click();await page.waitForFunction(n=>document.querySelector('#lab [role=progressbar]').getAttribute('aria-valuenow')===String(n),i);
-  await page.getByLabel('Tên lần chạy',{exact:true}).fill('Comparison '+i);await page.getByRole('button',{name:'Lưu',exact:true}).click();await page.locator('app-experiments-panel .name').filter({hasText:'Comparison '+i}).waitFor();
+  await page.getByLabel('Tên lần chạy',{exact:true}).fill('Comparison '+i);await page.getByRole('button',{name:'4 · Đánh giá',exact:true}).click();await page.getByRole('button',{name:'Chọn cấu hình hiện tại & đánh giá test',exact:true}).click();await page.getByRole('button',{name:'Lưu',exact:true}).click();await page.locator('app-experiments-panel .name').filter({hasText:'Comparison '+i}).waitFor();
   await page.getByLabel('So sánh Comparison '+i,{exact:true}).check();
  }
  await page.getByRole('button',{name:'Mở bảng so sánh (2)',exact:true}).click();const dialog=page.getByRole('dialog',{name:'So sánh các thí nghiệm'});await dialog.waitFor();

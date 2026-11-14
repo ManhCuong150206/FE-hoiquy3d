@@ -28,10 +28,10 @@ export class Viewport3d implements OnDestroy {
     return model ? modelPredictions([this.store.selectedX()],model.w,model.b,this.store.algorithm(),this.store.degree())[0] : 0;
   });
   readonly lessonCaption = computed(() => [
-    'A · Đầu vào: vòng sáng đánh dấu mẫu thật.',
+    'A · Đầu vào: giữ bề mặt mô hình hiện tại; vòng sáng đánh dấu mẫu thật.',
     'B · Dự đoán: khối vuông biểu diễn ŷ trước cập nhật.',
     'C · Sai số: đoạn nối từ y thật đến ŷ.',
-    'D · Loss: sai số của mẫu minh họa; loss tổng hợp toàn bộ train.',
+    'D · Loss: các đoạn vàng là sai số trên train; tổng bình phương độ dài theo y tạo nên MSE.',
     'E · Hệ số: bề mặt đề xuất, chưa áp dụng cho mô hình thật.',
     'F · Đánh giá: bề mặt sau cập nhật của iteration đang xem.',
   ][this.shownPhase()]);
@@ -40,6 +40,8 @@ export class Viewport3d implements OnDestroy {
   private readonly budget = new FrameBudget();
   readonly idPrefix = input('viewport');
   readonly lowQuality = input(false);
+  readonly evaluationX = computed(() => this.store.hasValidation() ? this.store.validationX() : this.store.testX());
+  readonly evaluationY = computed(() => this.store.hasValidation() ? this.store.validationY() : this.store.testY());
   private host = viewChild.required<ElementRef<HTMLDivElement>>('host');
   private zone = inject(NgZone);
   store = inject(LabStore);
@@ -52,6 +54,7 @@ export class Viewport3d implements OnDestroy {
   private plane?: THREE.Mesh;
   private bands: THREE.Mesh[] = [];
   private modelLine?: THREE.Line;
+  private lessonTrace?: THREE.Line;
   private pointMeshes: THREE.InstancedMesh[] = [];
   private pointData: unknown[] = [];
   private observer?: ResizeObserver;
@@ -72,6 +75,16 @@ export class Viewport3d implements OnDestroy {
   private trueMarker?: THREE.Mesh;
   private predictedMarker?: THREE.Mesh;
   private residualLine?: THREE.Line;
+  private lossLines?: THREE.LineSegments;
+  private surfaceMotion?: { from: number[]; to: number[]; started: number; duration: number; offset: number; traceFrom: number[]; traceTo: number[] };
+  private markerMotion?: { from: number; to: number; started: number; duration: number; x: number; z: number; truth: number; phase: number };
+  private phaseStarted = 0;
+  private motionPreference?: MediaQueryList;
+  private reducedMotion() {
+    if (typeof matchMedia !== 'function') return true;
+    this.motionPreference ??= matchMedia('(prefers-reduced-motion: reduce)');
+    return this.lowQuality() || this.motionPreference.matches;
+  }
   private pointerStart?: { pointerId: number; x: number; y: number; dragged: boolean };
   webglError = signal(false);
   modelClipped = signal(false);
@@ -83,9 +96,9 @@ export class Viewport3d implements OnDestroy {
       ? modelPredictions(rows, s.w, s.b, this.store.algorithm(), this.store.degree())
       : rows.map(() => NaN);
     // Full rows, including x3+, for BOTH train and test; never the displayed slice.
-    const trainPred = predictRows(this.store.trainX()), testPred = predictRows(this.store.testX());
+    const trainPred = predictRows(this.store.trainX()), testPred = predictRows(this.evaluationX());
     return { trainPred, testPred, train: countStuck(this.store.trainY(), trainPred, eps),
-      test: countStuck(this.store.testY(), testPred, eps) };
+      test: countStuck(this.evaluationY(), testPred, eps) };
   });
   sliceCaption = computed(() => {
     const n = this.store.dataFeatures();
@@ -112,7 +125,7 @@ export class Viewport3d implements OnDestroy {
       if (!this.active()) return;
       const ready = this.ready();
       const trX = this.store.trainX(); const trY = this.store.trainY();
-      const teX = this.store.testX(); const teY = this.store.testY();
+      const teX = this.evaluationX(); const teY = this.evaluationY();
       const scale = this.store.dataScale();
       const stuck = this.stuck(), eps = this.store.stickThreshold(), size = this.pointSize();
       if (!ready) return;
@@ -177,6 +190,21 @@ export class Viewport3d implements OnDestroy {
       points.setXYZ(0, x, y * scale, z); points.setXYZ(1, x, prediction * scale, z);
       points.needsUpdate = true;
       this.residualLine.geometry.computeBoundingSphere();
+      this.phaseStarted = performance.now();
+      const before = snapshot ? modelPredictions([row], snapshot.before.w, snapshot.before.b, this.store.algorithm(), this.store.degree())[0] * scale : prediction * scale;
+      this.markerMotion = this.lesson() && snapshot && !this.reducedMotion()
+        ? { from: phase === 1 ? y * scale : before, to: prediction * scale, started: this.phaseStarted,
+            duration: Math.min(850, this.store.phaseSeconds() * 650), x, z, truth: y * scale, phase } : undefined;
+      if (this.lossLines) {
+        this.lossLines.visible = this.lesson() && !!snapshot && phase === 3;
+        if (this.lossLines.visible) {
+          const trainX = this.store.trainX(), trainY = this.store.trainY();
+          const pred = modelPredictions(trainX, snapshot!.before.w, snapshot!.before.b, this.store.algorithm(), this.store.degree());
+          const vertices = trainX.flatMap((r, i) => [r[0] * scale, trainY[i] * scale, (r[1] ?? 0) * scale, r[0] * scale, pred[i] * scale, (r[1] ?? 0) * scale]);
+          this.lossLines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+          this.lossLines.geometry.computeBoundingSphere();
+        }
+      }
     });
 
   }
@@ -216,11 +244,19 @@ export class Viewport3d implements OnDestroy {
       this.modelLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(
         Array.from({ length: 41 }, () => new THREE.Vector3())), new THREE.LineBasicMaterial({ color: 0x38bdf8 }));
       this.scene.add(...this.bands, this.modelLine);
+      // A precise x1 cross-section through the selected sample makes the changing fit legible.
+      this.lessonTrace = new THREE.Line(new THREE.BufferGeometry().setFromPoints(
+        Array.from({ length: 81 }, () => new THREE.Vector3())),
+        new THREE.LineBasicMaterial({ color: 0x67e8f9, depthTest: false, transparent: true, opacity: .95 }));
+      this.lessonTrace.renderOrder = 8;
+      this.scene.add(this.lessonTrace);
       this.trueMarker = new THREE.Mesh(new THREE.SphereGeometry(.18, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, depthTest: false, depthWrite: false, transparent: true }));
       this.predictedMarker = new THREE.Mesh(new THREE.BoxGeometry(.17, .17, .17), new THREE.MeshBasicMaterial({ color: 0x67e8f9, depthTest: false, depthWrite: false, transparent: true }));
       this.residualLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, transparent: true }));
       for (const marker of [this.trueMarker, this.predictedMarker, this.residualLine]) marker.renderOrder = 10;
       this.scene.add(this.trueMarker, this.predictedMarker, this.residualLine);
+      this.lossLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffb75e, transparent: true, opacity: .35, depthTest: false }));
+      this.lossLines.visible = false; this.scene.add(this.lossLines);
       this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown);
       this.renderer.domElement.addEventListener('pointerup', this.onPointerUp);
       this.renderer.domElement.addEventListener('pointermove', this.onPointerMove);
@@ -239,6 +275,27 @@ export class Viewport3d implements OnDestroy {
         const started = performance.now();
         const delta = this.budget.take(timestamp);
         if (delta !== null) {
+          const motion = this.surfaceMotion;
+          if (motion) {
+            const t = Math.min(1, (timestamp - motion.started) / motion.duration), eased = 1 - (1 - t) ** 3;
+            this.applyHeights(motion.from.map((v, i) => v + (motion.to[i] - v) * eased), motion.offset);
+            this.applyTrace(motion.traceFrom.map((v, i) => v + (motion.traceTo[i] - v) * eased));
+            if (t >= 1) this.surfaceMotion = undefined;
+          }
+          const marker = this.markerMotion;
+          if (marker && this.predictedMarker && this.residualLine) {
+            const t = Math.min(1, (timestamp - marker.started) / marker.duration), eased = 1 - (1 - t) ** 3;
+            const value = marker.from + (marker.to - marker.from) * eased;
+            this.predictedMarker.position.set(marker.x, value, marker.z);
+            const positions = this.residualLine.geometry.attributes['position'] as THREE.BufferAttribute;
+            positions.setXYZ(1, marker.x, marker.phase === 2 ? marker.truth + (marker.to - marker.truth) * eased : value, marker.z);
+            positions.needsUpdate = true; this.residualLine.geometry.computeBoundingSphere();
+            if (t >= 1) this.markerMotion = undefined;
+          }
+          if (this.lesson() && this.trueMarker && !this.reducedMotion()) {
+            const elapsed = Math.max(0, timestamp - this.phaseStarted);
+            this.trueMarker.scale.setScalar(1.4 * this.pointSize() * (elapsed < 850 ? 1 + .18 * Math.sin(elapsed / 850 * Math.PI) : 1));
+          }
           // Keep the same settling time when a frame is delayed.
           this.controls!.dampingFactor = 1 - Math.pow(1 - .14, delta / (1000 / 60));
           this.controls!.update();
@@ -340,12 +397,37 @@ export class Viewport3d implements OnDestroy {
 
     const rows = Array.from({ length: pos.count }, (_, i) => sliceRow(pos.getX(i) / scale, pos.getZ(i) / scale, featureCount, fixed));
     const heights = w.length ? modelPredictions(rows, w, b, algorithm, degree).map(v => v * scale) : rows.map(() => 0);
+    const trace = this.lessonTrace?.geometry.attributes['position'] as THREE.BufferAttribute | undefined;
+    const traceRows = Array.from({ length: this.lesson() ? trace?.count ?? 0 : 0 }, (_, i) =>
+      sliceRow((-5 + 10 * i / ((trace?.count ?? 2) - 1)) / scale, fixed[1] ?? 0, featureCount, fixed));
+    const traceHeights = w.length ? modelPredictions(traceRows, w, b, algorithm, degree).map(v => v * scale) : traceRows.map(() => 0);
+    // The line varies x1; x2 and all remaining inputs stay at the selected sample's values.
+    if (trace) for (let i = 0; i < trace.count; i++) trace.setXYZ(i, -5 + 10 * i / (trace.count - 1), trace.getY(i), (fixed[1] ?? 0) * scale);
     // A finite model can overflow when extrapolated outside the data domain.
     const offset = eps * scale;
-    const invalid = heights.some(v => !Number.isFinite(v) || !Number.isFinite(offset) || Math.abs(v) + offset > 1e30);
+    const invalid = [...heights, ...traceHeights].some(v => !Number.isFinite(v) || !Number.isFinite(offset) || Math.abs(v) + offset > 1e30);
     this.modelClipped.set(invalid);
     this.applyModelVisibility(featureCount, eps);
-    if (invalid) return;
+    if (invalid) { this.surfaceMotion = undefined; return; }
+    if (this.lesson() && this.store.snapshot() && !this.reducedMotion()) {
+      this.surfaceMotion = { from: Array.from({ length: pos.count }, (_, i) => pos.getY(i)), to: heights,
+        started: performance.now(), duration: Math.min(850, this.store.phaseSeconds() * 650), offset,
+        traceFrom: trace ? Array.from({ length: trace.count }, (_, i) => trace.getY(i)) : [], traceTo: traceHeights };
+    } else { this.surfaceMotion = undefined; this.applyHeights(heights, offset); this.applyTrace(traceHeights); }
+  }
+
+  private applyTrace(heights: number[]) {
+    if (!this.lessonTrace) return;
+    const positions = this.lessonTrace.geometry.attributes['position'] as THREE.BufferAttribute;
+    heights.forEach((height, i) => positions.setY(i, height));
+    positions.needsUpdate = true;
+    this.lessonTrace.geometry.computeBoundingSphere();
+  }
+
+  private applyHeights(heights: number[], offset: number) {
+    if (!this.plane) return;
+    const geometry = this.plane.geometry as THREE.PlaneGeometry;
+    const pos = geometry.attributes['position'] as THREE.BufferAttribute;
     heights.forEach((v, i) => pos.setY(i, v));
 
     pos.needsUpdate = true;
@@ -372,6 +454,7 @@ export class Viewport3d implements OnDestroy {
     const visible = modelVisibility(features, this.lesson(), this.shownPhase(), eps, this.modelClipped());
     if (this.plane) this.plane.visible = visible.plane;
     if (this.modelLine) this.modelLine.visible = visible.line;
+    if (this.lessonTrace) this.lessonTrace.visible = this.lesson() && features > 0 && !this.modelClipped();
     this.bands.forEach(band => band.visible = visible.bands);
   }
 

@@ -17,15 +17,17 @@ async (page) => {
  await page.locator('.lesson-options>summary').click();
  await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');
  await page.locator('.lesson-options>summary').click();
- stage='begin';await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ stage='begin';await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  const progress=page.locator('#lab [role=progressbar]');
  for(let i=0;i<=5;i++){
   await page.waitForFunction(i=>document.querySelectorAll('app-learning-route li')[i]?.getAttribute('aria-current')==='step',i);
   check(await progress.getAttribute('aria-valuenow')===(i<5?'0':'1'),'Only F commits');
  }
- await page.getByRole('button',{name:'Học từng bước',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).waitFor();
  await page.getByRole('button',{name:'Về thực nghiệm',exact:false}).click();
  await page.waitForFunction(()=>!document.querySelector('#lab').hidden && !document.querySelector('.experience').dataset.transition);
+ await page.getByRole('button',{name:'4 · Đánh giá',exact:true}).click();
+ await page.getByRole('button',{name:'Chọn cấu hình hiện tại & đánh giá test',exact:true}).click();
  stage='offline';await page.context().setOffline(true);
  await page.getByLabel('Tên lần chạy',{exact:true}).fill('E2E CSV offline');
  await page.getByRole('button',{name:'Lưu',exact:true}).click();

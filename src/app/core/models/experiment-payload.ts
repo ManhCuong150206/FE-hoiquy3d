@@ -1,5 +1,17 @@
 import { SavedExperiment } from './experiment';
 
+function learningReport(value: unknown): SavedExperiment['learningReport'] {
+    if (!value || typeof value !== 'object') return undefined;
+    const r = value as Record<string, unknown>, m = r['validation'];
+    if (r['protocol'] !== 'train-validation-test-v1' || !m || typeof m !== 'object' ||
+        typeof r['hypothesis'] !== 'string' || typeof r['reason'] !== 'string' || typeof r['finalTestViewed'] !== 'boolean' ||
+        !['computeMs', 'setupMs'].every(key => typeof r[key] === 'number' && Number.isFinite(r[key]) && Number(r[key]) >= 0)) return undefined;
+    const metric = m as Record<string, unknown>;
+    if (!['mse', 'rmse', 'mae'].every(key => typeof metric[key] === 'number' && Number.isFinite(metric[key]) && Number(metric[key]) >= 0) ||
+        !(metric['r2'] === null || typeof metric['r2'] === 'number' && (Number.isFinite(metric['r2']) || Number.isNaN(metric['r2'])))) return undefined;
+    return value as SavedExperiment['learningReport'];
+}
+
 /** Server payload: local bookkeeping and fields from other data sources stay local. */
 export function experimentPayload(e: SavedExperiment) {
     const common = {
@@ -9,6 +21,7 @@ export function experimentPayload(e: SavedExperiment) {
         ...(['ridge', 'lasso'].includes(e.algorithm) ? { lambda: e.lambda } : {}),
         dataSource: e.dataSource, iterations: e.iterations, w: e.w, b: e.b, train: e.train, test: e.test,
         status: 'completed',
+        ...(e.learningReport ? { learningReport: e.learningReport } : {}),
     };
     if (e.dataSource === 'synthetic') return {
         ...common,
@@ -37,6 +50,7 @@ export function readExperiment(record: SavedExperiment | Record<string, unknown>
     const timestamp = raw['clientCreatedAt'] ?? snapshot.createdAt;
     return {
         ...snapshot,
+        learningReport: learningReport(raw['learningReport'] ?? snapshot.learningReport),
         id: String(raw['clientId'] ?? raw['id']),
         name: typeof raw['name'] === 'string' ? raw['name'] : snapshot.name,
         createdAt: typeof timestamp === 'number' ? timestamp : new Date(String(timestamp)).getTime(),

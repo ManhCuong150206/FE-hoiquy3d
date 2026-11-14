@@ -12,7 +12,7 @@ async(page)=>{
  await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await idle('learning');await settled();
  check((await state()).mode==='learn'&&!(await state()).auto,'Page 4 enters teaching but does not start automatically');
  await page.locator('.lesson-options>summary').click();await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');await page.locator('.lesson-options>summary').click();
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  await page.waitForFunction(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return l.phase()===5&&!l.auto()&&l.iteration()===2;});
  await page.getByRole('button',{name:'Về thực nghiệm',exact:false}).click();await idle('lab');await settled();
  check((await state()).mode==='normal'&&(await state()).iteration===2,'Return keeps completed iteration and restores normal mode');
@@ -21,7 +21,7 @@ async(page)=>{
  await page.getByRole('button',{name:'Chạy hoặc tạm dừng'}).click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-training-controls')).store.iteration()>=5);
  await page.getByRole('button',{name:'Học từng bước và ghi chú',exact:false}).click();await idle('learning');await settled();
  let stopped=await state();await page.waitForTimeout(700);check((await state()).iteration===stopped.iteration,'Normal autoplay stops when opening page 4');
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();await page.waitForFunction(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return l.auto()&&l.phase()===1;});
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();await page.waitForFunction(()=>{const l=window.ng.getComponent(document.querySelector('app-training-controls')).store;return l.auto()&&l.phase()===1;});
  await page.getByRole('button',{name:'Về thực nghiệm',exact:false}).click();await idle('lab');await settled();
  stopped=await state();await page.waitForTimeout(3000);const after=await state();
  check(after.mode==='normal'&&!after.auto&&!after.snapshot&&after.iteration===stopped.iteration,'Leaving mid A-E cancels teaching timer without a hidden F commit');

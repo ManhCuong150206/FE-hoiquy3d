@@ -32,9 +32,9 @@
     <main class="workspace">
       <section class="lab-overview card" aria-label="Chỉ số tổng quan">
         <div class="metric-cell train-metric"><span>Train MSE</span><strong>{{ lab.latest()?.trainLoss?.toFixed(3) ?? '—' }}</strong></div>
-        <div class="metric-cell test-metric"><span>Test MSE</span><strong>{{ lab.latest()?.testLoss?.toFixed(3) ?? '—' }}</strong></div>
-        <div class="metric-cell"><span>Test R²</span>
-          @let r2 = lab.metrics()?.test?.r2;
+        <div class="metric-cell test-metric"><span>{{ lab.assessmentLabel() }} MSE</span><strong>{{ lab.latest()?.testLoss?.toFixed(3) ?? '—' }}</strong></div>
+        <div class="metric-cell"><span>Validation R²</span>
+          @let r2 = lab.evaluation()?.validation?.r2;
           <strong>{{ r2 === undefined ? '—' : finite(r2) ? r2.toFixed(3) : 'Không xác định' }}</strong>
         </div>
         <div class="metric-cell iteration-group"><span>Vòng lặp</span>
@@ -45,6 +45,7 @@
           </div>
         </div>
       </section>
+      <app-experiment-workflow />
       <div class="lab-scene">
         <app-viewport3d data-motion idPrefix="experiment" [active]="activeScreen() === 'lab'" [lowQuality]="lowEffects()" />
         <app-training-controls view="run" data-motion />
@@ -79,7 +80,7 @@
     <div class="lab-heading" data-motion>
       <div>
         <h2 id="learning-title">{{ labels[lab.algorithm()] }} <span>Học cùng mô hình 3D</span></h2>
-        <p class="learning-hint">Cuộn để đọc. Bấm nút trong phần giải thích để thực hiện các pha học.</p>
+        <p class="learning-hint">3D bên trái theo đúng pha ở cột phải. Bấm Tiếp tục để đi từng pha; cuộn chỉ để đọc.</p>
       </div><button [disabled]="pageBusy()" (click)="navigate('lab', true)">↑ Về thực nghiệm</button>
     </div>
     @defer (when opened()) {

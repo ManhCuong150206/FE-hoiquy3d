@@ -1,8 +1,8 @@
 @if (view() === 'chart') {
 <section class="card" aria-labelledby="lab-chart-title">
   <h3 class="card-title" id="lab-chart-title">MSE theo iteration</h3>
-  <div class="legend"><span class="series train"><i aria-hidden="true"></i> Train</span> <span class="series test"><i aria-hidden="true"></i> Test</span></div>
-  <svg class="chart" role="img" aria-label="MSE train và test theo iteration">
+  <div class="legend"><span class="series train"><i aria-hidden="true"></i> Train</span> <span class="series test"><i aria-hidden="true"></i> {{ store.assessmentLabel() }}</span></div>
+  <svg class="chart" role="img" [attr.aria-label]="'MSE train và ' + store.assessmentLabel() + ' theo iteration'">
     @if (chart(); as c) {
       <text x="5" y="16" class="axis-label">{{ c.max.toPrecision(3) }}</text>
       <text x="34" y="84%" class="axis-label">0</text>
@@ -23,17 +23,18 @@
 <section class="card" aria-labelledby="lab-results-title">
   <h3 class="card-title" id="lab-results-title">Chi tiết kết quả</h3>
   <p class="legend">Mô hình đã áp dụng · iteration {{ store.iteration() }}</p>
-  @if (store.metrics(); as m) {
+  @if (store.evaluation(); as m) {
     <h4>Metric</h4>
     <p>{{ store.provenance()?.standardized ? 'y đã chuẩn hóa bằng thống kê train: các metric đang ở thang chuẩn hóa.' : 'Metric dùng thang đo y đang đưa vào mô hình.' }}</p>
     <table>
-      <tr><th></th><th>Train</th><th>Test</th></tr>
-      <tr><td>MSE</td><td>{{ m.train.mse.toFixed(3) }}</td><td>{{ m.test.mse.toFixed(3) }}</td></tr>
-      <tr><td>RMSE</td><td>{{ m.train.rmse.toFixed(3) }}</td><td>{{ m.test.rmse.toFixed(3) }}</td></tr>
-      <tr><td>MAE</td><td>{{ m.train.mae.toFixed(3) }}</td><td>{{ m.test.mae.toFixed(3) }}</td></tr>
-      <tr><td><abbr title="Hệ số xác định; không xác định khi Y không có phương sai">R²</abbr></td><td [class.good]="m.train.r2 >= 0.9">{{ formatMetric(m.train.r2) }}</td><td [class.good]="m.test.r2 >= 0.9">{{ formatMetric(m.test.r2) }}</td></tr>
+      <tr><th></th><th>Train</th><th>Validation</th></tr>
+      <tr><td>MSE</td><td>{{ m.train.mse.toFixed(3) }}</td><td>{{ m.validation ? formatMetric(m.validation.mse) : 'Chưa chia' }}</td></tr>
+      <tr><td>RMSE</td><td>{{ m.train.rmse.toFixed(3) }}</td><td>{{ m.validation ? formatMetric(m.validation.rmse) : 'Chưa chia' }}</td></tr>
+      <tr><td>MAE</td><td>{{ m.train.mae.toFixed(3) }}</td><td>{{ m.validation ? formatMetric(m.validation.mae) : 'Chưa chia' }}</td></tr>
+      <tr><td><abbr title="Hệ số xác định; không xác định khi Y không có phương sai">R²</abbr></td><td>{{ formatMetric(m.train.r2) }}</td><td>{{ m.validation ? formatMetric(m.validation.r2) : 'Chưa chia' }}</td></tr>
     </table>
-    @if (!finite(m.train.r2) || !finite(m.test.r2)) { <p role="note">R² không xác định khi Y của tập đang đánh giá không có phương sai (các giá trị Y bằng nhau).</p> }
+    @if (!finite(m.train.r2) || (m.validation && !finite(m.validation.r2))) { <p role="note">R² không xác định khi Y của tập đang đánh giá không có phương sai (các giá trị Y bằng nhau).</p> }
+    <p>Test được giữ cho nút “Chọn cấu hình hiện tại & đánh giá test” trong phần hướng dẫn. Không chọn siêu tham số theo test.</p>
   }
 
   @if (store.latest(); as s) {
@@ -54,7 +55,7 @@
     <div class="parameters">
     <p class="mono">w = [{{ s.w.map(v => v.toFixed(2)).join(', ') }}]</p>
     <p class="mono">b = {{ s.b.toFixed(2) }}</p>
-    <p class="mono">Mẫu train / test: {{ store.trainX().length }} / {{ store.testX().length }}</p>
+    <p class="mono">Mẫu train / validation / test: {{ store.trainX().length }} / {{ store.validationX().length }} / {{ store.testX().length }}</p>
     </div>
     </details>
   }

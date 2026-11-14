@@ -1,0 +1,91 @@
+<section class="card workflow" aria-labelledby="workflow-title">
+  <div class="workflow-head"><div class="workflow-heading"><h3 id="workflow-title">Thử nghiệm & so sánh cấu hình</h3><p>Bước {{ stage() + 1 }}/5 · {{ steps[stage()] }}</p></div>
+  <nav aria-label="Quy trình thực nghiệm"><ol>@for (title of steps; track title; let i = $index) {
+    <li><button type="button" [attr.aria-label]="(i + 1) + ' · ' + title" [attr.aria-current]="stage() === i ? 'step' : null" (click)="openStage(i)"><span class="step-number">{{ i + 1 }}</span><span>{{ shortSteps[i] }}</span></button></li>
+  }</ol></nav>
+    <button type="button" class="guide-toggle" aria-controls="workflow-content" [attr.aria-expanded]="guided()" (click)="guided.set(!guided())">{{ guided() ? 'Thu gọn hướng dẫn' : 'Mở hướng dẫn học' }} <span aria-hidden="true">{{ guided() ? '−' : '+' }}</span></button>
+  </div>
+  @if (guided()) {
+    <div #guideContent id="workflow-content" class="workflow-content" role="region" aria-label="Hướng dẫn bước đang chọn và nhật ký" tabindex="0">
+    <div class="stage-body" aria-live="polite">
+    @switch (stage()) {
+      @case (0) {
+        <h4>Bạn muốn dự đoán điều gì?</h4><p>Đầu vào X: {{ lab.provenance()?.labels?.join(', ') ?? lab.dataFeatures() + ' đặc trưng tổng hợp' }} → mục tiêu: {{ target() }}.</p>
+        <p>{{ total() }} mẫu: <strong>{{ lab.trainY().length }} train</strong> để học trọng số · <strong>{{ lab.validationY().length }} validation</strong> để thử tham số · <strong>{{ lab.testY().length }} test</strong> để đánh giá cuối.</p>
+        <p>Giá trị điền thiếu và thống kê chuẩn hóa CSV chỉ học từ train. Tập test không tham gia gradient hoặc chọn cấu hình.</p>
+        @if (!lab.hasValidation()) { <p class="warning">Bản lưu cũ chưa có validation riêng. Nhập lại CSV hoặc tạo lại dữ liệu trước khi làm vòng thử nghiệm mới.</p> }
+        <button (click)="settings('data')">Xem thiết lập dữ liệu</button><button class="primary" (click)="stage.set(1)">Tiếp: chọn cấu hình →</button>
+      }
+      @case (1) {
+        @if (firstRun()) {
+          <h4>Chạy lần đầu để có mốc so sánh</h4>
+          <p>Bạn chưa cần đặt giả thuyết. Hãy chạy cấu hình ban đầu và xem sai số, thời gian tính cùng số vòng đã chạy.</p>
+        } @else {
+          <h4>Bạn muốn tìm hiểu điều gì ở lần thử tiếp theo?</h4>
+          <label for="trial-question">Chọn câu hỏi gợi ý (không bắt buộc)</label>
+          <select id="trial-question" [value]="lab.hypothesis()" [disabled]="lab.status() === 'running'" (change)="lab.hypothesis.set(text($event))">
+            <option value="">Bỏ qua, tôi muốn tự khám phá</option>
+            @for (question of questions(); track question) { <option [value]="question">{{ question }}</option> }
+            @if (lab.hypothesis() && !questions().includes(lab.hypothesis())) { <option [value]="lab.hypothesis()">Câu hỏi tự viết</option> }
+          </select>
+          <details><summary>Tự viết câu hỏi hoặc dự đoán (tùy chọn)</summary>
+            <label for="trial-hypothesis">Bạn dự đoán điều gì trước lần chạy này?</label>
+            <textarea id="trial-hypothesis" maxlength="600" rows="2" [value]="lab.hypothesis()" [disabled]="lab.status() === 'running'" (input)="lab.hypothesis.set(text($event))" placeholder="Ví dụ: giảm tốc độ học có thể giúp sai số ổn định hơn, nhưng cần nhiều vòng hơn."></textarea>
+          </details>
+          <p>Giữ nguyên dữ liệu, chỉ đổi một yếu tố rồi so sánh. Câu hỏi chỉ giúp định hướng quan sát; bạn vẫn cần tự chỉnh cấu hình bên dưới.</p>
+        }
+        <p><strong>{{ labels[lab.algorithm()] }}</strong> · tốc độ học {{ lab.learningRate() }} · tối đa {{ lab.maxIterations() }} vòng @if (lab.algorithm() === 'polynomial') { · bậc {{ lab.degree() }} } @if (lab.algorithm() === 'ridge' || lab.algorithm() === 'lasso') { · λ {{ lab.lambda() }} }</p>
+        <p>Siêu tham số do bạn chọn trước khi chạy; trọng số w và b do thuật toán cập nhật. Cấu hình ban đầu mặc định là mốc để thử, không bảo đảm tối ưu.</p>
+        <button (click)="settings('model')">Chỉnh siêu tham số</button><button class="primary" [disabled]="lab.busy() || lab.switching() || !!lab.lrError() || lab.status() === 'running' || lab.status() === 'error'" (click)="run()">{{ firstRun() ? 'Chạy cấu hình ban đầu' : 'Chạy cấu hình này' }}</button>
+      }
+      @case (2) {
+        <h4>Theo dõi lần chạy hiện tại</h4>
+        <p>Quan sát đường sai số và chờ kết quả để so sánh chất lượng, thời gian tính và số vòng. Validation dùng để đánh giá cấu hình, không học trọng số.</p>
+        <p>Muốn hiểu từng phép tính? Mở “Học từng bước và ghi chú” phía trên. Hai trang dùng chung phiên mô hình; chuyển trang không tạo một thí nghiệm độc lập.</p>
+        <p>Đã thực hiện {{ lab.iteration() }} vòng. {{ lab.reasonLabel() }}.</p>
+        <button [disabled]="lab.status() !== 'running'" (click)="lab.pause()">Tạm dừng để đọc kết quả</button><button (click)="stage.set(3)">Đến đánh giá →</button>
+      }
+      @case (3) {
+        <h4>Đọc kết quả trước khi chỉnh tiếp</h4>
+        @if (lab.evaluation(); as metrics) {
+          <p>Train MSE: {{ fmt(metrics.train.mse) }} · Validation MSE: {{ fmt(metrics.validation?.mse) }} · Validation R²: {{ fmt(metrics.validation?.r2) }}.</p>
+          <p>MSE/RMSE/MAE thấp hơn là sai số thấp hơn khi cùng dữ liệu và thang đo. R² có thể âm hoặc không xác định, không phải tỷ lệ chính xác.</p>
+        }
+        <p><strong>Tính toán worker: {{ lab.computeMs().toFixed(2) }} ms</strong> · khởi tạo/biến đổi: {{ lab.setupMs().toFixed(2) }} ms · {{ lab.iteration() }} vòng.</p>
+        <p>Thời gian tính gồm cập nhật và tính sai số đánh giá; chế độ học có thêm truy vết. Không cộng thời gian chờ hoạt ảnh, tạm dừng, truyền tin và vẽ 3D. Đây là một lần đo trên thiết bị này, không phải benchmark.</p>
+        <p>Điều kiện dừng: {{ lab.reasonLabel() }}. Hội tụ là thay đổi hàm mục tiêu nhỏ hơn {{ lab.tolerance() }}, không chứng minh mô hình tổng quát tốt.</p>
+        @if (reference(); as ref) {
+          <div class="table-wrap"><table aria-label="Kết quả hiện tại so với mốc"><thead><tr><th>Chỉ số</th><th>Mốc #{{ ref.id }}</th><th>Hiện tại</th></tr></thead><tbody>
+            <tr><th>Validation MSE ↓</th><td>{{ fmt(ref.validation?.mse) }}</td><td>{{ fmt(lab.evaluation()?.validation?.mse) }}</td></tr>
+            <tr><th>Thời gian tính (ms)</th><td>{{ ref.computeMs.toFixed(2) }}</td><td>{{ lab.computeMs().toFixed(2) }}</td></tr>
+            <tr><th>Số vòng đã chạy</th><td>{{ ref.iterations }}</td><td>{{ lab.iteration() }}</td></tr>
+          </tbody></table></div>
+          <p>Thời gian chỉ là một lần đo trên thiết bị này. Chỉ đối chiếu tốc độ khi cùng chế độ chạy; xem thêm điều kiện dừng trong nhật ký.</p>
+        }
+        @if (lab.hypothesis()) { <p>Câu hỏi trước khi chạy: {{ lab.hypothesis() }}</p> }
+        <label for="trial-conclusion">Bạn quan sát thấy gì? (không bắt buộc)</label>
+        <textarea id="trial-conclusion" maxlength="600" rows="2" [value]="lab.conclusion()" (input)="lab.conclusion.set(text($event))" placeholder="Ghi điều quan sát được và dự định thay đổi tiếp theo"></textarea>
+        <button class="primary" [disabled]="!canRecord()" (click)="record()">Ghi nhận lần thử & so sánh</button>
+        <button [disabled]="!canRecord() || !lab.hasValidation() || lab.finalTest() !== null" (click)="lab.evaluateFinalTest()">Chọn cấu hình hiện tại & đánh giá test</button>
+        @if (lab.finalTest(); as test) { <p role="status">Test cuối · MSE {{ fmt(test.mse) }} · RMSE {{ fmt(test.rmse) }} · MAE {{ fmt(test.mae) }} · R² {{ fmt(test.r2) }}. Đây là đánh giá của mô hình hiện tại.</p> }
+        @if (lab.testWasOpened()) { <p class="warning">Bạn đã xem test của bộ dữ liệu này. Nếu tiếp tục chọn tham số theo kết quả đó, test không còn là đánh giá độc lập; cần một tập kiểm tra mới để kết luận cuối.</p> }
+      }
+      @case (4) {
+        <h4>Giữ dữ liệu, điều chỉnh có kiểm soát</h4><p>{{ lab.comparison() }}</p>
+        <p>Mỗi dòng là một bản chụp độc lập. Thay dữ liệu hoặc chia tập tạo nhóm so sánh mới. Nhật ký giữ tối đa 30 dòng trong phiên hiện tại; tải lại trang sẽ mất, hãy xuất nếu cần.</p>
+        <button (click)="retry()" [disabled]="lab.busy() || lab.status() === 'running'">Chuẩn bị lần thử tiếp (giữ dữ liệu)</button>
+        <button (click)="exportTrials()" [disabled]="!lab.trials().length">Xuất nhật ký JSON</button>
+      }
+    }
+    </div>
+  @if (lab.trials().length) {
+    <details class="trial-log" [open]="stage() === 4"><summary>Nhật ký so sánh · {{ lab.trials().length }} lần thử</summary>
+    <div class="table-wrap"><table><thead><tr><th>Mốc</th><th>Lần / nhóm dữ liệu</th><th>Cấu hình</th><th>Train MSE</th><th>Validation MSE</th><th>Tính / khởi tạo (ms)</th><th>Vòng / dừng</th><th>Câu hỏi / mục tiêu → quan sát</th></tr></thead><tbody>
+      @for (r of lab.trials(); track r.id) { <tr><td><button [attr.aria-pressed]="lab.baselineId() === r.id" (click)="lab.baselineId.set(r.id)">{{ lab.baselineId() === r.id ? 'Đang làm mốc' : 'Chọn mốc' }}</button></td>
+        <td>#{{ r.id }} / {{ r.dataset }} @if (r.testExposed) { · đã xem test }</td><td>{{ labels[r.algorithm] }} · α {{ r.learningRate }} · max {{ r.maxIterations }} @if (r.algorithm === 'polynomial') { · degree {{ r.degree }} } @if (r.algorithm === 'ridge' || r.algorithm === 'lasso') { · λ {{ r.lambda }} }</td>
+        <td>{{ fmt(r.train.mse) }}</td><td>{{ fmt(r.validation?.mse) }}</td><td>{{ r.computeMs.toFixed(2) }} / {{ r.setupMs.toFixed(2) }}</td><td>{{ r.iterations }} · {{ r.reason }} · {{ r.mode === 'mixed' ? 'đã đổi chế độ' : r.mode === 'learn' ? 'học từng bước' : 'chạy thường' }}</td><td>{{ r.hypothesis || 'Tự khám phá' }} → {{ r.conclusion || 'Chưa ghi nhận xét' }}</td></tr> }
+    </tbody></table></div></details>
+  }
+    </div>
+  }
+</section>

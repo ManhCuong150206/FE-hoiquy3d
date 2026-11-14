@@ -10,7 +10,7 @@ export class LearningWalkthrough {
   readonly viewPhase = output<number | null>();
   readonly detailsOpen = signal(false);
   readonly restartRequired = computed(() => this.lab.status() === 'done' || this.lab.status() === 'error');
-  readonly runLabel = computed(() => this.lab.auto() ? 'Tạm dừng' : this.restartRequired() ? 'Học lại từ đầu' : this.lab.snapshot() && this.lab.phase() < 5 ? 'Tiếp tục học' : 'Học từng bước');
+  readonly runLabel = computed(() => this.lab.auto() ? 'Tạm dừng' : this.restartRequired() ? 'Học lại từ đầu' : this.lab.snapshot() && this.lab.phase() < 5 ? 'Tiếp tục → ' + this.phases[this.lab.phase() + 1] : this.lab.snapshot() ? 'Iteration tiếp theo → A' : 'Học từng bước');
   readonly phaseSummaries = computed(() => {
     const s=this.lab.snapshot(), sample=this.selected();
     if(!s || !sample)return [];
@@ -30,7 +30,7 @@ export class LearningWalkthrough {
   constructor() {
     effect(() => {
       if (this.startPending() && this.lab.mode() === 'learn' && !this.lab.switching() && !this.lab.busy()) {
-        this.startPending.set(false); untracked(() => this.lab.playIteration());
+        this.startPending.set(false); untracked(() => this.lab.nextPhase());
       }
     });
     effect(() => { if (!this.active()) { this.startPending.set(false); untracked(() => this.lab.pausePresentation()); } });
@@ -40,7 +40,7 @@ export class LearningWalkthrough {
     if (this.lab.busy() || this.lab.switching() || this.lab.lrError()) return;
     if (this.restartRequired()) this.lab.reset();
     if (this.lab.mode() !== 'learn') { this.startPending.set(true); this.lab.setMode('learn'); }
-    else this.lab.playIteration();
+    else this.lab.nextPhase();
   }
   notes() {
     const el=document.getElementById('learning-notes');
@@ -54,13 +54,13 @@ export class LearningWalkthrough {
     'So sánh dự đoán với giá trị thật trên mô hình 3D.',
     'Tổng hợp sai số trên tập train và phần phạt nếu có.',
     'Quan sát gradient và cách tính trọng số mới.',
-    'Áp dụng một lần cập nhật, rồi so sánh kết quả train/test.',
+    'Áp dụng một lần cập nhật, rồi so sánh kết quả train và tập đánh giá.',
   ];
   explanations = [
     'Mỗi bước dùng toàn bộ tập train. Mẫu đang chọn chỉ giúp bạn theo dõi một phép tính; mô hình không học riêng từ mẫu này.',
     'Nhân từng đặc trưng với trọng số tương ứng, rồi cộng intercept b để có dự đoán. Tất cả hệ số dưới đây thuộc mô hình trước cập nhật.',
     'Residual = dự đoán − giá trị thật. Số âm nghĩa là dự đoán thấp hơn thực tế; số dương nghĩa là cao hơn. Điểm dữ liệu thật luôn đứng yên.',
-    'Bình phương sai số của từng mẫu, cộng trên toàn bộ tập train và chia cho số mẫu. Tập test chỉ đánh giá, không tham gia gradient.',
+    'Bình phương sai số của từng mẫu, cộng trên toàn bộ tập train và chia cho số mẫu. Validation chỉ theo dõi, không tham gia gradient; test giữ cho đánh giá cuối.',
     'Gradient tổng hợp đóng góp của tất cả mẫu train. Bảng và hình 3D minh họa hệ số/bề mặt đề xuất. Mô hình thật chỉ áp dụng cập nhật ở pha F.',
     'Hệ số mới đã được áp dụng đúng một lần. Trọng số đổi độ nghiêng hoặc độ cong; intercept b dịch bề mặt theo chiều y. Dữ liệu thật không đổi.',
   ];

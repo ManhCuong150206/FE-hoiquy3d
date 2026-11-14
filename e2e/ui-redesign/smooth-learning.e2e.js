@@ -17,9 +17,9 @@ async(page)=>{
    if(performance.now()-started<3800)requestAnimationFrame(sample);
   };requestAnimationFrame(sample);
  });
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('app-learning-route li:nth-child(6)')?.getAttribute('aria-current')==='step');
- await page.getByRole('button',{name:'Học từng bước',exact:true}).waitFor();await page.waitForTimeout(450);
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).waitFor();await page.waitForTimeout(450);
  const trace=await page.evaluate(()=>window.__learningSmooth);
  const moving=trace.filter(s=>s.moving);
  check(new Set(moving.map(s=>Math.round(s.y))).size>5,'Auto scroll must pass through intermediate positions');
@@ -36,12 +36,12 @@ async(page)=>{
  await page.locator('.result-details summary').click();await page.locator('.result-details table').waitFor();
  await page.screenshot({path:'output/playwright/smooth-learning-desktop.png'});
  await page.emulateMedia({reducedMotion:'reduce'});
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('app-learning-route li:nth-child(2)')?.getAttribute('aria-current')==='step');
  check(await page.locator('app-learning-route').getAttribute('data-scrolling')===null,'Reduced motion disables scroll tween');
  check(await page.locator('.stage-result').count()===0,'Playback defers full result DOM');
  await page.waitForFunction(()=>document.querySelector('app-learning-route li:nth-child(6)')?.getAttribute('aria-current')==='step');
- await page.getByRole('button',{name:'Học từng bước',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).waitFor();
  check(await page.locator('#lab [role=progressbar]').getAttribute('aria-valuenow')==='2','Second playback adds one iteration');
  return {suite:'smooth-learning',passed:['stable A-E headings','detail table lazy creation','new button label','intermediate eased scroll positions','A-F shown','single commit preserved','animation settles at F','reduced motion has no tween or fade','second playback single commit'],samples:trace.length,distinctScrollPositions:new Set(moving.map(s=>Math.round(s.y))).size};
 }

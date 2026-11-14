@@ -17,6 +17,9 @@ export function penalty(w: number[], algorithm: Algorithm, lambda: number) {
 }
 /** One candidate at a time. Preparing never mutates the committed model. */
 export class TrainingSession {
+  computeMs = 0;
+  setupMs = 0;
+  stopReason: 'max-iterations' | 'converged' | null = null;
   current: Step;
   pending: LearningSnapshot | null = null;
   done = false;
@@ -25,6 +28,7 @@ export class TrainingSession {
   private Xtr: number[][];
   private Xte: number[][];
   constructor(readonly config: TrainingConfig) {
+    const started = performance.now();
     const c = config;
     this.Xtr = c.algorithm === 'polynomial' ? polynomialFeatures(c.Xtr, c.degree) : c.Xtr;
     this.Xte = c.algorithm === 'polynomial' ? polynomialFeatures(c.Xte, c.degree) : c.Xte;
@@ -35,12 +39,16 @@ export class TrainingSession {
     this.current = initial ? this.evaluate([...initial.w],initial.b,initial.iteration) : this.evaluate(new Array(this.Xtr[0].length).fill(0),0,0);
     this.done=this.current.iteration>=c.maxIter;
     if(initial)this.prev=this.objective(this.current);
+    this.setupMs = performance.now() - started;
+    if (this.done) this.stopReason = 'max-iterations';
   }
   private evaluate(w: number[], b: number, iteration: number): Step {
     return { w, b, iteration, trainLoss: mse(this.config.ytr, predict(this.Xtr, w, b)),
       testLoss: mse(this.config.yte, predict(this.Xte, w, b)) };
   }
   private calculate(trace?: (g: GradientTrace) => void) {
+    const started = performance.now();
+    try {
     const c = this.config, old = this.current;
     const next = c.algorithm === 'lasso'
       ? lassoStep(this.Xtr, c.ytr, old.w, old.b, c.lr, c.lambda, trace)
@@ -50,9 +58,12 @@ export class TrainingSession {
       throw new Error('Loss phân kỳ (NaN hoặc vô hạn). Mô hình hữu hạn cuối được giữ lại. Hãy giảm learning rate rồi Reset.');
     }
     return after;
+    } finally { this.computeMs += Math.max(0, performance.now() - started); }
   }
   private isDone(after: Step) {
-    return after.iteration >= this.config.maxIter || Math.abs(this.prev - this.objective(after)) < this.config.tol;
+    this.stopReason = after.iteration >= this.config.maxIter ? 'max-iterations'
+      : Math.abs(this.prev - this.objective(after)) < this.config.tol ? 'converged' : null;
+    return this.stopReason !== null;
   }
   prepare() {
     if (this.pending || this.done) return this.pending;

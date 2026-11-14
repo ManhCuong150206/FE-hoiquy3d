@@ -3,7 +3,8 @@ import { Injectable, PLATFORM_ID, computed, inject, signal, DestroyRef } from '@
 import { mae, mse, predict, r2, rmse } from '../core/engine/metrics';
 import { polynomialFeatures } from '../core/engine/polynomial';
 import { makeSyntheticData, trainTestSplit } from '../core/engine/synthetic';
-import { Algorithm, SavedExperiment, SyntheticKind, SyntheticConfig } from '../core/models/experiment';
+import { Algorithm, MetricSet, SavedExperiment, SyntheticKind, SyntheticConfig } from '../core/models/experiment';
+import { learningSplit, Trial, compareTrials, testSignature } from '../core/engine/experiment-workflow';
 import { DatasetProvenance, LearningSnapshot, Step } from '../core/models/training-step';
 import type { PreparedSplit } from '../core/engine/csv';
 import { modelPredictions } from '../core/engine/model-view';
@@ -79,6 +80,73 @@ export class LabStore {
     trainY = signal<number[]>([]);
     testX = signal<number[][]>([]);
     testY = signal<number[]>([]);
+    validationX = signal<number[][]>([]);
+    validationY = signal<number[]>([]);
+    readonly hasValidation = computed(() => this.validationY().length > 0);
+    readonly assessmentLabel = computed(() => this.hasValidation() ? 'Validation' : 'Test · bản cũ');
+    computeMs = signal(0);
+    timingMode = signal<'normal' | 'learn' | 'mixed'>('normal');
+    setupMs = signal(0);
+    stopReason = signal<string | null>(null);
+    hypothesis = signal('');
+    conclusion = signal('');
+    trials = signal<Trial[]>([]);
+    baselineId = signal<number | null>(null);
+    datasetRevision = signal(0);
+    finalTest = signal<MetricSet | null>(null);
+    testWasOpened = signal(false);
+    private exposedTests = new Set<string>();
+    private currentTestKey = '';
+    private trialSequence = 0;
+    private lastRecorded = '';
+    readonly evaluation = computed(() => {
+        const s = this.latest();
+        if (!s) return null;
+        return { train: this.evaluateRows(this.trainX(), this.trainY()),
+            validation: this.hasValidation() ? this.evaluateRows(this.validationX(), this.validationY()) : null };
+    });
+    readonly reasonLabel = computed(() => ({ 'max-iterations': 'Đạt số vòng lặp tối đa', converged: 'Thay đổi hàm mục tiêu dưới ngưỡng dừng',
+        error: 'Lỗi tính toán; giữ mô hình hữu hạn cuối', stopped: 'Người dùng dừng' }[this.stopReason() ?? ''] ?? 'Chưa kết thúc / đang tạm dừng'));
+    private evaluateRows(X: number[][], y: number[]): MetricSet {
+        const s = this.latest()!;
+        const p = modelPredictions(X, s.w, s.b, this.algorithm(), this.degree());
+        return { mse: mse(y, p), rmse: rmse(y, p), mae: mae(y, p), r2: r2(y, p) };
+    }
+    recordTrial() {
+        const metrics = this.evaluation();
+        if (!metrics || this.iteration() < 1 || this.busy() || this.status() === 'running' || this.auto()) return null;
+        const key = `${this.runId}:${this.iteration()}`;
+        if (key === this.lastRecorded) {
+            this.trials.update(rows => rows.map((r, i) => i === 0 ? { ...r, conclusion: this.conclusion(), testExposed: r.testExposed || this.testWasOpened() } : r));
+            return this.trials()[0];
+        }
+        this.lastRecorded = key;
+        const row: Trial = { id: ++this.trialSequence, dataset: this.datasetRevision(), algorithm: this.algorithm(),
+            learningRate: this.learningRate(), maxIterations: this.maxIterations(), degree: this.degree(), lambda: this.lambda(),
+            iterations: this.iteration(), computeMs: this.computeMs(), setupMs: this.setupMs(), reason: this.reasonLabel(), mode: this.timingMode(),
+            hypothesis: this.hypothesis() || (this.trials().some(r => r.dataset === this.datasetRevision()) ? '' : 'Chạy cấu hình ban đầu để có mốc so sánh.'), conclusion: this.conclusion(), train: { ...metrics.train },
+            validation: metrics.validation ? { ...metrics.validation } : null, testExposed: this.testWasOpened() };
+        this.trials.update(rows => [row, ...rows].slice(0, 30));
+        if (this.baselineId() === null) this.baselineId.set(row.id);
+        return row;
+    }
+    readonly comparison = computed(() => {
+        const latest = this.trials()[0];
+        return latest ? compareTrials(latest, this.trials().find(r => r.id === this.baselineId())) : 'Chạy cấu hình ban đầu, tạm dừng hoặc chờ kết thúc rồi ghi nhận lần thử.';
+    });
+    evaluateFinalTest() {
+        if (!this.hasValidation() || !this.latest() || !this.iteration() || this.status() === 'running' || this.auto() || this.busy()) return;
+        this.finalTest.set(this.evaluateRows(this.testX(), this.testY()));
+        this.testWasOpened.set(true);
+        this.exposedTests.add(this.currentTestKey);
+        this.recordTrial();
+    }
+    private newDataset() {
+        this.hypothesis.set(''); this.conclusion.set('');
+        this.datasetRevision.update(v => v + 1); this.finalTest.set(null);
+        this.currentTestKey = testSignature(this.testX(), this.testY());
+        this.testWasOpened.set(this.exposedTests.has(this.currentTestKey));
+    }
 
     // ----- trạng thái chạy -----
     status = signal<'idle' | 'running' | 'paused' | 'done' | 'error'>('idle');
@@ -102,8 +170,8 @@ export class LabStore {
     // hệ số co dữ liệu để vừa khung nhìn 3D (±4)
     dataScale = computed(() => {
         let m = 1e-9;
-        for (const r of [...this.trainX(), ...this.testX()]) for (const v of r.slice(0, 2)) m = Math.max(m, Math.abs(v));
-        for (const v of [...this.trainY(), ...this.testY()]) m = Math.max(m, Math.abs(v));
+        for (const r of [...this.trainX(), ...this.validationX(), ...this.testX()]) for (const v of r.slice(0, 2)) m = Math.max(m, Math.abs(v));
+        for (const v of [...this.trainY(), ...this.validationY(), ...this.testY()]) m = Math.max(m, Math.abs(v));
         return 4 / m;
     });
 
@@ -141,13 +209,22 @@ export class LabStore {
     }
 
     // ===== dữ liệu =====
-    generateData() {
+    generateData(withValidation = true) {
+        if (!Number.isInteger(this.sampleCount()) || this.sampleCount() < 10 || this.sampleCount() > 10000 ||
+            !Number.isInteger(this.featureCount()) || this.featureCount() < 1 || this.featureCount() > 5 ||
+            !Number.isSafeInteger(this.seed()) || !Number.isFinite(this.noise()) || this.noise() < 0 || this.noise() > 50 ||
+            !Number.isFinite(this.trainRatio()) || this.trainRatio() < .5 || this.trainRatio() > .95) {
+            this.errorMsg.set('Dữ liệu chưa được thay: cần 10–10.000 mẫu, 1–5 đặc trưng, nhiễu 0–50, seed nguyên và phần phát triển 50–95%.'); return;
+        }
         this.appliedSynthetic.set({ kind: this.syntheticKind(), version: 1, sampleCount: this.sampleCount(),
             featureCount: this.featureCount(), noise: this.noise(), seed: this.seed(), trainRatio: this.trainRatio() });
         const { X, y } = makeSyntheticData(
             this.sampleCount(), this.featureCount(), this.noise() / 50, this.seed(), this.syntheticKind(),
         );
-        const { train, test } = trainTestSplit(X, y, this.trainRatio(), this.seed() + 1);
+        const partition = withValidation ? learningSplit(X, y, this.trainRatio(), this.seed() + 1) : { ...trainTestSplit(X, y, this.trainRatio(), this.seed() + 1), validation: undefined };
+        const { train, test } = partition;
+        this.validationX.set(partition.validation?.X ?? []);
+        this.validationY.set(partition.validation?.y ?? []);
         this.trainX.set(train.X);
         this.trainY.set(train.y);
         this.testX.set(test.X);
@@ -157,6 +234,7 @@ export class LabStore {
         this.selectedSample.set(0);
         this.dataSource.set('synthetic');
         this.csvName.set(null);
+        this.newDataset();
         this.initWorker();
     }
 
@@ -164,8 +242,10 @@ export class LabStore {
     loadDataset(X: number[][], y: number[], name: string, provenance?: DatasetProvenance, split?: PreparedSplit) {
         this.appliedSynthetic.set(null);
         const pick = (indices: number[]) => ({ X: indices.map(i => X[i]), y: indices.map(i => y[i]), indices });
-        const { train, test } = split ? { train: pick(split.trainIndices), test: pick(split.testIndices) }
-            : trainTestSplit(X, y, this.trainRatio(), this.seed() + 1);
+        const partition = split ? { train: pick(split.trainIndices), test: pick(split.testIndices), validation: pick(split.validationIndices ?? []) }
+            : learningSplit(X, y, this.trainRatio(), this.seed() + 1);
+        const { train, test, validation } = partition;
+        this.validationX.set(validation.X); this.validationY.set(validation.y);
         this.trainX.set(train.X);
         this.trainY.set(train.y);
         this.testX.set(test.X);
@@ -175,6 +255,7 @@ export class LabStore {
         this.selectedSample.set(0);
         this.dataSource.set('csv');
         this.csvName.set(name);
+        this.newDataset();
         this.initWorker();
     }
 
@@ -198,18 +279,23 @@ export class LabStore {
             this.noise.set(saved?.noise ?? c.noise);
             this.seed.set(saved?.seed ?? c.seed);
             this.trainRatio.set(saved?.trainRatio ?? c.trainRatio);
-            this.generateData();
+            this.generateData(c.learningReport?.protocol === 'train-validation-test-v1');
         } else if(c.csvData) {
             const data=structuredClone(c.csvData);
             this.trainX.set(data.trainX);this.trainY.set(data.trainY);this.testX.set(data.testX);this.testY.set(data.testY);
             this.trainIndices.set(data.trainIndices);this.provenance.set(data.provenance??null);this.selectedSample.set(0);
+            this.validationX.set(data.validationX ?? []); this.validationY.set(data.validationY ?? []); this.newDataset();
             this.dataSource.set('csv');this.csvName.set(c.csvName);this.appliedSynthetic.set(null);
         } else { this.reset(); return; }
         this.initWorker({iteration:c.iterations,w:[...c.w],b:c.b,trainLoss:c.train.mse,testLoss:c.test.mse});
+        if (c.learningReport?.finalTestViewed) { this.testWasOpened.set(true); this.exposedTests.add(this.currentTestKey); }
     }
 
     /** Logout/identity boundary: remove the previous user's dataset and model from live memory. */
     resetSession() {
+        this.exposedTests.clear();
+        this.trials.set([]); this.baselineId.set(null); this.trialSequence = 0; this.lastRecorded = '';
+        this.hypothesis.set(''); this.conclusion.set('');
         this.pausePresentation();this.mode.set('normal');this.algorithm.set('linear');this.degree.set(2);this.lambda.set(.1);
         this.learningRate.set(.01);this.maxIterations.set(1000);this.syntheticKind.set('linear');this.sampleCount.set(500);
         this.featureCount.set(2);this.noise.set(8);this.seed.set(42);this.trainRatio.set(.8);this.generateData();
@@ -255,6 +341,7 @@ export class LabStore {
         this.busy.set(false); this.switching.set(false); this.committing = false; this.phase.set(0);
         this.initialized = false; // lần Play sau sẽ chạy lại từ đầu
         this.status.set('idle');
+        this.stopReason.set('stopped');
     }
 
     reset() {
@@ -262,18 +349,19 @@ export class LabStore {
         this.initWorker();
     }
 
-    setLearningRate(v: number) { this.learningRate.set(v); this.reset(); }
-    setMaxIterations(v: number) { this.maxIterations.set(v); this.reset(); }
+    setLearningRate(v: number) { this.pause(); this.recordTrial(); this.learningRate.set(v); this.reset(); }
+    setMaxIterations(v: number) { this.pause(); this.recordTrial(); this.maxIterations.set(v); this.reset(); }
     setSpeed(v: number) { this.speed.set(v); this.send({ type: 'speed', speed: v }); }
-    setAlgorithm(a: Algorithm) { this.algorithm.set(a); this.reset(); }
-    setDegree(v: number) { this.degree.set(v); this.reset(); }
-    setLambda(v: number) { this.lambda.set(v); this.reset(); }
+    setAlgorithm(a: Algorithm) { this.pause(); this.recordTrial(); this.algorithm.set(a); this.reset(); }
+    setDegree(v: number) { this.pause(); this.recordTrial(); this.degree.set(v); this.reset(); }
+    setLambda(v: number) { this.pause(); this.recordTrial(); this.lambda.set(v); this.reset(); }
 
     selectSample(index: number) {
         if (Number.isInteger(index) && index >= 0 && index < this.trainX().length) this.selectedSample.set(index);
     }
     setMode(mode: 'normal' | 'learn') {
         if (mode === this.mode()) return;
+        this.timingMode.set(this.iteration() > 0 || this.snapshot() ? 'mixed' : mode);
         // A newer page selection supersedes a pending pause acknowledgement.
         // requestId below ensures only the latest mode change can finish switching.
         this.pausePresentation();
@@ -337,6 +425,9 @@ export class LabStore {
         this.worker = new Worker(new URL('../core/engine/regression.worker', import.meta.url));
         this.worker.onmessage = ({ data }) => {
             if (data.runId !== this.runId) return;
+            if (typeof data.computeMs === 'number' && Number.isFinite(data.computeMs)) this.computeMs.set(data.computeMs);
+            if (typeof data.setupMs === 'number' && Number.isFinite(data.setupMs)) this.setupMs.set(data.setupMs);
+            if (data.stopReason === 'max-iterations' || data.stopReason === 'converged') this.stopReason.set(data.stopReason);
             if (data.type === 'paused' && this.switching() && data.requestId === this.requestId) {
                 this.send({ type: 'discard' });
                 this.snapshot.set(null); this.phase.set(0); this.committing = false;
@@ -351,6 +442,7 @@ export class LabStore {
                 return;
             }
             if (data.type === 'step') {
+                if (data.iteration !== this.iteration()) this.finalTest.set(null);
                 this.iteration.set(data.iteration);
                 this.history.update((h) => {
                     const next = [...h, data as Step];
@@ -364,10 +456,12 @@ export class LabStore {
                     this.committing = false; this.busy.set(false); this.phase.set(5);
                     if (this.singleIteration || data.done) this.pausePresentation(); else this.schedulePhase();
                 }
+                if (data.done) this.recordTrial();
             } else if (data.type === 'error') {
                 this.pausePresentation(); this.busy.set(false); this.committing = false; this.switching.set(false);
                 this.errorMsg.set(data.message);
                 this.status.set('error');
+                this.stopReason.set('error');
             }
         };
         this.worker.onerror = () => {
@@ -385,9 +479,11 @@ export class LabStore {
         this.iteration.set(0);
         this.errorMsg.set(null);
         this.status.set('idle');
+        this.computeMs.set(0); this.setupMs.set(0); this.stopReason.set(null); this.finalTest.set(null);
+        this.timingMode.set(this.mode());
         this.send({
             type: 'init', initial,
-            Xtr: this.trainX(), ytr: this.trainY(), Xte: this.testX(), yte: this.testY(),
+            Xtr: this.trainX(), ytr: this.trainY(), Xte: this.hasValidation() ? this.validationX() : this.testX(), yte: this.hasValidation() ? this.validationY() : this.testY(),
             lr: this.learningRate(), maxIter: this.maxIterations(),
             tol: this.tolerance(), speed: this.speed(),
             algorithm: this.algorithm(),

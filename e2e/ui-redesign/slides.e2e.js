@@ -36,7 +36,7 @@ async(page)=>{
  await page.mouse.move(1405,500);await page.mouse.wheel(0,450);await page.waitForTimeout(650);
  check(await page.locator('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1','Scroll must not train');
  await page.locator('#learning').scrollIntoViewIfNeeded();await page.screenshot({path:'output/playwright/learning-desktop.png'});
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  await page.locator('app-learning-route li[aria-current=step]').waitFor();
  check(await page.locator('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1','Prepare must not commit');
  await page.waitForFunction(()=>document.querySelectorAll('app-learning-route li')[1].getAttribute('aria-current')==='step');

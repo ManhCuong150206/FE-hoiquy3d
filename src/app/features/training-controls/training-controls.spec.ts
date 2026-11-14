@@ -43,6 +43,6 @@ describe('normal page controls',()=>{
   expect(host.querySelector('select#learning-mode')).toBeNull();
   expect(host.querySelector('#learning-mode')?.textContent).toBe('Chạy bình thường');
   expect(host.textContent).not.toContain('Tiếp pha');
-  expect(host.textContent).toContain('Nhịp chạy iteration');
+  expect(host.textContent).toContain('Nhịp trình diễn (không phải tốc độ học)');
  });
 });

@@ -13,13 +13,13 @@ async(page)=>{
  await page.locator('.lesson-options>summary').click();
  await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');
  await page.locator('.lesson-options>summary').click();
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  for(let i=0;i<6;i++){
   await page.waitForFunction(i=>document.querySelectorAll('app-learning-route li')[i]?.getAttribute('aria-current')==='step',i);
   await page.waitForFunction(i=>document.querySelector('#learning .lesson-illustration')?.getAttribute('data-view-phase')===String(i),i);
   check(await progress.getAttribute('aria-valuenow')===(i<5?'0':'1'),'Only F commits one update');
  }
- await page.getByRole('button',{name:'Học từng bước',exact:true}).waitFor();await page.waitForTimeout(1300);
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).waitFor();await page.waitForTimeout(1300);
  check(await progress.getAttribute('aria-valuenow')==='1','Must stop after one iteration');
  for(let i=0;i<6;i++){
   const button=route.locator('.stage-toggle').nth(i);
@@ -46,13 +46,13 @@ async(page)=>{
  check(await page.locator('#learning-notes').isVisible(),'Notes can be reached directly');
  // Resume a paused run; completion must still add exactly one iteration.
  await page.emulateMedia({reducedMotion:'reduce'});
- await page.getByRole('button',{name:'Học từng bước',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  await page.waitForFunction(()=>document.querySelectorAll('app-learning-route li')[1]?.getAttribute('aria-current')==='step');
  await page.getByRole('button',{name:'Tạm dừng',exact:true}).click();await page.waitForTimeout(800);
  check(await progress.getAttribute('aria-valuenow')==='1','Pause must not commit');
- await page.getByRole('button',{name:'Tiếp tục học',exact:true}).click();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();
  await page.waitForFunction(()=>document.querySelectorAll('app-learning-route li')[5]?.getAttribute('aria-current')==='step');
- await page.getByRole('button',{name:'Học từng bước',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).waitFor();
  check(await progress.getAttribute('aria-valuenow')==='2','Resuming adds exactly one iteration');
  await page.setViewportSize({width:390,height:844});
  check(await panel.evaluate(el=>getComputedStyle(el).maxHeight)==='none','Mobile uses page scroll');

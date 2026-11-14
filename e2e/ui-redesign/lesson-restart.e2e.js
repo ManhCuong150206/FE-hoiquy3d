@@ -10,14 +10,14 @@ async(page)=>{
  check((await page.locator('#lesson-run-status').innerText()).includes('Mô hình đã kết thúc'),'Completed state explains restart');
  const before=await page.evaluate(()=>{const l=window.ng.getComponent(document.querySelector('app-learning-walkthrough')).lab;return {X:l.trainX(),y:l.trainY(),algorithm:l.algorithm()};});
  await page.locator('.lesson-options>summary').click();await page.getByLabel('Thời lượng mỗi pha',{exact:true}).selectOption('0.5');await page.locator('.lesson-options>summary').click();
- await restart.click();await page.waitForFunction(()=>document.querySelector('app-learning-route li:nth-child(1)')?.getAttribute('aria-current')==='step');
+ await restart.click();await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();await page.waitForFunction(()=>document.querySelector('app-learning-route li:nth-child(1)')?.getAttribute('aria-current')==='step');
  for(let phase=2;phase<=6;phase++)await page.waitForFunction(phase=>document.querySelector(`app-learning-route li:nth-child(${phase})`)?.getAttribute('aria-current')==='step',phase);
  await page.waitForFunction(()=>{const l=window.ng.getComponent(document.querySelector('app-learning-walkthrough')).lab;return l.phase()===5&&!l.auto()&&l.iteration()===1;});
  check(await page.evaluate(expected=>{const l=window.ng.getComponent(document.querySelector('app-learning-walkthrough')).lab;return JSON.stringify(l.trainX())===JSON.stringify(expected.X)&&JSON.stringify(l.trainY())===JSON.stringify(expected.y)&&l.algorithm()===expected.algorithm;},before),'Restart keeps dataset and algorithm');
  await page.waitForTimeout(900);check(await page.locator('#lab [role=progressbar]').getAttribute('aria-valuenow')==='1','Stops after exactly one iteration');
  check(await restart.isEnabled(),'Can restart again after reaching the limit at F');
  await page.evaluate(()=>{const l=window.ng.getComponent(document.querySelector('app-learning-walkthrough')).lab;l.status.set('error');l.errorMsg.set('Simulated recoverable worker error');});
- await restart.click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-learning-walkthrough')).lab.phase()===1);
+ await restart.click();await page.getByRole('button',{name:'Tự trình diễn một vòng A–F',exact:true}).click();await page.waitForFunction(()=>window.ng.getComponent(document.querySelector('app-learning-walkthrough')).lab.phase()===1);
  check(await page.locator('#learning [role=alert]').count()===0,'Restart clears the previous error');
  await page.waitForFunction(()=>{const l=window.ng.getComponent(document.querySelector('app-learning-walkthrough')).lab;return l.phase()===5&&!l.auto();});
  await page.screenshot({path:'output/playwright/lesson-restart-fixed.png'});
