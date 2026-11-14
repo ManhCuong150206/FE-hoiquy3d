@@ -1,0 +1,143 @@
+:host {
+    display: block;
+}
+
+.account-page {
+    position: relative;
+    isolation: isolate;
+    min-height: 100svh;
+    color: var(--text);
+}
+
+app-header,
+main {
+    position: relative;
+    z-index: 1;
+}
+
+main {
+    max-width: 1000px;
+    margin: auto;
+    padding: 28px clamp(16px, 3vw, 40px) 48px;
+}
+
+a {
+    color: var(--accent);
+}
+
+h1,
+h2 {
+    font-family: var(--font-heading);
+    color: var(--heading);
+}
+
+h1 {
+    font-size: 28px;
+    margin: 16px 0 24px;
+}
+
+h2 {
+    font-size: 20px;
+    margin: 0 0 16px;
+}
+
+.account-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+.account-card {
+    min-width: 0;
+    padding: var(--card-padding);
+    border-radius: var(--radius-card);
+}
+
+.danger-zone {
+    grid-column: 1 / -1;
+}
+
+dt,
+small,
+p {
+    color: var(--muted);
+}
+
+dd {
+    margin: 0 0 14px;
+    overflow-wrap: anywhere;
+}
+
+input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-control);
+    font: inherit;
+}
+
+label {
+    font-size: 14px;
+}
+
+small {
+    display: block;
+    margin-top: 6px;
+}
+
+form>button,
+.actions {
+    margin-top: 20px;
+}
+
+.success {
+    color: var(--ok-fg);
+}
+
+.error {
+    color: var(--danger-fg);
+}
+
+p:empty {
+    display: none;
+}
+
+button.danger {
+    background: var(--danger);
+    color: var(--on-primary);
+    border-color: var(--danger);
+}
+
+button.danger:hover:not(:disabled) {
+    background: var(--danger-strong);
+}
+
+button.danger:disabled {
+    background: var(--surface-2);
+    color: var(--muted);
+}
+
+dialog {
+    width: min(480px, calc(100% - 32px));
+    max-height: calc(100svh - 32px);
+    color: var(--text);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+    .account-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+}

@@ -1,0 +1,77 @@
+<div class="account-page">
+  <div class="starfield-base" aria-hidden="true"></div>
+  <app-header />
+  <main>
+    <a routerLink="/">← Về trang chủ</a>
+    <h1>Cập nhật tài khoản</h1>
+    <div class="account-grid">
+      <section class="account-card glass" aria-labelledby="profile-title" [attr.aria-busy]="pending() === 'profile'">
+        <h2 id="profile-title">Thông tin</h2>
+        <dl>
+          <dt>Email</dt>
+          <dd>{{ api.user()?.email }}</dd>
+
+          <dt>Ngày tạo tài khoản</dt>
+          <dd>{{ api.user()?.createdAt | date:'dd/MM/yyyy ' }}</dd>
+        </dl>
+        <form (ngSubmit)="saveName()">
+          <label for="display-name">Tên hiển thị</label>
+          <input id="display-name" name="displayName" [(ngModel)]="displayName" required minlength="1" maxlength="120"
+            autocomplete="nickname" aria-describedby="name-hint" [disabled]="!!pending()">
+
+          <button class="primary" [disabled]="!!pending()">{{ pending() === 'profile' ? 'Đang lưu…' : 'Lưu' }}</button>
+        </form>
+        <p class="success" role="status">{{ success().profile }}</p>
+        <p class="error" role="alert">{{ errors().profile }}</p>
+      </section>
+      <section class="account-card glass" aria-labelledby="password-title" [attr.aria-busy]="pending() === 'password'">
+        <h2 id="password-title">Đổi mật khẩu</h2>
+        <p id="password-hint">Mật khẩu cần ít nhất 8 ký tự.</p>
+        <form (ngSubmit)="changePassword()">
+          <label for="current-password">Mật khẩu hiện tại</label>
+          <input id="current-password" type="password" name="currentPassword" [(ngModel)]="currentPassword" required
+            minlength="8" maxlength="72" autocomplete="current-password" aria-describedby="password-hint"
+            [disabled]="!!pending()">
+          <label for="new-password">Mật khẩu mới</label>
+          <input id="new-password" type="password" name="newPassword" [(ngModel)]="newPassword" required minlength="8"
+            maxlength="72" autocomplete="new-password" aria-describedby="password-hint new-password-hint"
+            [disabled]="!!pending()">
+
+          <label for="repeat-password">Nhập lại mật khẩu mới</label>
+          <input id="repeat-password" type="password" name="repeatedPassword" [(ngModel)]="repeatedPassword" required
+            minlength="8" maxlength="72" autocomplete="new-password"
+            aria-describedby="password-hint repeat-password-hint" [disabled]="!!pending()">
+
+          <button class="primary" [disabled]="!!pending()">{{ pending() === 'password' ? 'Đang đổi…' : 'Đổi mật khẩu'
+            }}</button>
+        </form>
+        <p class="success" role="status">{{ success().password }}</p>
+        <p class="error" role="alert">{{ errors().password }}</p>
+      </section>
+      <section class="account-card glass danger-zone" aria-labelledby="delete-title"
+        [attr.aria-busy]="pending() === 'delete'">
+        <h2 id="delete-title">Xóa tài khoản</h2>
+        <p>Ttài khoản sẽ bị xóa vĩnh viễn. Thao tác này không thể hoàn tác.</p>
+        <button class="danger" type="button" (click)="openDelete()" [disabled]="!!pending()">Xóa tài khoản</button>
+        <p class="success" role="status">{{ success().delete }}</p>
+        <p class="error" role="alert">{{ errors().delete }}</p>
+        <dialog #confirmation class="account-card glass" aria-labelledby="confirm-title" (cancel)="closeDelete($event)">
+          <h2 id="confirm-title">Xác nhận xóa tài khoản</h2>
+          <p id="delete-hint">Nhập mật khẩu hiện tại để xác nhận xóa vĩnh viễn.</p>
+          <form (ngSubmit)="deleteAccount()">
+            <label for="delete-password">Mật khẩu hiện tại</label>
+            <input id="delete-password" type="password" name="deletePassword" [(ngModel)]="deletePassword" required
+              minlength="8" maxlength="72" autocomplete="current-password" aria-describedby="delete-hint" autofocus
+              [disabled]="!!pending()">
+            <p class="error" role="alert">{{ errors().delete }}</p>
+            <div class="actions">
+              <button type="button" (click)="closeDelete()" [disabled]="!!pending()">Hủy</button>
+              <button class="danger" [disabled]="!!pending()">{{ pending() === 'delete' ? 'Đang xóa…' : 'Xóa vĩnh viễn'
+                }}</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+    </div>
+  </main>
+</div>

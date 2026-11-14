@@ -1,4 +1,5 @@
-<div class="experience" appCardGlow [glowScreen]="activeScreen()" [glowReduced]="lowEffects()" appJourneyMotion
+<router-outlet (activate)="accountActive.set(true)" (deactivate)="accountActive.set(false)" />
+<div [hidden]="accountActive()" class="experience" appCardGlow [glowScreen]="activeScreen()" [glowReduced]="lowEffects()" appJourneyMotion
   [motionEnabled]="!lowEffects()" [attr.aria-busy]="pageBusy()">
   <div class="starfield-base" aria-hidden="true"></div>
   @defer (on idle) { <app-spatial-backdrop [lowEffects]="lowEffects()" [screen]="activeScreen()" /> }

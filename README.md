@@ -30,6 +30,7 @@ Mở http://localhost:4200 (origin mặc định được backend cho phép). Tr
 ```powershell
 npm.cmd test -- --watch=false
 npm.cmd run build
+node e2e/routes-smoke.mjs
 ```
 
 Để chạy E2E, giữ dev server cổng 4300 và mở terminal khác:
@@ -59,3 +60,9 @@ Bộ `e2e/run-ui-redesign.ps1` mô phỏng auth/API, mở trình duyệt sạch 
 SSR cho phép localhost/127.0.0.1 khi chạy cục bộ. Khi triển khai, đặt `SSR_ALLOWED_HOSTS` thành danh sách hostname thực tế (phân tách bằng dấu phẩy), không dùng wildcard mở toàn bộ host.
 
 Bảng thay đổi từng file FE/BE: [Báo cáo cập nhật 03/11/2026](https://github.com/ManhCuong150206/TS-JS/blob/main/BAO-CAO-CAP-NHAT-2026-11-03.md).
+
+### Trang cập nhật tài khoản
+
+Route `/` vẫn mở trang chọn thuật toán như trước. Route `/account` dùng session cookie hiện có; chưa đăng nhập thì chuyển về `/`. Trang tài khoản cần backend cung cấp `GET/POST/DELETE /api/v1/users/me` và `POST /api/v1/users/me/password`. Không cần cài thêm package hoặc thiết lập frontend riêng.
+
+Sau build, `node e2e/routes-smoke.mjs` kiểm tra server thực sự phục vụ cả `/` và `/account`. Để kiểm tra trình duyệt với API mô phỏng, chạy dev server cổng 4300 rồi dùng `./e2e/run-ui-redesign.ps1 -Suites account`. Suite này kiểm tra tải lại trang, chuyển về trang chủ, cập nhật tên, đổi mật khẩu, xóa tài khoản và theme.
