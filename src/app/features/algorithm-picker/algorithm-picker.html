@@ -1,14 +1,23 @@
 <div class="section-heading">
 
   <div class="account-actions">
-    <button class="theme-toggle" type="button" [disabled]="flying() || departing() || themeStore.transitioning()" (click)="themeStore.toggle()"
+    <button class="theme-toggle" type="button" [disabled]="flying() || departing() || themeStore.transitioning()"
+      (click)="themeStore.toggle()"
       [attr.aria-label]="themeStore.theme() === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'"
-      [attr.aria-pressed]="themeStore.theme() === 'light'">{{ themeStore.theme() === 'dark' ? '☀ Sáng' : '☾ Tối' }}</button>
+      [attr.aria-pressed]="themeStore.theme() === 'light'">{{ themeStore.theme() === 'dark' ? '☀ Sáng' : '☾ Tối'
+      }}</button>
     @if (auth.authenticated()) {
-    <span class="account-greeting">Xin chào, {{ auth.user()?.displayName }}</span>
-    <button type="button" [disabled]="flying() || departing() || themeStore.transitioning()" (click)="back.emit()">Đăng xuất</button>
+    <div class="account-identity">
+      <span class="account-greeting">Xin chào, {{ auth.user()?.displayName }}</span>
+      <a class="account-update" [routerLink]="flying() || departing() || themeStore.transitioning() ? null : '/account'"
+        [attr.aria-disabled]="flying() || departing() || themeStore.transitioning()"
+        [attr.tabindex]="flying() || departing() || themeStore.transitioning() ? -1 : 0">cập nhật tài khoản</a>
+    </div>
+    <button type="button" [disabled]="flying() || departing() || themeStore.transitioning()" (click)="back.emit()">Đăng
+      xuất</button>
     } @else {
-    <button type="button" class="login-button" [disabled]="flying() || departing() || themeStore.transitioning()" (click)="loginRequested.emit()">Đăng
+    <button type="button" class="login-button" [disabled]="flying() || departing() || themeStore.transitioning()"
+      (click)="loginRequested.emit()">Đăng
       nhập</button>
     }
   </div>
@@ -37,8 +46,9 @@
   @for (algorithm of algorithms; track algorithm.id) {
   <button class="algorithm-card" [attr.data-algorithm]="algorithm.id"
     [class.highlighted]="highlighted() === algorithm.id" (mouseenter)="preview(algorithm.id)"
-    (mouseleave)="preview(null)" (focus)="preview(algorithm.id)" [disabled]="flying() || departing() || themeStore.transitioning()"
-    (click)="selected.emit(algorithm.id)" [attr.aria-label]="'Khám phá ' + algorithm.label">
+    (mouseleave)="preview(null)" (focus)="preview(algorithm.id)"
+    [disabled]="flying() || departing() || themeStore.transitioning()" (click)="selected.emit(algorithm.id)"
+    [attr.aria-label]="'Khám phá ' + algorithm.label">
     <span class="card-top"><span>{{ algorithm.number }} / {{ algorithm.label }} REGRESSION</span><span
         class="algorithm-dot"></span></span>
     <strong>{{ algorithm.label }}<span class="card-arrow" aria-hidden="true">↗</span></strong>

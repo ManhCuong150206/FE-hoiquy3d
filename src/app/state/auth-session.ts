@@ -138,6 +138,18 @@ export class AuthSession {
         return this.set({ userId: 'guest', displayName: 'Guest', isAnonymous: true });
     }
 
+    updateAccount(user: ApiUser) {
+        const current = this.identity(user);
+        if (this.user()?.userId === current.userId) this.user.set(current);
+        else this.set(current);
+        this.remember(current);
+    }
+
+    clearAccount() {
+        this.error.set(null);
+        this.set(null);
+    }
+
     async ensure() {
         if (!this.authenticated() || !navigator.onLine) return null;
         const scope = this.scope(), generation = this.generation;

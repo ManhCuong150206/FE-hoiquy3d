@@ -1,4 +1,6 @@
 import { AuthSession } from './state/auth-session';
+import { RouterOutlet } from '@angular/router';
+import { Location } from '@angular/common';
 import { closePlanetCinema } from './presentation/algorithm-flight';
 import { CardGlow } from './presentation/card-glow';
 import { Component, effect, untracked, DestroyRef, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
@@ -20,14 +22,16 @@ import { LabStore } from './state/lab-store';
 @Component({
   selector: 'app-root',
   host: { '[class.low-effects]': 'lowEffects()' },
-  imports: [CardGlow, Header, TrainingControls, ExperimentsPanel, DataPanel, Viewport3d, ResultsPanel, AlgorithmNotes, LearningWalkthrough, WelcomePanel, AlgorithmPicker, JourneyMotion, SpatialBackdrop],
+  imports: [RouterOutlet, CardGlow, Header, TrainingControls, ExperimentsPanel, DataPanel, Viewport3d, ResultsPanel, AlgorithmNotes, LearningWalkthrough, WelcomePanel, AlgorithmPicker, JourneyMotion, SpatialBackdrop],
   templateUrl: './app.html', styleUrl: './app.css',
 })
 export class App {
+  readonly accountActive = signal(false);
   readonly lab = inject(LabStore);
   readonly finite = Number.isFinite;
   readonly labSettings = signal<'model' | 'data'>('model');
   private readonly auth = inject(AuthSession);
+  private readonly location = inject(Location);
   readonly authError = this.auth.error;
   private sessionScope = this.auth.scope();
   private loggingOut = false;
@@ -48,7 +52,11 @@ export class App {
   readonly pageBusy = signal(false);
 
   constructor() {
-    afterNextRender(() => { void this.auth.restore(); });
+    afterNextRender(() => {
+      // /account's guard validates the cookie itself. A concurrent restore
+      // replaces the session and aborts that guard's in-flight API request.
+      if (this.location.path().split(/[?#]/)[0] !== '/account') void this.auth.restore();
+    });
     effect(() => {
       const scope = this.auth.scope(); if (scope === this.sessionScope) return; this.sessionScope = scope;
       if (!this.loggingOut && (this.opened() || this.activeScreen() !== 'welcome')) untracked(() => this.clearSessionView(this.activeScreen() !== 'algorithms'));

@@ -1,11 +1,12 @@
 import { ThemeStore } from '../../state/theme-store';
+import { RouterLink } from '@angular/router';
 import { AlgorithmFlight } from '../../presentation/algorithm-flight';
 import { Component, effect, input, output, signal, ElementRef, inject, viewChild, DestroyRef, Injector, afterNextRender } from '@angular/core';
 import { Algorithm, ALGORITHM_LABELS } from '../../core/models/experiment';
 import { AlgorithmSphere } from '../algorithm-sphere/algorithm-sphere';
 import { AuthSession } from '../../state/auth-session';
 
-@Component({ selector: 'app-algorithm-picker', host: {'[attr.data-algorithm]':'highlighted()'}, imports: [AlgorithmSphere], templateUrl: './algorithm-picker.html', styleUrl: './algorithm-picker.css' })
+@Component({ selector: 'app-algorithm-picker', host: {'[attr.data-algorithm]':'highlighted()'}, imports: [AlgorithmSphere, RouterLink], templateUrl: './algorithm-picker.html', styleUrl: './algorithm-picker.css' })
 export class AlgorithmPicker {
   readonly auth = inject(AuthSession);
   readonly themeStore = inject(ThemeStore);
