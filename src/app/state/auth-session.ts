@@ -148,7 +148,7 @@ export class AuthSession {
         return this.set({ userId: 'guest', displayName: 'Guest', isAnonymous: true });
     }
 
-    updateAccount(user: ApiUser) {
+    updateAccount(user: unknown) {
         const current = this.identity(user);
         if (this.user()?.userId === current.userId) this.user.set(current);
         else this.set(current);
