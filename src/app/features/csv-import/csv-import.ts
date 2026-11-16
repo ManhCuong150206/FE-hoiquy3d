@@ -1,9 +1,9 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import {
     CsvTable, MissingStrategy, buildDataset, countMissing, numericColumns, parseCsv,
-} from '../../core/engine/csv';
-import type { DatasetProvenance } from '../../core/models/training-step';
-import { LabStore } from '../../core/state/lab-store';
+} from '@app/core';
+import type { DatasetProvenance } from '@app/core';
+import { LabStore } from '@app/core';
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 

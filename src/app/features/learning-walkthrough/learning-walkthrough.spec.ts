@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { LearningWalkthrough } from './learning-walkthrough';
-import { LabStore } from '../../core/state/lab-store';
+import { LabStore } from '@app/core';
 
 describe('lesson run and restart controls',()=>{
  beforeEach(() => {

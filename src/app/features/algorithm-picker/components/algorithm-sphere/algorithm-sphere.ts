@@ -1,10 +1,10 @@
-import { ThemeStore } from '../../../../core/state/theme-store';
+import { ThemeStore } from '@app/core';
 import { CONTINENTS, PLANET_RADIUS, PLANET_SEED, continentCenter, continentGeometry } from './planet-geometry';
-import { FrameBudget, recordRender } from '../../../../shared/ui/frame-budget/frame-budget';
+import { FrameBudget, recordRender } from '@app/shared';
 import { Component, ElementRef, NgZone, OnDestroy, afterNextRender, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import * as THREE from 'three';
-import { Algorithm } from '../../../../core/models/experiment';
-import { rotatePair, unitRotation } from '../../../../core/engine/complex-rotation';
+import { Algorithm } from '@app/core';
+import { rotatePair, unitRotation } from '@app/core';
 
 const SECTORS=CONTINENTS;
 

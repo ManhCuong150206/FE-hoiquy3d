@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ALGORITHM_LABELS, SavedExperiment, SYNTHETIC_LABELS } from '../../core/models/experiment';
-import { ExperimentsStore } from '../../core/state/experiments-store';
-import { LabStore } from '../../core/state/lab-store';
+import { ALGORITHM_LABELS, SavedExperiment, SYNTHETIC_LABELS } from '@app/core';
+import { ExperimentsStore } from '@app/core';
+import { LabStore } from '@app/core';
 
 const MAX_COMPARE = 4;
 

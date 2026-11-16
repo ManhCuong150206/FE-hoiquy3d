@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Header } from '../../layout/header/header';
-import { AccountApi, AccountUser } from '../../core/storage/account-api';
+import { AccountApi, AccountUser } from '@app/core';
 
 type Card = 'profile' | 'password' | 'delete';
 @Component({

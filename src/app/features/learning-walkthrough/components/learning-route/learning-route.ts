@@ -1,7 +1,7 @@
 // Lucian UX/UI Prompt #318 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#318
 import { NgTemplateOutlet } from '@angular/common';
 import { afterNextRender, afterRenderEffect, Component, DestroyRef, ElementRef, Injector, effect, inject, input, output, signal, TemplateRef, viewChild, viewChildren } from '@angular/core';
-import { FrameBudget } from '../../../../shared/ui/frame-budget/frame-budget';
+import { FrameBudget } from '@app/shared';
 
 @Component({imports: [NgTemplateOutlet], selector: 'app-learning-route', templateUrl: './learning-route.html', styleUrl: './learning-route.css'})
 export class LearningRoute {

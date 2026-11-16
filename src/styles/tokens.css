@@ -1,0 +1,26 @@
+:root {
+  /* Neutral foundation: use for large surfaces and readable text. */
+  --color-bg: #07090e;
+  --color-surface: #10141d;
+  --color-surface-glass: rgba(24, 29, 42, .62);
+  --color-border: rgba(205, 220, 255, .16);
+  --color-text: #f4f7ff;
+  --color-muted: #a3aec2;
+  --color-silver: #d7e0ee;
+  --color-primary: #8b7cff;
+
+  /* Algorithm identity: keep the same mapping on the sphere and pages 2–4. */
+  --color-linear: #ffd166;
+  --color-polynomial: #e8d8b5;
+  --color-ridge: #397bff;
+  --color-lasso: #d7e0ee;
+
+  /* Data identity: independent of the selected algorithm. */
+  --color-train: #ff405c;
+  --color-test: #ffe45c;
+
+  /* Semantic feedback: retain labels/icons as well as color. */
+  --color-success: #43f5b0;
+  --color-danger: #ff5478;
+  --color-warning: #ffc857;
+}

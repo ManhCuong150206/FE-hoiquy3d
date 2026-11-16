@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { polynomialTermNames } from '../../core/engine/polynomial';
-import { LabStore } from '../../core/state/lab-store';
+import { polynomialTermNames } from '@app/core';
+import { LabStore } from '@app/core';
 
 @Component({
   selector: 'app-results-panel',

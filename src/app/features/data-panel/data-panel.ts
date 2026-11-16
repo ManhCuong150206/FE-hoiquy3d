@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
-import { SyntheticKind } from '../../core/models/experiment';
-import { LabStore } from '../../core/state/lab-store';
-import { CsvImport } from '../csv-import/csv-import';
+import { SyntheticKind } from '@app/core';
+import { LabStore } from '@app/core';
+import { CsvImport } from '@app/features/csv-import';
 
 @Component({
   selector: 'app-data-panel',

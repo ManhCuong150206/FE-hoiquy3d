@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { AuthSession } from '../../core/state/auth-session';
+import { AuthSession } from '@app/core';
 import { WelcomePanel } from './welcome-panel';
 
 describe('WelcomePanel demo entry', () => {

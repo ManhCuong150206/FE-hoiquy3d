@@ -1,8 +1,8 @@
 import { signal } from '@angular/core';
 import { vi } from 'vitest';
-import { AuthSession } from './core/state/auth-session';
-import { LabStore } from './core/state/lab-store';
-import { Algorithm } from './core/models/experiment';
+import { AuthSession } from '@app/core';
+import { LabStore } from '@app/core';
+import { Algorithm } from '@app/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 

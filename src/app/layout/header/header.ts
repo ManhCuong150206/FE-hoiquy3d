@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { ExperimentsStore } from '../../core/state/experiments-store';
-import { ThemeStore } from '../../core/state/theme-store';
+import { ExperimentsStore } from '@app/core';
+import { ThemeStore } from '@app/core';
 
 @Component({
   selector: 'app-header',

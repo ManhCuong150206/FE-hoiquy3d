@@ -1,4 +1,4 @@
-import { Algorithm } from '../../core/models/experiment';
+import { Algorithm } from '@app/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TrainingControls } from './training-controls';
 

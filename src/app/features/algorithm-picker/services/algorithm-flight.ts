@@ -1,6 +1,6 @@
 import type { gsap } from 'gsap';
 import type { AlgorithmSphere } from '../components/algorithm-sphere/algorithm-sphere';
-import { Algorithm } from '../../../core/models/experiment';
+import { Algorithm } from '@app/core';
 export interface FlightPoint {x:number;y:number}
 export function curvedFlight(a:FlightPoint,b:FlightPoint,t:number):FlightPoint {
   const u=1-t,control={x:(a.x+b.x)/2,y:Math.min(a.y,b.y)-65};

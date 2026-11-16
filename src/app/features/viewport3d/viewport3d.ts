@@ -1,13 +1,14 @@
-import { FrameBudget, recordRender } from '../../shared/ui/frame-budget/frame-budget';
+import { VIEWPORT_COLORS } from '@app/core';
+import { FrameBudget, recordRender } from '@app/shared';
 import {
   Component, ElementRef, NgZone, OnDestroy,
   afterNextRender, effect, inject, signal, viewChild, computed, input, untracked,
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { LabStore } from '../../core/state/lab-store';
-import { countStuck, modelPredictions, modelVisibility, sliceRow } from '../../core/engine/model-view';
-import { Algorithm } from '../../core/models/experiment';
+import { LabStore } from '@app/core';
+import { countStuck, modelPredictions, modelVisibility, sliceRow } from '@app/core';
+import { Algorithm } from '@app/core';
 
 @Component({
   selector: 'app-viewport3d',
@@ -221,41 +222,41 @@ export class Viewport3d implements OnDestroy {
       this.renderer.setSize(el.clientWidth, el.clientHeight);
       el.appendChild(this.renderer.domElement);
 
-      this.scene.background = null; this.renderer.setClearColor(0x000000, 0);
+      this.scene.background = null; this.renderer.setClearColor(VIEWPORT_COLORS.clear, 0);
       this.camera = new THREE.PerspectiveCamera(50, el.clientWidth / el.clientHeight, 0.1, 200);
       this.camera.position.set(8, 6, 8);
       this.initControls(this.renderer.domElement);
 
-      this.scene.add(new THREE.GridHelper(10, 10, 0x475569, 0x273244), new THREE.AxesHelper(5));
-      const light = new THREE.DirectionalLight(0xffffff, 2);
+      this.scene.add(new THREE.GridHelper(10, 10, VIEWPORT_COLORS.gridCenter, VIEWPORT_COLORS.grid), new THREE.AxesHelper(5));
+      const light = new THREE.DirectionalLight(VIEWPORT_COLORS.white, 2);
       light.position.set(4, 8, 6);
-      this.scene.add(new THREE.HemisphereLight(0xe5f5ff, 0x141328, 1.8), light);
+      this.scene.add(new THREE.HemisphereLight(VIEWPORT_COLORS.skyLight, VIEWPORT_COLORS.groundLight, 1.8), light);
 
       const geo = new THREE.PlaneGeometry(10, 10, 40, 40);
       geo.rotateX(-Math.PI / 2); // trục Y của Three.js là chiều "lên"
       this.plane = new THREE.Mesh(
         geo,
-        new THREE.MeshBasicMaterial({ color: 0x0877bd, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false }),
+        new THREE.MeshBasicMaterial({ color: VIEWPORT_COLORS.surface, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false }),
       );
       this.scene.add(this.plane);
       this.bands = [-1, 1].map(() => new THREE.Mesh(geo.clone(), new THREE.MeshBasicMaterial({
-        color: 0xfacc15, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false,
+        color: VIEWPORT_COLORS.proposal, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false,
       })));
       this.modelLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(
-        Array.from({ length: 41 }, () => new THREE.Vector3())), new THREE.LineBasicMaterial({ color: 0x38bdf8 }));
+        Array.from({ length: 41 }, () => new THREE.Vector3())), new THREE.LineBasicMaterial({ color: VIEWPORT_COLORS.regressionLine }));
       this.scene.add(...this.bands, this.modelLine);
       // A precise x1 cross-section through the selected sample makes the changing fit legible.
       this.lessonTrace = new THREE.Line(new THREE.BufferGeometry().setFromPoints(
         Array.from({ length: 81 }, () => new THREE.Vector3())),
-        new THREE.LineBasicMaterial({ color: 0x67e8f9, depthTest: false, transparent: true, opacity: .95 }));
+        new THREE.LineBasicMaterial({ color: VIEWPORT_COLORS.prediction, depthTest: false, transparent: true, opacity: .95 }));
       this.lessonTrace.renderOrder = 8;
       this.scene.add(this.lessonTrace);
-      this.trueMarker = new THREE.Mesh(new THREE.SphereGeometry(.18, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, depthTest: false, depthWrite: false, transparent: true }));
-      this.predictedMarker = new THREE.Mesh(new THREE.BoxGeometry(.17, .17, .17), new THREE.MeshBasicMaterial({ color: 0x67e8f9, depthTest: false, depthWrite: false, transparent: true }));
-      this.residualLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, transparent: true }));
+      this.trueMarker = new THREE.Mesh(new THREE.SphereGeometry(.18, 16, 16), new THREE.MeshBasicMaterial({ color: VIEWPORT_COLORS.white, wireframe: true, depthTest: false, depthWrite: false, transparent: true }));
+      this.predictedMarker = new THREE.Mesh(new THREE.BoxGeometry(.17, .17, .17), new THREE.MeshBasicMaterial({ color: VIEWPORT_COLORS.prediction, depthTest: false, depthWrite: false, transparent: true }));
+      this.residualLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: VIEWPORT_COLORS.white, depthTest: false, depthWrite: false, transparent: true }));
       for (const marker of [this.trueMarker, this.predictedMarker, this.residualLine]) marker.renderOrder = 10;
       this.scene.add(this.trueMarker, this.predictedMarker, this.residualLine);
-      this.lossLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffb75e, transparent: true, opacity: .35, depthTest: false }));
+      this.lossLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: VIEWPORT_COLORS.loss, transparent: true, opacity: .35, depthTest: false }));
       this.lossLines.visible = false; this.scene.add(this.lossLines);
       this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown);
       this.renderer.domElement.addEventListener('pointerup', this.onPointerUp);
@@ -330,7 +331,7 @@ export class Viewport3d implements OnDestroy {
     const mesh = new THREE.InstancedMesh(
       // Scene-space radius: equivalent to .14 / dataScale in source units, also legible for raw CSV.
       new THREE.SphereGeometry(0.14, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, metalness: 0.08, emissive: new THREE.Color(color), emissiveIntensity: .45 }),
+      new THREE.MeshStandardMaterial({ color: VIEWPORT_COLORS.white, roughness: 0.3, metalness: 0.08, emissive: new THREE.Color(color), emissiveIntensity: .45 }),
       X.length,
     );
     const m = new THREE.Matrix4();

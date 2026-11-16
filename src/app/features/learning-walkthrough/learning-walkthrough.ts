@@ -1,8 +1,8 @@
 import { Component, computed, inject, input, output, signal, effect, untracked } from '@angular/core';
 import { LearningRoute } from './components/learning-route/learning-route';
-import { LabStore } from '../../core/state/lab-store';
-import { polynomialFeatures, polynomialTermNames } from '../../core/engine/polynomial';
-import { predict } from '../../core/engine/metrics';
+import { LabStore } from '@app/core';
+import { polynomialFeatures, polynomialTermNames } from '@app/core';
+import { predict } from '@app/core';
 
 @Component({ imports: [LearningRoute], selector: 'app-learning-walkthrough', templateUrl: './learning-walkthrough.html', styleUrl: './learning-walkthrough.css' })
 export class LearningWalkthrough {

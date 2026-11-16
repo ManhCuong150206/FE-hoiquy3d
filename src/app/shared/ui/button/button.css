@@ -1,0 +1,8 @@
+:host {
+  display: inline-block;
+}
+
+button.danger:not(:disabled) {
+  color: var(--danger-fg);
+  border-color: var(--danger);
+}

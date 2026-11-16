@@ -1,4 +1,5 @@
 @import './app/shared/ui/card-glow/card-glow.css';
+@import './styles/tokens.css';
 :root {
     --radius-card: 16px;
     --radius-control: 12px;

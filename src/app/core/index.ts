@@ -1,0 +1,16 @@
+export { rotatePair, unitRotation } from './engine/complex-rotation';
+export { buildDataset, countMissing, numericColumns, parseCsv } from './engine/csv';
+export type { CsvTable, MissingStrategy } from './engine/csv';
+export { predict } from './engine/metrics';
+export { countStuck, modelPredictions, modelVisibility, sliceRow } from './engine/model-view';
+export { polynomialFeatures, polynomialTermNames } from './engine/polynomial';
+export { ALGORITHM_LABELS, SYNTHETIC_LABELS } from './models/experiment';
+export type { Algorithm, SavedExperiment, SyntheticKind } from './models/experiment';
+export type { DatasetProvenance } from './models/training-step';
+export { AuthSession } from './state/auth-session';
+export { ExperimentsStore } from './state/experiments-store';
+export { LabStore } from './state/lab-store';
+export { ThemeStore } from './state/theme-store';
+export { AccountApi, accountGuard } from './storage/account-api';
+export type { AccountUser } from './storage/account-api';
+export { VIEWPORT_COLORS } from './values/colors';

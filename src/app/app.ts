@@ -1,24 +1,24 @@
-import { AuthSession } from './core/state/auth-session';
+import { AuthSession } from '@app/core';
 import { RouterOutlet } from '@angular/router';
 import { Location } from '@angular/common';
-import { closePlanetCinema } from './features/algorithm-picker/services/algorithm-flight';
-import { CardGlow } from './shared/ui/card-glow/card-glow';
+import { closePlanetCinema } from '@app/features/algorithm-picker';
+import { CardGlow } from '@app/shared';
 import { Component, effect, untracked, DestroyRef, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
 import { Header } from './layout/header/header';
-import { TrainingControls } from './features/training-controls/training-controls';
-import { ExperimentsPanel } from './features/experiments-panel/experiments-panel';
-import { DataPanel } from './features/data-panel/data-panel';
-import { Viewport3d } from './features/viewport3d/viewport3d';
-import { ResultsPanel } from './features/results-panel/results-panel';
-import { AlgorithmNotes } from './features/algorithm-notes/algorithm-notes';
-import { LearningWalkthrough } from './features/learning-walkthrough/learning-walkthrough';
-import { WelcomePanel } from './features/welcome-panel/welcome-panel';
-import { AlgorithmPicker } from './features/algorithm-picker/algorithm-picker';
-import { Algorithm, ALGORITHM_LABELS } from './core/models/experiment';
+import { TrainingControls } from '@app/features/training-controls';
+import { ExperimentsPanel } from '@app/features/experiments-panel';
+import { DataPanel } from '@app/features/data-panel';
+import { Viewport3d } from '@app/features/viewport3d';
+import { ResultsPanel } from '@app/features/results-panel';
+import { AlgorithmNotes } from '@app/features/algorithm-notes';
+import { LearningWalkthrough } from '@app/features/learning-walkthrough';
+import { WelcomePanel } from '@app/features/welcome-panel';
+import { AlgorithmPicker } from '@app/features/algorithm-picker';
+import { Algorithm, ALGORITHM_LABELS } from '@app/core';
 import { JourneyMotion } from './layout/journey-motion/journey-motion';
 import { SpatialBackdrop } from './layout/spatial-backdrop/spatial-backdrop';
-import { LabStore } from './core/state/lab-store';
-import { ExperimentWorkflow } from './features/experiment-workflow/experiment-workflow';
+import { LabStore } from '@app/core';
+import { ExperimentWorkflow } from '@app/features/experiment-workflow';
 
 
 @Component({

@@ -4,7 +4,7 @@ import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { routes } from './app.routes';
-import { AccountApi } from './core/storage/account-api';
+import { AccountApi } from '@app/core';
 
 @Component({ template: 'Account route' })
 class AccountRouteStub {}
