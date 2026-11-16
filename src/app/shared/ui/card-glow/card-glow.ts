@@ -1,6 +1,6 @@
 // Lucian UX/UI Prompt #228 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#228
 import { Directive, DestroyRef, ElementRef, NgZone, afterNextRender, effect, inject, input } from '@angular/core';
-import { FrameBudget } from './frame-budget';
+import { FrameBudget } from '../frame-budget/frame-budget';
 
 const CARDS='.auth-card,.algorithm-card,.card,.controls,app-header .bar,.route-map>ol>li';
 interface GlowCard {element:HTMLElement;overlay:HTMLDivElement;id:string;radius:string;clips:HTMLElement[]}

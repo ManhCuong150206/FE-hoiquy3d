@@ -1,4 +1,4 @@
-import { FrameBudget, recordRender } from '../../presentation/frame-budget';
+import { FrameBudget, recordRender } from '../../shared/ui/frame-budget/frame-budget';
 import {
   Component, ElementRef, NgZone, OnDestroy,
   afterNextRender, effect, inject, signal, viewChild, computed, input, untracked,

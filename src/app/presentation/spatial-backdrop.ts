@@ -1,5 +1,5 @@
 import { ThemeStore } from '../core/state/theme-store';
-import { FrameBudget, recordRender } from './frame-budget';
+import { FrameBudget, recordRender } from '../shared/ui/frame-budget/frame-budget';
 import { Component, ElementRef, NgZone, OnDestroy, afterNextRender, effect, inject, input, viewChild } from '@angular/core';
 import * as THREE from 'three';
 import { rotatePair, unitRotation } from '../core/engine/complex-rotation';

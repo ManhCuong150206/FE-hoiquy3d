@@ -1,4 +1,4 @@
-@import './app/presentation/card-glow.css';
+@import './app/shared/ui/card-glow/card-glow.css';
 :root {
     --radius-card: 16px;
     --radius-control: 12px;
