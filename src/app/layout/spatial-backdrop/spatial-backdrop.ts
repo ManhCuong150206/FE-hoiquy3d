@@ -1,8 +1,8 @@
-import { ThemeStore } from '../core/state/theme-store';
-import { FrameBudget, recordRender } from '../shared/ui/frame-budget/frame-budget';
+import { ThemeStore } from '../../core/state/theme-store';
+import { FrameBudget, recordRender } from '../../shared/ui/frame-budget/frame-budget';
 import { Component, ElementRef, NgZone, OnDestroy, afterNextRender, effect, inject, input, viewChild } from '@angular/core';
 import * as THREE from 'three';
-import { rotatePair, unitRotation } from '../core/engine/complex-rotation';
+import { rotatePair, unitRotation } from '../../core/engine/complex-rotation';
 
 /** One decorative star field. It never reads model data or changes training state. */
 @Component({

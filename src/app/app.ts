@@ -15,8 +15,8 @@ import { LearningWalkthrough } from './features/learning-walkthrough/learning-wa
 import { WelcomePanel } from './features/welcome-panel/welcome-panel';
 import { AlgorithmPicker } from './features/algorithm-picker/algorithm-picker';
 import { Algorithm, ALGORITHM_LABELS } from './core/models/experiment';
-import { JourneyMotion } from './presentation/journey-motion';
-import { SpatialBackdrop } from './presentation/spatial-backdrop';
+import { JourneyMotion } from './layout/journey-motion/journey-motion';
+import { SpatialBackdrop } from './layout/spatial-backdrop/spatial-backdrop';
 import { LabStore } from './core/state/lab-store';
 import { ExperimentWorkflow } from './features/experiment-workflow/experiment-workflow';
 
