@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { curvedFlight, closePlanetCinema } from './algorithm-flight';
-import { sectorCenter } from '../features/algorithm-sphere/algorithm-sphere';
+import { sectorCenter } from '../components/algorithm-sphere/algorithm-sphere';
 describe('algorithm flight geometry',()=>{
  it('can clean up during SSR without a browser document',()=>{
   vi.stubGlobal('document',undefined);

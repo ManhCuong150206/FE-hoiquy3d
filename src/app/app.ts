@@ -1,7 +1,7 @@
 import { AuthSession } from './core/state/auth-session';
 import { RouterOutlet } from '@angular/router';
 import { Location } from '@angular/common';
-import { closePlanetCinema } from './presentation/algorithm-flight';
+import { closePlanetCinema } from './features/algorithm-picker/services/algorithm-flight';
 import { CardGlow } from './shared/ui/card-glow/card-glow';
 import { Component, effect, untracked, DestroyRef, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
 import { Header } from './layout/header/header';

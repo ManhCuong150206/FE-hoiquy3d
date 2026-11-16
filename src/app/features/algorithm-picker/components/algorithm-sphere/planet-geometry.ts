@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { unitRotation } from '../../core/engine/complex-rotation';
-import { Algorithm } from '../../core/models/experiment';
+import { unitRotation } from '../../../../core/engine/complex-rotation';
+import { Algorithm } from '../../../../core/models/experiment';
 
 export const PLANET_RADIUS=1.58;
 export const PLANET_SEED=81427;

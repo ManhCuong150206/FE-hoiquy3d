@@ -1,4 +1,4 @@
-import { closePlanetCinema } from './algorithm-flight';
+import { closePlanetCinema } from '../features/algorithm-picker/services/algorithm-flight';
 import { DestroyRef, Directive, ElementRef, NgZone, afterNextRender, effect, inject, input, signal, untracked } from '@angular/core';
 import type { gsap } from 'gsap';
 
