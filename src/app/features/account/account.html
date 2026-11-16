@@ -1,11 +1,11 @@
-<div class="account-page">
+<div class="account-page" appCardGlow glowScreen="account-content">
   <div class="starfield-base" aria-hidden="true"></div>
   <app-header />
-  <main>
-    <a routerLink="/">← Về trang chủ</a>
-    <h1>Cập nhật tài khoản</h1>
+  <main id="account-content" aria-labelledby="account-title">
+    <a class="account-back" routerLink="/">← Về trang chủ</a>
+    <h1 id="account-title">Cập nhật tài khoản</h1>
     <div class="account-grid">
-      <section class="account-card glass" aria-labelledby="profile-title" [attr.aria-busy]="pending() === 'profile'">
+      <section class="card account-card glass" aria-labelledby="profile-title" [attr.aria-busy]="pending() === 'profile'">
         <h2 id="profile-title">Thông tin</h2>
         <dl>
           <dt>Email</dt>
@@ -17,14 +17,14 @@
         <form (ngSubmit)="saveName()">
           <label for="display-name">Tên hiển thị</label>
           <input id="display-name" name="displayName" [(ngModel)]="displayName" required minlength="1" maxlength="120"
-            autocomplete="nickname" aria-describedby="name-hint" [disabled]="!!pending()">
+            autocomplete="nickname" [disabled]="!!pending()">
 
           <button class="primary" [disabled]="!!pending()">{{ pending() === 'profile' ? 'Đang lưu…' : 'Lưu' }}</button>
         </form>
         <p class="success" role="status">{{ success().profile }}</p>
         <p class="error" role="alert">{{ errors().profile }}</p>
       </section>
-      <section class="account-card glass" aria-labelledby="password-title" [attr.aria-busy]="pending() === 'password'">
+      <section class="card account-card glass" aria-labelledby="password-title" [attr.aria-busy]="pending() === 'password'">
         <h2 id="password-title">Đổi mật khẩu</h2>
         <p id="password-hint">Mật khẩu cần ít nhất 8 ký tự.</p>
         <form (ngSubmit)="changePassword()">
@@ -34,13 +34,13 @@
             [disabled]="!!pending()">
           <label for="new-password">Mật khẩu mới</label>
           <input id="new-password" type="password" name="newPassword" [(ngModel)]="newPassword" required minlength="8"
-            maxlength="72" autocomplete="new-password" aria-describedby="password-hint new-password-hint"
+            maxlength="72" autocomplete="new-password" aria-describedby="password-hint"
             [disabled]="!!pending()">
 
           <label for="repeat-password">Nhập lại mật khẩu mới</label>
           <input id="repeat-password" type="password" name="repeatedPassword" [(ngModel)]="repeatedPassword" required
             minlength="8" maxlength="72" autocomplete="new-password"
-            aria-describedby="password-hint repeat-password-hint" [disabled]="!!pending()">
+            aria-describedby="password-hint" [disabled]="!!pending()">
 
           <button class="primary" [disabled]="!!pending()">{{ pending() === 'password' ? 'Đang đổi…' : 'Đổi mật khẩu'
             }}</button>
@@ -48,10 +48,10 @@
         <p class="success" role="status">{{ success().password }}</p>
         <p class="error" role="alert">{{ errors().password }}</p>
       </section>
-      <section class="account-card glass danger-zone" aria-labelledby="delete-title"
+      <section class="card account-card glass danger-zone" aria-labelledby="delete-title"
         [attr.aria-busy]="pending() === 'delete'">
         <h2 id="delete-title">Xóa tài khoản</h2>
-        <p>Ttài khoản sẽ bị xóa vĩnh viễn. Thao tác này không thể hoàn tác.</p>
+        <p>Tài khoản sẽ bị xóa vĩnh viễn. Thao tác này không thể hoàn tác.</p>
         <button class="danger" type="button" (click)="openDelete()" [disabled]="!!pending()">Xóa tài khoản</button>
         <p class="success" role="status">{{ success().delete }}</p>
         <p class="error" role="alert">{{ errors().delete }}</p>

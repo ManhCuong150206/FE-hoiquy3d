@@ -1,6 +1,6 @@
 async (page) => {
   const check = (value, message) => { if (!value) throw new Error(message); };
-  const base = process.env.ACCOUNT_TEST_URL || 'http://127.0.0.1:4300';
+  const base = (typeof process !== 'undefined' && process.env.ACCOUNT_TEST_URL) || 'http://127.0.0.1:4300';
   const user = { _id: 'account-check', email: 'check@example.com', displayName: 'Kiểm tra', role: 'user', status: 'active', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' };
   let signedIn = false;
   const errors = [];
@@ -27,7 +27,7 @@ async (page) => {
   });
   check((await page.goto(base + '/')).status() === 200, 'Home responds 200');
   await page.locator('#algorithms').waitFor({ state: 'visible' });
-  check(await page.getByRole('link', { name: 'cập nhật tk', exact: true }).count() === 0, 'Guest has no account update link');
+  check(await page.getByRole('link', { name: 'cập nhật tài khoản', exact: true }).count() === 0, 'Guest has no account update link');
   await page.goto(base + '/account');
   await page.waitForURL(base + '/');
   await page.locator('#algorithms').waitFor({ state: 'visible' });
@@ -59,7 +59,7 @@ async (page) => {
   await page.locator('#algorithms').waitFor({ state: 'visible' });
   await page.locator('#algorithms .account-greeting').filter({ hasText: 'Tên mới' }).waitFor();
   const greeting = await page.locator('#algorithms .account-greeting').boundingBox();
-  const accountLink = page.getByRole('link', { name: 'cập nhật tk', exact: true });
+  const accountLink = page.getByRole('link', { name: 'cập nhật tài khoản', exact: true });
   const linkBox = await accountLink.boundingBox();
   check(greeting && linkBox && linkBox.y >= greeting.y + greeting.height, 'Account link sits below the greeting');
   await accountLink.click();

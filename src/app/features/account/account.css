@@ -6,6 +6,10 @@
     position: relative;
     isolation: isolate;
     min-height: 100svh;
+    --card-accent: light-dark(#645795, #c2c6ff);
+    --account-glass: light-dark(#f9fbff92, #0b14239c);
+    --account-field: light-dark(#ffffffa8, #03091594);
+    --account-edge: light-dark(#778eb65e, #b5d8fa45);
     color: var(--text);
 }
 
@@ -15,20 +19,36 @@ main {
     z-index: 1;
 }
 
+.starfield-base {
+    overflow: clip;
+}
+
 main {
+    view-transition-name: account-content;
     max-width: 1000px;
     margin: auto;
     padding: 28px clamp(16px, 3vw, 40px) 48px;
 }
 
-a {
-    color: var(--accent);
+.account-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--card-accent);
+    text-underline-offset: .2em;
+}
+
+.account-back:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--card-accent);
+    outline-offset: 3px;
 }
 
 h1,
 h2 {
     font-family: var(--font-heading);
     color: var(--heading);
+    text-shadow: 0 0 18px color-mix(in srgb, var(--card-accent) 35%, transparent);
 }
 
 h1 {
@@ -51,7 +71,12 @@ h2 {
 .account-card {
     min-width: 0;
     padding: var(--card-padding);
+    border: 1px solid var(--account-edge);
     border-radius: var(--radius-card);
+    background: linear-gradient(145deg, light-dark(#ffffffb0, #ffffff12), transparent 65%),
+        var(--account-glass);
+    box-shadow: inset 0 1px 0 #ffffff42, 0 14px 32px #10183118;
+    backdrop-filter: blur(6px) saturate(122%);
 }
 
 .danger-zone {
@@ -59,7 +84,6 @@ h2 {
 }
 
 dt,
-small,
 p {
     color: var(--muted);
 }
@@ -76,15 +100,12 @@ input {
     border: 1px solid var(--input-border);
     border-radius: var(--radius-control);
     font: inherit;
+    background: var(--account-field);
+    color: var(--text);
 }
 
 label {
-    font-size: 14px;
-}
-
-small {
-    display: block;
-    margin-top: 6px;
+    font-size: 15px;
 }
 
 form>button,
@@ -104,25 +125,27 @@ p:empty {
     display: none;
 }
 
-button.danger {
-    background: var(--danger);
-    color: var(--on-primary);
-    border-color: var(--danger);
+/* The warning retains a distinct color in both themes. */
+.account-page button.danger {
+    --liquid-text: light-dark(#9e2146, #ffabc2);
+    border-color: color-mix(in srgb, var(--liquid-text) 48%, transparent) !important;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--liquid-text) 35%, transparent);
 }
 
-button.danger:hover:not(:disabled) {
-    background: var(--danger-strong);
-}
-
-button.danger:disabled {
-    background: var(--surface-2);
-    color: var(--muted);
+.account-page button.danger:disabled {
+    --liquid-text: var(--muted);
 }
 
 dialog {
     width: min(480px, calc(100% - 32px));
     max-height: calc(100svh - 32px);
+    --account-glass: var(--surface);
     color: var(--text);
+}
+
+dialog::backdrop {
+    background: #050b197d;
+    backdrop-filter: blur(4px);
 }
 
 .actions {

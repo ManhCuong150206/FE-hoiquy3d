@@ -2,13 +2,14 @@ import { Component, ElementRef, inject, signal, viewChild } from '@angular/core'
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { CardGlow } from '../../presentation/card-glow';
 import { Header } from '../../layout/header/header';
 import { AccountApi, AccountUser } from './account-api';
 
 type Card = 'profile' | 'password' | 'delete';
 @Component({
   selector: 'app-account',
-  imports: [DatePipe, FormsModule, RouterLink, Header],
+  imports: [DatePipe, FormsModule, RouterLink, Header, CardGlow],
   templateUrl: './account.html',
   styleUrl: './account.css',
 })

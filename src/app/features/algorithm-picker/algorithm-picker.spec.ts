@@ -1,10 +1,11 @@
 import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { AlgorithmPicker } from './algorithm-picker';
 import { AuthSession } from '../../state/auth-session';
 
 describe('AlgorithmPicker', () => {
-  beforeEach(() => TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual }));
+  beforeEach(() => TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual, providers: [provideRouter([])] }));
   it('updates the account controls when signing in and returning to Guest', async () => {
     const fixture = TestBed.createComponent(AlgorithmPicker);
     const auth = TestBed.inject(AuthSession);
@@ -18,6 +19,7 @@ describe('AlgorithmPicker', () => {
     auth.user.set({ userId: 'person-a', displayName: 'Minh Anh', isAnonymous: false });
     await fixture.whenStable();
     expect(controls().textContent).toContain('Xin chào, Minh Anh');
+    expect(controls().querySelector('a')?.getAttribute('href')).toBe('/account');
     expect(controls().querySelector<HTMLButtonElement>('button:not(.theme-toggle)')!.textContent).toBe('Đăng xuất');
     controls().querySelector<HTMLButtonElement>('button:not(.theme-toggle)')!.click();
     expect(logout).toHaveBeenCalledOnce();
