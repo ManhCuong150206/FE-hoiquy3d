@@ -1,5 +1,5 @@
 import { Component, computed, inject, input, output, signal, effect, untracked } from '@angular/core';
-import { LearningRoute } from '../learning-route/learning-route';
+import { LearningRoute } from './components/learning-route/learning-route';
 import { LabStore } from '../../core/state/lab-store';
 import { polynomialFeatures, polynomialTermNames } from '../../core/engine/polynomial';
 import { predict } from '../../core/engine/metrics';
