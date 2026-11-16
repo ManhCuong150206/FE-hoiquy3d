@@ -1,4 +1,4 @@
-import { AuthSession } from './state/auth-session';
+import { AuthSession } from './core/state/auth-session';
 import { RouterOutlet } from '@angular/router';
 import { Location } from '@angular/common';
 import { closePlanetCinema } from './presentation/algorithm-flight';
@@ -17,7 +17,7 @@ import { AlgorithmPicker } from './features/algorithm-picker/algorithm-picker';
 import { Algorithm, ALGORITHM_LABELS } from './core/models/experiment';
 import { JourneyMotion } from './presentation/journey-motion';
 import { SpatialBackdrop } from './presentation/spatial-backdrop';
-import { LabStore } from './state/lab-store';
+import { LabStore } from './core/state/lab-store';
 import { ExperimentWorkflow } from './features/experiment-workflow/experiment-workflow';
 
 

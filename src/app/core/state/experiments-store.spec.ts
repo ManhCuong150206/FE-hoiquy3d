@@ -4,8 +4,8 @@ import { vi, beforeEach, afterEach, describe, it, expect } from 'vitest';
 import { ExperimentsStore } from './experiments-store';
 import { AuthSession } from './auth-session';
 import { LabStore } from './lab-store';
-import { experimentDb } from '../core/storage/experiment-db';
-import { SavedExperiment } from '../core/models/experiment';
+import { experimentDb } from '../storage/experiment-db';
+import { SavedExperiment } from '../models/experiment';
 
 
 describe('manual bulk synchronization', () => {

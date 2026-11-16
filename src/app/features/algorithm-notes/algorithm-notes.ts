@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Algorithm } from '../../core/models/experiment';
 import { polynomialTermNames } from '../../core/engine/polynomial';
-import { LabStore } from '../../state/lab-store';
+import { LabStore } from '../../core/state/lab-store';
 
 interface Note {
   title: string;

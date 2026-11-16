@@ -564,3 +564,239 @@ Backend: helper trình duyệt dùng MongoDB tạm `hoi-quy-3d-test`, cổng 300
 Ngày 11/11/2026, FE build production thành công và đạt 211 unit test. Ba CSS component ở mức 4,80–7,52 kB, vượt ngưỡng cảnh báo 4 kB và dưới ngưỡng chặn 8 kB. Cả 26 nhóm UI mặc định đã đạt qua các lượt chạy. `audit-fixes`, `comparison` và `model-integrity` đạt khi chạy lại sau lần sửa thông báo CSV cuối. Báo cáo từng nhóm nằm trong `output/playwright/*-result.log`, còn `suite-summary.json` ghi kết quả lượt chạy gần nhất. Kiểm thử trình duyệt dùng API mô phỏng.
 
 Backend đã đạt build, 33 unit test và 20 E2E với MongoDB tạm. Nginx được cập nhật để chuyển tiếp các API phiên và `/sync/batch`, `/sync/changes` của FE. Compose bật tin cậy đúng một proxy để backend nhận biết HTTPS và gửi cookie phiên `Secure`. `docker compose config --quiet` đã qua. Khi Docker Engine đã bật, kiểm thử phát hiện và sửa lỗi xuống dòng trong lệnh OpenSSL tạo chứng chỉ. Cả hai image build thành công và `nginx -t` đạt. Trên trình duyệt qua HTTPS cục bộ với chứng chỉ tự ký, đã đăng ký, đăng nhập, xác nhận cookie `Secure` và `HttpOnly`, lưu một lần chạy, đọc lại từ MongoDB qua `/sync/changes`, tải lại để khôi phục phiên và đăng xuất. Kiểm tra `/auth/me` sau đăng xuất trả 401. Stack và dữ liệu thử đã được dọn.
+
+
+## Tái cấu trúc thư mục
+
+### 1. Trước khi sửa
+
+Khảo sát trên nhánh `main` tại commit `4256246`. Git báo cây làm việc sạch trước khi ghi mục này.
+Thư mục `presentation/` gộp tiện ích UI dùng chung, hiệu ứng chọn thuật toán và lớp khung. `state/` chứa các store cấp ứng dụng và spec. Trong `features/`, trang tài khoản gắn với router nằm cạnh lớp gọi API, còn quả cầu 3D, đường dẫn học A–F và form chào thuộc các màn hình cha tương ứng.
+Angular Router có `/` và `/account`. Màn chính do App render. Chưa có component 404 hoặc route wildcard.
+
+```text
+src/app/
+├── core/
+│   ├── engine/
+│   │   ├── complex-rotation.ts
+│   │   ├── csv.ts
+│   │   ├── experiment-workflow.spec.ts
+│   │   ├── experiment-workflow.ts
+│   │   ├── lasso.ts
+│   │   ├── learning-data.spec.ts
+│   │   ├── linear.ts
+│   │   ├── metrics.ts
+│   │   ├── model-integrity.spec.ts
+│   │   ├── model-view.spec.ts
+│   │   ├── model-view.ts
+│   │   ├── polynomial.ts
+│   │   ├── prng.ts
+│   │   ├── regression.worker.ts
+│   │   ├── synthetic.ts
+│   │   ├── training-session.spec.ts
+│   │   └── training-session.ts
+│   ├── models/
+│   │   ├── experiment-payload.spec.ts
+│   │   ├── experiment-payload.ts
+│   │   ├── experiment.ts
+│   │   └── training-step.ts
+│   └── storage/
+│       └── experiment-db.ts
+├── features/
+│   ├── account/
+│   │   ├── account-api.ts
+│   │   ├── account.css
+│   │   ├── account.html
+│   │   ├── account.spec.ts
+│   │   └── account.ts
+│   ├── algorithm-notes/
+│   │   ├── algorithm-notes.css
+│   │   ├── algorithm-notes.html
+│   │   ├── algorithm-notes.spec.ts
+│   │   └── algorithm-notes.ts
+│   ├── algorithm-picker/
+│   │   ├── algorithm-picker.css
+│   │   ├── algorithm-picker.html
+│   │   ├── algorithm-picker.spec.ts
+│   │   └── algorithm-picker.ts
+│   ├── algorithm-sphere/
+│   │   ├── algorithm-sphere.ts
+│   │   ├── planet-geometry.spec.ts
+│   │   └── planet-geometry.ts
+│   ├── csv-import/
+│   │   ├── csv-import.css
+│   │   ├── csv-import.html
+│   │   ├── csv-import.spec.ts
+│   │   └── csv-import.ts
+│   ├── data-panel/
+│   │   ├── data-panel.css
+│   │   ├── data-panel.html
+│   │   ├── data-panel.spec.ts
+│   │   └── data-panel.ts
+│   ├── experiment-workflow/
+│   │   ├── experiment-workflow.css
+│   │   ├── experiment-workflow.html
+│   │   ├── experiment-workflow.spec.ts
+│   │   └── experiment-workflow.ts
+│   ├── experiments-panel/
+│   │   ├── experiments-panel.css
+│   │   ├── experiments-panel.html
+│   │   ├── experiments-panel.spec.ts
+│   │   └── experiments-panel.ts
+│   ├── learning-route/
+│   │   ├── learning-route.css
+│   │   ├── learning-route.html
+│   │   ├── learning-route.spec.ts
+│   │   └── learning-route.ts
+│   ├── learning-walkthrough/
+│   │   ├── learning-walkthrough.css
+│   │   ├── learning-walkthrough.html
+│   │   ├── learning-walkthrough.spec.ts
+│   │   └── learning-walkthrough.ts
+│   ├── results-panel/
+│   │   ├── results-panel.css
+│   │   ├── results-panel.html
+│   │   ├── results-panel.spec.ts
+│   │   └── results-panel.ts
+│   ├── training-controls/
+│   │   ├── training-controls.css
+│   │   ├── training-controls.html
+│   │   ├── training-controls.spec.ts
+│   │   └── training-controls.ts
+│   ├── viewport3d/
+│   │   ├── viewport3d.css
+│   │   ├── viewport3d.html
+│   │   ├── viewport3d.spec.ts
+│   │   └── viewport3d.ts
+│   └── welcome-panel/
+│       ├── entry-form.css
+│       ├── entry-form.html
+│       ├── entry-form.spec.ts
+│       ├── entry-form.ts
+│       ├── welcome-panel.css
+│       ├── welcome-panel.html
+│       ├── welcome-panel.spec.ts
+│       └── welcome-panel.ts
+├── layout/
+│   └── header/
+│       ├── header.css
+│       ├── header.html
+│       ├── header.spec.ts
+│       └── header.ts
+├── presentation/
+│   ├── algorithm-flight.spec.ts
+│   ├── algorithm-flight.ts
+│   ├── card-glow.css
+│   ├── card-glow.spec.ts
+│   ├── card-glow.ts
+│   ├── frame-budget.spec.ts
+│   ├── frame-budget.ts
+│   ├── journey-motion.ts
+│   └── spatial-backdrop.ts
+├── state/
+│   ├── auth-session.spec.ts
+│   ├── auth-session.ts
+│   ├── experiment-workflow.spec.ts
+│   ├── experiments-store.spec.ts
+│   ├── experiments-store.ts
+│   ├── lab-store.spec.ts
+│   ├── lab-store.ts
+│   ├── learning-flow.spec.ts
+│   ├── theme-store.spec.ts
+│   └── theme-store.ts
+├── app.config.server.ts
+├── app.config.ts
+├── app.css
+├── app.html
+├── app.routes.server.ts
+├── app.routes.spec.ts
+├── app.routes.ts
+├── app.spec.ts
+└── app.ts
+```
+
+Kiểm kê từng tệp trong các nhóm khảo sát. Đường dẫn tính từ `src/app/`.
+
+| Hiện tại | Vai trò | Vị trí dự kiến |
+| --- | --- | --- |
+| `features/account/account-api.ts` | Service gọi API hồ sơ, kiểu phản hồi và guard. | `core/storage/account-api.ts` |
+| `features/account/account.css` | CSS của trang hồ sơ tài khoản. | `pages/account-page/account.css` |
+| `features/account/account.html` | Template của trang hồ sơ tài khoản. | `pages/account-page/account.html` |
+| `features/account/account.spec.ts` | Spec của trang hồ sơ tài khoản. | `pages/account-page/account.spec.ts` |
+| `features/account/account.ts` | Component standalone cho trang hồ sơ tài khoản. | `pages/account-page/account.ts` |
+| `features/algorithm-notes/algorithm-notes.css` | CSS của ghi chú thuật toán. | `features/algorithm-notes/algorithm-notes.css` |
+| `features/algorithm-notes/algorithm-notes.html` | Template của ghi chú thuật toán. | `features/algorithm-notes/algorithm-notes.html` |
+| `features/algorithm-notes/algorithm-notes.spec.ts` | Spec của ghi chú thuật toán. | `features/algorithm-notes/algorithm-notes.spec.ts` |
+| `features/algorithm-notes/algorithm-notes.ts` | Component standalone cho ghi chú thuật toán. | `features/algorithm-notes/algorithm-notes.ts` |
+| `features/algorithm-picker/algorithm-picker.css` | CSS của bộ chọn thuật toán. | `features/algorithm-picker/algorithm-picker.css` |
+| `features/algorithm-picker/algorithm-picker.html` | Template của bộ chọn thuật toán. | `features/algorithm-picker/algorithm-picker.html` |
+| `features/algorithm-picker/algorithm-picker.spec.ts` | Spec của bộ chọn thuật toán. | `features/algorithm-picker/algorithm-picker.spec.ts` |
+| `features/algorithm-picker/algorithm-picker.ts` | Component standalone cho bộ chọn thuật toán. | `features/algorithm-picker/algorithm-picker.ts` |
+| `features/algorithm-sphere/algorithm-sphere.ts` | Component standalone cho cầu 3D chọn thuật toán. | `features/algorithm-picker/components/algorithm-sphere/algorithm-sphere.ts` |
+| `features/algorithm-sphere/planet-geometry.spec.ts` | Spec kiểm tra hình học lục địa. | `features/algorithm-picker/components/algorithm-sphere/planet-geometry.spec.ts` |
+| `features/algorithm-sphere/planet-geometry.ts` | Hàm tạo hình học lục địa Three.js. | `features/algorithm-picker/components/algorithm-sphere/planet-geometry.ts` |
+| `features/csv-import/csv-import.css` | CSS của luồng xem trước và nhập CSV. | `features/csv-import/csv-import.css` |
+| `features/csv-import/csv-import.html` | Template của luồng xem trước và nhập CSV. | `features/csv-import/csv-import.html` |
+| `features/csv-import/csv-import.spec.ts` | Spec của luồng xem trước và nhập CSV. | `features/csv-import/csv-import.spec.ts` |
+| `features/csv-import/csv-import.ts` | Component standalone cho luồng xem trước và nhập CSV. | `features/csv-import/csv-import.ts` |
+| `features/data-panel/data-panel.css` | CSS của bảng thiết lập dữ liệu. | `features/data-panel/data-panel.css` |
+| `features/data-panel/data-panel.html` | Template của bảng thiết lập dữ liệu. | `features/data-panel/data-panel.html` |
+| `features/data-panel/data-panel.spec.ts` | Spec của bảng thiết lập dữ liệu. | `features/data-panel/data-panel.spec.ts` |
+| `features/data-panel/data-panel.ts` | Component standalone cho bảng thiết lập dữ liệu. | `features/data-panel/data-panel.ts` |
+| `features/experiment-workflow/experiment-workflow.css` | CSS của quy trình thử nghiệm và so sánh. | `features/experiment-workflow/experiment-workflow.css` |
+| `features/experiment-workflow/experiment-workflow.html` | Template của quy trình thử nghiệm và so sánh. | `features/experiment-workflow/experiment-workflow.html` |
+| `features/experiment-workflow/experiment-workflow.spec.ts` | Spec của quy trình thử nghiệm và so sánh. | `features/experiment-workflow/experiment-workflow.spec.ts` |
+| `features/experiment-workflow/experiment-workflow.ts` | Component standalone cho quy trình thử nghiệm và so sánh. | `features/experiment-workflow/experiment-workflow.ts` |
+| `features/experiments-panel/experiments-panel.css` | CSS của bảng quản lý thí nghiệm đã lưu. | `features/experiments-panel/experiments-panel.css` |
+| `features/experiments-panel/experiments-panel.html` | Template của bảng quản lý thí nghiệm đã lưu. | `features/experiments-panel/experiments-panel.html` |
+| `features/experiments-panel/experiments-panel.spec.ts` | Spec của bảng quản lý thí nghiệm đã lưu. | `features/experiments-panel/experiments-panel.spec.ts` |
+| `features/experiments-panel/experiments-panel.ts` | Component standalone cho bảng quản lý thí nghiệm đã lưu. | `features/experiments-panel/experiments-panel.ts` |
+| `features/learning-route/learning-route.css` | CSS của đường dẫn học A–F. | `features/learning-walkthrough/components/learning-route/learning-route.css` |
+| `features/learning-route/learning-route.html` | Template của đường dẫn học A–F. | `features/learning-walkthrough/components/learning-route/learning-route.html` |
+| `features/learning-route/learning-route.spec.ts` | Spec của đường dẫn học A–F. | `features/learning-walkthrough/components/learning-route/learning-route.spec.ts` |
+| `features/learning-route/learning-route.ts` | Component standalone cho đường dẫn học A–F. | `features/learning-walkthrough/components/learning-route/learning-route.ts` |
+| `features/learning-walkthrough/learning-walkthrough.css` | CSS của phần hướng dẫn học từng bước. | `features/learning-walkthrough/learning-walkthrough.css` |
+| `features/learning-walkthrough/learning-walkthrough.html` | Template của phần hướng dẫn học từng bước. | `features/learning-walkthrough/learning-walkthrough.html` |
+| `features/learning-walkthrough/learning-walkthrough.spec.ts` | Spec của phần hướng dẫn học từng bước. | `features/learning-walkthrough/learning-walkthrough.spec.ts` |
+| `features/learning-walkthrough/learning-walkthrough.ts` | Component standalone cho phần hướng dẫn học từng bước. | `features/learning-walkthrough/learning-walkthrough.ts` |
+| `features/results-panel/results-panel.css` | CSS của bảng kết quả. | `features/results-panel/results-panel.css` |
+| `features/results-panel/results-panel.html` | Template của bảng kết quả. | `features/results-panel/results-panel.html` |
+| `features/results-panel/results-panel.spec.ts` | Spec của bảng kết quả. | `features/results-panel/results-panel.spec.ts` |
+| `features/results-panel/results-panel.ts` | Component standalone cho bảng kết quả. | `features/results-panel/results-panel.ts` |
+| `features/training-controls/training-controls.css` | CSS của bộ điều khiển huấn luyện. | `features/training-controls/training-controls.css` |
+| `features/training-controls/training-controls.html` | Template của bộ điều khiển huấn luyện. | `features/training-controls/training-controls.html` |
+| `features/training-controls/training-controls.spec.ts` | Spec của bộ điều khiển huấn luyện. | `features/training-controls/training-controls.spec.ts` |
+| `features/training-controls/training-controls.ts` | Component standalone cho bộ điều khiển huấn luyện. | `features/training-controls/training-controls.ts` |
+| `features/viewport3d/viewport3d.css` | CSS của khung nhìn hồi quy 3D. | `features/viewport3d/viewport3d.css` |
+| `features/viewport3d/viewport3d.html` | Template của khung nhìn hồi quy 3D. | `features/viewport3d/viewport3d.html` |
+| `features/viewport3d/viewport3d.spec.ts` | Spec của khung nhìn hồi quy 3D. | `features/viewport3d/viewport3d.spec.ts` |
+| `features/viewport3d/viewport3d.ts` | Component standalone cho khung nhìn hồi quy 3D. | `features/viewport3d/viewport3d.ts` |
+| `features/welcome-panel/entry-form.css` | CSS của form đăng nhập/đăng ký của màn hình chào. | `features/welcome-panel/components/entry-form/entry-form.css` |
+| `features/welcome-panel/entry-form.html` | Template của form đăng nhập/đăng ký của màn hình chào. | `features/welcome-panel/components/entry-form/entry-form.html` |
+| `features/welcome-panel/entry-form.spec.ts` | Spec của form đăng nhập/đăng ký của màn hình chào. | `features/welcome-panel/components/entry-form/entry-form.spec.ts` |
+| `features/welcome-panel/entry-form.ts` | Component standalone cho form đăng nhập/đăng ký của màn hình chào. | `features/welcome-panel/components/entry-form/entry-form.ts` |
+| `features/welcome-panel/welcome-panel.css` | CSS của màn hình chào. | `features/welcome-panel/welcome-panel.css` |
+| `features/welcome-panel/welcome-panel.html` | Template của màn hình chào. | `features/welcome-panel/welcome-panel.html` |
+| `features/welcome-panel/welcome-panel.spec.ts` | Spec của màn hình chào. | `features/welcome-panel/welcome-panel.spec.ts` |
+| `features/welcome-panel/welcome-panel.ts` | Component standalone cho màn hình chào. | `features/welcome-panel/welcome-panel.ts` |
+| `presentation/algorithm-flight.spec.ts` | Spec đường bay và đóng cảnh. | `features/algorithm-picker/services/algorithm-flight.spec.ts` |
+| `presentation/algorithm-flight.ts` | Lớp điều phối chuyển động từ quả cầu sang cảnh tiếp theo. | `features/algorithm-picker/services/algorithm-flight.ts` |
+| `presentation/card-glow.css` | CSS toàn cục cho lớp phát sáng của thẻ. | `shared/ui/card-glow/card-glow.css` |
+| `presentation/card-glow.spec.ts` | Spec hàm nội suy độ sáng. | `shared/ui/card-glow/card-glow.spec.ts` |
+| `presentation/card-glow.ts` | Directive phát sáng theo con trỏ qua nhiều màn hình. | `shared/ui/card-glow/card-glow.ts` |
+| `presentation/frame-budget.spec.ts` | Spec nhịp cập nhật. | `shared/ui/frame-budget/frame-budget.spec.ts` |
+| `presentation/frame-budget.ts` | Tiện ích giới hạn nhịp cập nhật và đo lần render canvas. | `shared/ui/frame-budget/frame-budget.ts` |
+| `presentation/journey-motion.ts` | Directive chuyển cảnh giữa các màn hình. | `layout/journey-motion/journey-motion.ts` |
+| `presentation/spatial-backdrop.ts` | Component nền Three.js và hiệu ứng môi trường. | `layout/spatial-backdrop/spatial-backdrop.ts` |
+| `state/auth-session.spec.ts` | Spec phiên xác thực. | `core/state/auth-session.spec.ts` |
+| `state/auth-session.ts` | Service giữ danh tính, phiên và khôi phục đăng nhập. | `core/state/auth-session.ts` |
+| `state/experiment-workflow.spec.ts` | Spec LabStore về mốc so sánh và đánh giá tập test. | `core/state/experiment-workflow.spec.ts` |
+| `state/experiments-store.spec.ts` | Spec lưu và đồng bộ thí nghiệm. | `core/state/experiments-store.spec.ts` |
+| `state/experiments-store.ts` | Store quản lý thí nghiệm đã lưu và đồng bộ. | `core/state/experiments-store.ts` |
+| `state/lab-store.spec.ts` | Spec LabStore. | `core/state/lab-store.spec.ts` |
+| `state/lab-store.ts` | Store dữ liệu, huấn luyện, Web Worker và luồng học. | `core/state/lab-store.ts` |
+| `state/learning-flow.spec.ts` | Spec tích hợp LabStore với phiên huấn luyện qua Worker mô phỏng. | `core/state/learning-flow.spec.ts` |
+| `state/theme-store.spec.ts` | Spec trạng thái giao diện sáng/tối. | `core/state/theme-store.spec.ts` |
+| `state/theme-store.ts` | Store giao diện sáng/tối. | `core/state/theme-store.ts` |
+
+Build production gốc thành công. Angular tạo bundle trình duyệt, bundle SSR, Web Worker và prerender 1 route. Bundle trình duyệt ban đầu có dung lượng 454,01 kB. Có 4 cảnh báo budget CSS sẵn có.

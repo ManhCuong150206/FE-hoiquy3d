@@ -1,5 +1,5 @@
 import { EntryForm } from './entry-form';
-import { AuthSession } from '../../state/auth-session';
+import { AuthSession } from '../../core/state/auth-session';
 import { Component, inject, output, signal, viewChild } from '@angular/core';
 
 @Component({

@@ -1,5 +1,5 @@
 // Lucian UX/UI Prompt #244 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#244
-import { AuthSession } from '../../state/auth-session';
+import { AuthSession } from '../../core/state/auth-session';
 import { Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 
 type FieldId = 'display-name' | 'entry-email' | 'entry-password';

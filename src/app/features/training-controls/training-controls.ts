@@ -1,6 +1,6 @@
 import { Component, inject, input } from '@angular/core';
 import { ALGORITHM_LABELS } from '../../core/models/experiment';
-import { LabStore } from '../../state/lab-store';
+import { LabStore } from '../../core/state/lab-store';
 
 @Component({
   selector: 'app-training-controls',

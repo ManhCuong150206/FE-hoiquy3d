@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthSession } from '../../state/auth-session';
+import { AuthSession } from '../state/auth-session';
 
 export interface AccountUser {
   _id: string; email: string; displayName: string; role: 'user' | 'admin';

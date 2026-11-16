@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { LabStore } from './lab-store';
-import { TrainingSession } from '../core/engine/training-session';
+import { TrainingSession } from '../engine/training-session';
 
 /** Queued transport with real engine: exercise stale replies and the F acknowledgement. */
 class QueuedWorker {

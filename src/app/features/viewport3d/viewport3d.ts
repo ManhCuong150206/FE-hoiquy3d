@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { LabStore } from '../../state/lab-store';
+import { LabStore } from '../../core/state/lab-store';
 import { countStuck, modelPredictions, modelVisibility, sliceRow } from '../../core/engine/model-view';
 import { Algorithm } from '../../core/models/experiment';
 

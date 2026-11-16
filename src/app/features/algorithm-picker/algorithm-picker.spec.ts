@@ -1,7 +1,7 @@
 import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { AlgorithmPicker } from './algorithm-picker';
-import { AuthSession } from '../../state/auth-session';
+import { AuthSession } from '../../core/state/auth-session';
 
 describe('AlgorithmPicker', () => {
   beforeEach(() => TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual }));

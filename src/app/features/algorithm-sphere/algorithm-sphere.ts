@@ -1,4 +1,4 @@
-import { ThemeStore } from '../../state/theme-store';
+import { ThemeStore } from '../../core/state/theme-store';
 import { CONTINENTS, PLANET_RADIUS, PLANET_SEED, continentCenter, continentGeometry } from './planet-geometry';
 import { FrameBudget, recordRender } from '../../presentation/frame-budget';
 import { Component, ElementRef, NgZone, OnDestroy, afterNextRender, effect, inject, input, output, signal, viewChild } from '@angular/core';

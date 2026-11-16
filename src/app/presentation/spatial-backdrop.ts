@@ -1,4 +1,4 @@
-import { ThemeStore } from '../state/theme-store';
+import { ThemeStore } from '../core/state/theme-store';
 import { FrameBudget, recordRender } from './frame-budget';
 import { Component, ElementRef, NgZone, OnDestroy, afterNextRender, effect, inject, input, viewChild } from '@angular/core';
 import * as THREE from 'three';

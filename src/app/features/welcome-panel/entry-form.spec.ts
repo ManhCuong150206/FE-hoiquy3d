@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { AuthSession } from '../../state/auth-session';
+import { AuthSession } from '../../core/state/auth-session';
 import { EntryForm } from './entry-form';
 
 describe('EntryForm validation',()=>{

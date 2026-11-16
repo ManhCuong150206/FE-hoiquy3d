@@ -1,14 +1,14 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal, DestroyRef } from '@angular/core';
-import { mae, mse, predict, r2, rmse } from '../core/engine/metrics';
-import { polynomialFeatures } from '../core/engine/polynomial';
-import { makeSyntheticData, trainTestSplit } from '../core/engine/synthetic';
-import { Algorithm, MetricSet, SavedExperiment, SyntheticKind, SyntheticConfig } from '../core/models/experiment';
-import { learningSplit, Trial, compareTrials, testSignature } from '../core/engine/experiment-workflow';
-import { DatasetProvenance, LearningSnapshot, Step } from '../core/models/training-step';
-import type { PreparedSplit } from '../core/engine/csv';
-import { modelPredictions } from '../core/engine/model-view';
-export type { Step } from '../core/models/training-step';
+import { mae, mse, predict, r2, rmse } from '../engine/metrics';
+import { polynomialFeatures } from '../engine/polynomial';
+import { makeSyntheticData, trainTestSplit } from '../engine/synthetic';
+import { Algorithm, MetricSet, SavedExperiment, SyntheticKind, SyntheticConfig } from '../models/experiment';
+import { learningSplit, Trial, compareTrials, testSignature } from '../engine/experiment-workflow';
+import { DatasetProvenance, LearningSnapshot, Step } from '../models/training-step';
+import type { PreparedSplit } from '../engine/csv';
+import { modelPredictions } from '../engine/model-view';
+export type { Step } from '../models/training-step';
 
 @Injectable({ providedIn: 'root' })
 export class LabStore {
@@ -422,7 +422,7 @@ export class LabStore {
 
     private ensureWorker() {
         if (!this.isBrowser || this.worker || typeof Worker === 'undefined') return;
-        this.worker = new Worker(new URL('../core/engine/regression.worker', import.meta.url));
+        this.worker = new Worker(new URL('../engine/regression.worker', import.meta.url));
         this.worker.onmessage = ({ data }) => {
             if (data.runId !== this.runId) return;
             if (typeof data.computeMs === 'number' && Number.isFinite(data.computeMs)) this.computeMs.set(data.computeMs);

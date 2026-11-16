@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AccountApi, AccountUser } from './account-api';
-import { AuthSession } from '../../state/auth-session';
+import { AccountApi, AccountUser } from '../../core/storage/account-api';
+import { AuthSession } from '../../core/state/auth-session';
 import { Account } from './account';
 
 const user: AccountUser = { _id: 'account-test', email: 'test@example.com', displayName: 'Linh', role: 'user', status: 'active', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' };

@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal, afterRenderEffect, ElementRef, viewChild } from '@angular/core';
-import { LabStore } from '../../state/lab-store';
+import { LabStore } from '../../core/state/lab-store';
 import { ALGORITHM_LABELS } from '../../core/models/experiment';
 
 @Component({ selector: 'app-experiment-workflow', templateUrl: './experiment-workflow.html', styleUrl: './experiment-workflow.css' })

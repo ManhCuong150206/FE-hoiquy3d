@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { accountGuard } from './features/account/account-api';
+import { accountGuard } from './core/storage/account-api';
 
 export const routes: Routes = [
   // The existing home screen lives in App's template, outside the outlet.

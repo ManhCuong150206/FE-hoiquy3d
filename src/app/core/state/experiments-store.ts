@@ -1,8 +1,8 @@
-import { experimentPayload as payload, readExperiment } from '../core/models/experiment-payload';
+import { experimentPayload as payload, readExperiment } from '../models/experiment-payload';
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, effect, inject, signal, untracked, DestroyRef } from '@angular/core';
-import { ALGORITHM_LABELS, SavedExperiment } from '../core/models/experiment';
-import { experimentDb } from '../core/storage/experiment-db';
+import { ALGORITHM_LABELS, SavedExperiment } from '../models/experiment';
+import { experimentDb } from '../storage/experiment-db';
 import { LabStore } from './lab-store';
 import { AuthSession, apiMessage } from './auth-session';
 const EXPERIMENTS_URL = '/api/v1/experiments';

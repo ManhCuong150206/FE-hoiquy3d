@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { SyntheticKind } from '../../core/models/experiment';
-import { LabStore } from '../../state/lab-store';
+import { LabStore } from '../../core/state/lab-store';
 import { CsvImport } from '../csv-import/csv-import';
 
 @Component({

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { SavedExperiment } from '../core/models/experiment';
+import { SavedExperiment } from '../models/experiment';
 import { LabStore } from './lab-store';
 
 describe('LabStore', () => {

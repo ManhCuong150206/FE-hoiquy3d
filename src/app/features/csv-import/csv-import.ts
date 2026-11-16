@@ -3,7 +3,7 @@ import {
     CsvTable, MissingStrategy, buildDataset, countMissing, numericColumns, parseCsv,
 } from '../../core/engine/csv';
 import type { DatasetProvenance } from '../../core/models/training-step';
-import { LabStore } from '../../state/lab-store';
+import { LabStore } from '../../core/state/lab-store';
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 
