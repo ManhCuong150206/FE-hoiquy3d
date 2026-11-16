@@ -1,0 +1,21 @@
+:host{display:block;grid-column:1/-1;min-width:0}
+.workflow{padding:12px 16px}
+.workflow-head{display:grid;grid-template-columns:minmax(180px,1fr) auto auto;align-items:center;gap:12px}
+.workflow-heading{min-width:0}h3{margin:0;font-size:15px;line-height:1.35}h4{margin:0 0 8px;font-size:15px}
+p{line-height:1.55;margin:8px 0;color:var(--subtle)}.workflow-heading p{font-size:12px;margin:4px 0 0}
+nav{min-width:0}nav ol{list-style:none;display:flex;gap:5px;padding:0;margin:0}
+button{min-height:40px;margin:4px 8px 4px 0;font-size:13px}
+nav button{display:flex;align-items:center;gap:6px;margin:0;padding:6px 10px;white-space:nowrap;font-size:12px}
+.step-number{display:inline-grid;place-items:center;min-width:20px;min-height:20px;border-radius:50%;background:var(--surface-2);font-variant-numeric:tabular-nums}
+nav button[aria-current=step]{box-shadow:inset 0 -2px var(--primary);font-weight:700}
+.guide-toggle{margin:0;white-space:nowrap;padding:6px 12px}.guide-toggle span{margin-inline-start:8px}
+.workflow-content{max-height:min(300px,38svh);overflow:auto;scrollbar-width:thin;border-top:1px solid var(--border);margin-top:10px;padding:12px 4px 0;overscroll-behavior:auto}
+.stage-body{max-width:1040px;padding-bottom:4px}.stage-body>p{font-size:13px}
+label{display:block;font-size:13px;font-weight:600;margin-top:10px}
+textarea{box-sizing:border-box;display:block;width:100%;max-width:760px;resize:vertical;min-height:64px;max-height:160px;padding:10px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;font:inherit;font-size:13px}
+.table-wrap{max-width:100%;overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);min-width:100px;vertical-align:top}
+.warning{border-inline-start:3px solid var(--primary);padding-inline-start:10px}.trial-log{margin-top:10px}summary{cursor:pointer;min-height:40px}
+select{box-sizing:border-box;width:100%;max-width:760px;min-height:40px;padding:8px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;font:inherit;font-size:13px}
+button:focus-visible,textarea:focus-visible,select:focus-visible,.workflow-content:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+@media(max-width:1100px){.workflow-head{grid-template-columns:1fr auto}nav{grid-column:1/-1;grid-row:2}nav ol{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}nav button{width:100%;justify-content:center}.guide-toggle{grid-column:2;grid-row:1}}
+@media(max-width:600px){.workflow{padding:10px 12px}.workflow-head{gap:10px}h3{font-size:14px}.workflow-heading p{font-size:11px}.guide-toggle{font-size:11px;padding:6px 8px;white-space:normal;max-width:125px}nav ol{gap:4px}nav button{padding:6px 2px;flex-direction:column;gap:3px;font-size:10px;white-space:normal}.step-number{min-width:18px;min-height:18px}.workflow-content{max-height:min(320px,45svh)}}
