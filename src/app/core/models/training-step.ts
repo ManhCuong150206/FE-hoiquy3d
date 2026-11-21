@@ -5,7 +5,12 @@ export interface Step {
 export interface GradientTrace {
   gradient: number[]; biasGradient: number; intermediate?: number[];
 }
+export interface LearningPreview {
+  residual: Pick<Step, 'w' | 'b'>;
+  loss: Pick<Step, 'w' | 'b'>;
+}
 export interface LearningSnapshot extends GradientTrace {
+  preview?: LearningPreview;
   before: Step; after: Step; algorithm: Algorithm; degree: number; lambda: number;
   lr: number; trainCount: number; penaltyBefore: number; penaltyAfter: number; done: boolean;
 }

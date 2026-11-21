@@ -20,6 +20,6 @@ export class TrainingControls {
 
   toggle() {
     if (this.store.status() === 'running' || this.store.auto()) this.store.pause();
-    else this.store.play();
+    else this.store.play(1500);
   }
 }

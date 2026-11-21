@@ -16,8 +16,23 @@
         <span class="applied-model">{{ lesson() && store.snapshot() ? 'Minh họa snapshot · iteration ' + shownModel()?.iteration : 'Bề mặt đã áp dụng · iteration ' + store.iteration() }}</span>
     </div>
 
-    @if (lesson()) { <p class="lesson-illustration" role="status" [attr.data-view-phase]="shownPhase()">{{ lessonCaption() }} Đường xanh sáng là đường hồi quy theo x₁ qua lát cắt của mẫu đang chọn; dịch chuyển cùng bề mặt ở pha E, giữ kết quả ở F. Mô hình tìm cách khớp dữ liệu, không nhất thiết đi qua mọi điểm. Xem lại không cập nhật trọng số thật.</p> }
+    @if (lesson()) {
+        <p class="lesson-illustration" role="status" [attr.data-view-phase]="shownPhase()">{{ lessonCaption() }}
+            @if (shownPhase() === 2 || shownPhase() === 3) {
+                Đây là phần xem thử quá trình học. Các phép tính ở chặng này vẫn dùng mô hình trước cập nhật.
+            }
+            @if (residualComparison(); as comparison) {
+                Sai số tuyệt đối của mẫu: {{ comparison.before.toPrecision(4) }} → {{ comparison.after.toPrecision(4) }}.
+            }
+        </p>
+    }
     <div #host class="host"></div>
+    <p class="hint">
+        Đường xanh là lát cắt theo x₁ qua mẫu đang chọn. Bấm điểm Train để theo dõi mẫu khác.
+        @if (showResiduals()) { Nét đứt hồng nối từng điểm với dự đoán của chính nó. }
+        @else if (lesson()) { Các đoạn sai số xuất hiện từ chặng B. }
+        @else { Bấm Chạy để xem các đoạn sai số. }
+    </p>
     <details class="display-options">
     <summary>Tùy chỉnh hiển thị và hướng dẫn</summary>
     <div class="stick-controls">
@@ -32,10 +47,9 @@
         </label>
     </div>
     <p [id]="idPrefix() + '-stick-rule'" class="hint">Dính khi |y − ŷ| &lt; ε: điểm sáng và lớn hơn. Tọa độ dữ liệu giữ nguyên; σ chỉ tính từ train y.</p>
-    <p class="hint">{{ sliceCaption() }} Phép co hiển thị không phải chuẩn hóa dữ liệu.</p>
+    <p class="hint">{{ sliceCaption() }} Với hơn hai đặc trưng, đầu nét hồng là dự đoán từ toàn bộ đặc trưng của điểm. Phép co hiển thị không phải chuẩn hóa dữ liệu.</p>
     @if (store.mode() === 'learn') {
-        <p class="hint" aria-live="polite">Mẫu train {{ store.selectedSample() + 1 }} · y = {{ store.selectedY().toFixed(6) }} · ŷ đang hiển thị = {{ shownPrediction().toFixed(6) }}</p>
-        <p class="hint">Cầu viền: điểm thật · khối vuông: dự đoán · đoạn nối: sai số. Bấm điểm train để chọn; điểm thật không di chuyển.</p>
+        <p class="hint" aria-live="polite">Mẫu train {{ displayedSample() + 1 }} · y = {{ displayedY().toFixed(6) }} · ŷ của bước đang xem = {{ shownPrediction().toFixed(6) }}</p>
     }
     <p class="hint">Kéo để xoay góc nhìn · cuộn để thu phóng · kéo chuột phải để di chuyển · cảm ứng: một ngón xoay, hai ngón thu phóng và di chuyển</p>
 </details>

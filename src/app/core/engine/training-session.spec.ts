@@ -55,6 +55,23 @@ describe('real training snapshots', () => {
     const bad = new TrainingSession({ ...config, lr: Number.MAX_VALUE });
     expect(() => bad.prepare()).toThrow(); expect(bad.current.iteration).toBe(0);
   });
+  it('previews multiple real updates without committing or changing telemetry', () => {
+    const smallConfig = { ...config, Xtr: [[1]], ytr: [3], Xte: [[2]], yte: [6], maxIter: 6, tol: 0 };
+    const lesson = new TrainingSession(smallConfig);
+    const ordinary = new TrainingSession(smallConfig);
+    const pending = lesson.prepare()!;
+    const computeMs = lesson.computeMs;
+    const preview = lesson.preview(pending);
+    while (ordinary.step()) { /* Advance the comparison session to its iteration limit. */ }
+
+    expect(preview.loss).toEqual({ w: ordinary.current.w, b: ordinary.current.b });
+    expect(preview.residual.w[0]).toBeGreaterThan(pending.after.w[0]);
+    expect(lesson.computeMs).toBe(computeMs);
+    expect(lesson.current).toBe(pending.before);
+    expect(lesson.pending).toBe(pending);
+    expect(lesson.commit(1)).toBe(pending.after);
+  });
+
   it('reports increasing loss honestly', () => {
     const a = new TrainingSession({ ...config, lr: 10 });
     const p = a.prepare()!;

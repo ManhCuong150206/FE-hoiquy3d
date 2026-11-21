@@ -1,5 +1,5 @@
 import { Algorithm } from '../models/experiment';
-import { GradientTrace, LearningSnapshot, Step } from '../models/training-step';
+import { GradientTrace, LearningPreview, LearningSnapshot, Step } from '../models/training-step';
 import { gdStep } from './linear';
 import { lassoStep } from './lasso';
 import { mse, predict } from './metrics';
@@ -49,7 +49,11 @@ export class TrainingSession {
   private calculate(trace?: (g: GradientTrace) => void) {
     const started = performance.now();
     try {
-    const c = this.config, old = this.current;
+      return this.calculateFrom(this.current, trace);
+    } finally { this.computeMs += Math.max(0, performance.now() - started); }
+  }
+  private calculateFrom(old: Step, trace?: (g: GradientTrace) => void) {
+    const c = this.config;
     const next = c.algorithm === 'lasso'
       ? lassoStep(this.Xtr, c.ytr, old.w, old.b, c.lr, c.lambda, trace)
       : gdStep(this.Xtr, c.ytr, old.w, old.b, c.lr, c.algorithm === 'ridge' ? c.lambda : 0, trace);
@@ -58,7 +62,31 @@ export class TrainingSession {
       throw new Error('Loss phân kỳ (NaN hoặc vô hạn). Mô hình hữu hạn cuối được giữ lại. Hãy giảm learning rate rồi Reset.');
     }
     return after;
-    } finally { this.computeMs += Math.max(0, performance.now() - started); }
+  }
+  preview(snapshot: LearningSnapshot): LearningPreview {
+    let model = snapshot.after;
+    let residual = model;
+    const deadline = performance.now() + 40;
+    const firstIteration = snapshot.before.iteration;
+    const lastIteration = Math.min(firstIteration + 42, this.config.maxIter);
+    if (!snapshot.done) {
+      while (model.iteration < lastIteration && performance.now() < deadline) {
+        try {
+          const next = this.calculateFrom(model);
+          const converged = Math.abs(this.objective(next) - this.objective(model)) < this.config.tol;
+          model = next;
+          if (model.iteration <= firstIteration + 22) residual = model;
+          if (converged) break;
+        } catch {
+          // A divergent preview must leave the pending lesson update intact.
+          break;
+        }
+      }
+    }
+    return {
+      residual: { w: residual.w, b: residual.b },
+      loss: { w: model.w, b: model.b },
+    };
   }
   private isDone(after: Step) {
     this.stopReason = after.iteration >= this.config.maxIter ? 'max-iterations'

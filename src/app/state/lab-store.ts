@@ -149,6 +149,7 @@ export class LabStore {
     }
 
     // ----- trạng thái chạy -----
+    readonly runResidualsVisible = signal(false);
     status = signal<'idle' | 'running' | 'paused' | 'done' | 'error'>('idle');
     iteration = signal(0);
     history = signal<Step[]>([]);
@@ -302,8 +303,8 @@ export class LabStore {
     }
 
     // ===== điều khiển huấn luyện =====
-    play() {
-        if (this.switching() || this.busy()) return;
+    play(previewMs = 0) {
+        if (this.switching() || this.busy() || this.status() === 'running') return;
         if (this.lrError() || this.status() === 'error') return;
         if (this.status() === 'done' || !this.initialized) this.initWorker();
         if (this.mode() === 'learn') {
@@ -313,8 +314,10 @@ export class LabStore {
             if (!this.snapshot()) this.prepare(); else this.schedulePhase();
             return;
         }
+        const firstPlay = !this.runResidualsVisible();
+        this.runResidualsVisible.set(true);
         this.status.set('running');
-        this.send({ type: 'play' });
+        this.send({ type: 'play', previewMs: firstPlay ? previewMs : 0 });
 
     }
 
@@ -441,6 +444,13 @@ export class LabStore {
                 if (data.snapshot) this.schedulePhase(); else this.pausePresentation();
                 return;
             }
+            if (data.type === 'lesson-preview') {
+                const snapshot = this.snapshot();
+                if (this.mode() === 'learn' && !this.switching() && snapshot && snapshot.before.iteration === data.iteration) {
+                    this.snapshot.set({ ...snapshot, preview: data.preview });
+                }
+                return;
+            }
             if (data.type === 'step') {
                 if (data.iteration !== this.iteration()) this.finalTest.set(null);
                 this.iteration.set(data.iteration);
@@ -476,6 +486,7 @@ export class LabStore {
         this.switching.set(false); this.committing = false;
         this.ensureWorker();
         this.history.set([]);
+        this.runResidualsVisible.set(false);
         this.iteration.set(0);
         this.errorMsg.set(null);
         this.status.set('idle');

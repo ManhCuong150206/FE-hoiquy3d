@@ -26,11 +26,22 @@ addEventListener('message', ({ data }) => {
         clearTimeout(timer); runId = data.runId; session = null; speed = data.speed;
         session = new TrainingSession({ ...data, degree: Math.max(1, Math.floor(Number(data.degree) || 2)) });
         report(); break;
-      case 'play': clearTimeout(timer); loop(); break;
+      case 'play':
+        clearTimeout(timer);
+        if (data.previewMs > 0) timer = setTimeout(loop, data.previewMs);
+        else loop();
+        break;
       case 'pause': clearTimeout(timer); send({ type: 'paused', requestId: data.requestId }); break;
       case 'step': clearTimeout(timer); if (session?.step()) report(); break;
-      case 'prepare':
-        clearTimeout(timer); send({ type: 'prepared', snapshot: session?.prepare() ?? null, ...telemetry() }); break;
+      case 'prepare': {
+        clearTimeout(timer);
+        const snapshot = session?.prepare() ?? null;
+        send({ type: 'prepared', snapshot, ...telemetry() });
+        if (session && snapshot) {
+          send({ type: 'lesson-preview', iteration: snapshot.before.iteration, preview: session.preview(snapshot) });
+        }
+        break;
+      }
       case 'commit': if (session?.commit(data.iteration)) report(); break;
       case 'discard': session?.discard(); break;
       case 'speed': speed = data.speed; break;

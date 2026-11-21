@@ -4,6 +4,9 @@ import {
   afterNextRender, effect, inject, signal, viewChild, computed, input, untracked,
 } from '@angular/core';
 import * as THREE from 'three';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LabStore } from '../../state/lab-store';
 import { countStuck, modelPredictions, modelVisibility, sliceRow } from '../../core/engine/model-view';
@@ -23,16 +26,54 @@ export class Viewport3d implements OnDestroy {
     const snapshot=this.store.snapshot();
     return this.lesson() && snapshot ? (this.shownPhase() >= 4 ? snapshot.after : snapshot.before) : this.store.latest();
   });
+  readonly lessonPreviewProgress = computed(() => {
+    if (!this.lesson() || !this.store.snapshot()) return 0;
+    const phase = this.shownPhase();
+    return phase === 2 ? .45 : phase === 3 ? .85 : phase >= 4 ? 1 : 0;
+  });
+  readonly visualModel = computed(() => {
+    const model = this.shownModel();
+    const progress = this.lessonPreviewProgress();
+    const snapshot = this.store.snapshot();
+    if (!snapshot || progress === 0 || progress === 1) return model;
+
+    if (snapshot.preview) {
+      return this.shownPhase() === 2 ? snapshot.preview.residual : snapshot.preview.loss;
+    }
+
+    // Use the single pending update until the worker sends the multi-iteration preview.
+    const { before, after } = snapshot;
+    return {
+      w: before.w.map((weight, i) => weight + (after.w[i] - weight) * progress),
+      b: before.b + (after.b - before.b) * progress,
+    };
+  });
+
+  readonly displayedSample = computed(() => this.store.selectedSample());
+  readonly displayedRow = computed(() => this.store.trainX()[this.displayedSample()]);
+  readonly displayedY = computed(() => this.store.trainY()[this.displayedSample()] ?? 0);
   readonly shownPrediction = computed(() => {
-    const model=this.shownModel();
-    return model ? modelPredictions([this.store.selectedX()],model.w,model.b,this.store.algorithm(),this.store.degree())[0] : 0;
+    const model = this.visualModel();
+    const row = this.displayedRow();
+    return model && row ? modelPredictions([row], model.w, model.b, this.store.algorithm(), this.store.degree())[0] : NaN;
+  });
+  readonly beforePrediction = computed(() => {
+    const snapshot = this.store.snapshot(), row = this.displayedRow();
+    return snapshot && row ? modelPredictions([row], snapshot.before.w, snapshot.before.b,
+      this.store.algorithm(), this.store.degree())[0] : NaN;
+  });
+  readonly residualComparison = computed(() => {
+    if (!this.lesson() || this.shownPhase() < 4 || !this.displayedRow() || this.modelClipped()) return null;
+    const before = this.beforePrediction(), after = this.shownPrediction(), actual = this.displayedY();
+    return Number.isFinite(before) && Number.isFinite(after)
+      ? { before: Math.abs(before - actual), after: Math.abs(after - actual) } : null;
   });
   readonly lessonCaption = computed(() => [
-    'A · Đầu vào: giữ bề mặt mô hình hiện tại; vòng sáng đánh dấu mẫu thật.',
+    'A · Đầu vào: xem bề mặt trước khi bắt đầu vòng học này.',
     'B · Dự đoán: khối vuông biểu diễn ŷ trước cập nhật.',
-    'C · Sai số: đoạn nối từ y thật đến ŷ.',
-    'D · Loss: các đoạn vàng là sai số trên train; tổng bình phương độ dài theo y tạo nên MSE.',
-    'E · Hệ số: bề mặt đề xuất, chưa áp dụng cho mô hình thật.',
+    'C · Sai số: xem bề mặt bắt đầu dịch chuyển; các đoạn nối thay đổi theo đường dự đoán.',
+    'D · Loss: bề mặt tiếp tục biến đổi; MSE dùng toàn bộ Train.',
+    'E · Hệ số: bề mặt quay về kết quả của một lần cập nhật, chưa áp dụng cho tới chặng F.',
     'F · Đánh giá: bề mặt sau cập nhật của iteration đang xem.',
   ][this.shownPhase()]);
   private readonly mounted = signal(false);
@@ -55,6 +96,7 @@ export class Viewport3d implements OnDestroy {
   private bands: THREE.Mesh[] = [];
   private modelLine?: THREE.Line;
   private lessonTrace?: THREE.Line;
+  private traceGlow?: Line2;
   private pointMeshes: THREE.InstancedMesh[] = [];
   private pointData: unknown[] = [];
   private observer?: ResizeObserver;
@@ -75,23 +117,36 @@ export class Viewport3d implements OnDestroy {
   private trueMarker?: THREE.Mesh;
   private predictedMarker?: THREE.Mesh;
   private residualLine?: THREE.Line;
-  private lossLines?: THREE.LineSegments;
-  private surfaceMotion?: { from: number[]; to: number[]; started: number; duration: number; offset: number; traceFrom: number[]; traceTo: number[] };
-  private markerMotion?: { from: number; to: number; started: number; duration: number; x: number; z: number; truth: number; phase: number };
-  private phaseStarted = 0;
-  private motionPreference?: MediaQueryList;
-  private reducedMotion() {
-    if (typeof matchMedia !== 'function') return true;
-    this.motionPreference ??= matchMedia('(prefers-reduced-motion: reduce)');
-    return this.lowQuality() || this.motionPreference.matches;
+  private residualSegments?: THREE.LineSegments;
+  private surfaceTarget?: { heights: number[]; trace: number[]; offset: number };
+  private residualTargets = new Float32Array(0);
+  private residualsMoving = false;
+  private markerTarget?: number;
+  private projection: unknown[] = [];
+
+  readonly showResiduals = computed(() => this.lesson()
+    ? !!this.store.snapshot() && this.shownPhase() >= 1
+    : this.store.runResidualsVisible());
+
+  private reducedMotionQuery?: MediaQueryList;
+
+  private smoothMotion() {
+    if (this.lowQuality() || typeof matchMedia !== 'function') return false;
+    this.reducedMotionQuery ??= matchMedia('(prefers-reduced-motion: reduce)');
+    return !this.reducedMotionQuery.matches;
   }
+  private animatePredictionChanges() {
+    const model = this.shownModel();
+    return !!model && (model.iteration > 0 || (this.lesson() && !!this.store.snapshot())) && this.smoothMotion();
+  }
+
   private pointerStart?: { pointerId: number; x: number; y: number; dragged: boolean };
   webglError = signal(false);
   modelClipped = signal(false);
   pointSize = signal(1);
   stuck = computed(() => {
     if (!this.active()) return { trainPred: [] as number[], testPred: [] as number[], train: 0, test: 0 };
-    const s = this.shownModel(), eps = this.store.stickThreshold();
+    const s = this.visualModel(), eps = this.store.stickThreshold();
     const predictRows = (rows: number[][]) => s
       ? modelPredictions(rows, s.w, s.b, this.store.algorithm(), this.store.degree())
       : rows.map(() => NaN);
@@ -103,7 +158,7 @@ export class Viewport3d implements OnDestroy {
   sliceCaption = computed(() => {
     const n = this.store.dataFeatures();
     if (n <= 2) return n === 1 ? 'Một đặc trưng: đường hồi quy theo x₁; trục sâu z không mang dữ liệu (điểm giữ z = 0).' : 'Trục ngang x₁, chiều sâu x₂, chiều cao y.';
-    const fixed = this.store.mode() === 'learn' ? this.store.selectedX() : [];
+    const fixed = this.displayedRow() ?? [];
     return `Lát cắt: ${Array.from({ length: n - 2 }, (_, j) => `x${j + 3} = ${(fixed[j + 2] ?? 0).toFixed(4)}`).join('; ')}. Số điểm dính tính trên mô hình đầy đủ; bề mặt chỉ là lát cắt. Các điểm khác là hình chiếu, không nhất thiết nằm trên lát cắt.`;
   });
 
@@ -138,6 +193,23 @@ export class Viewport3d implements OnDestroy {
       this.updatePoints(this.pointMeshes[1], teX, teY, stuck.testPred, this.testColor, scale, eps, size);
     });
 
+    effect(() => {
+      if (!this.active() || !this.ready() || !this.residualSegments) return;
+      const model = this.shownModel();
+      const visible = this.showResiduals() && !this.modelClipped() && !!model;
+      const animate = this.residualSegments.visible && this.animatePredictionChanges();
+      this.residualSegments.visible = visible;
+      if (!visible) {
+        this.residualsMoving = false;
+        return;
+      }
+      const { trainPred, testPred } = this.stuck();
+      this.updateResidualSegments(this.store.dataScale(), [
+        { rows: this.store.trainX(), actual: this.store.trainY(), predicted: trainPred },
+        { rows: this.evaluationX(), actual: this.evaluationY(), predicted: testPred },
+      ], animate);
+    });
+
 
     effect(() => {
       if (!this.active() || !this.ready()) return;
@@ -148,15 +220,20 @@ export class Viewport3d implements OnDestroy {
     effect(() => {
       if (!this.active()) return;
       const ready = this.ready();
-      const s = this.shownModel();
+      const s = this.visualModel();
       const scale = this.store.dataScale();
       const algorithm = this.store.algorithm();
       const degree = this.store.degree();
       const featureCount = this.store.dataFeatures();
-      const fixed = this.store.mode() === 'learn' ? this.store.selectedX() : [];
+      const fixed = this.displayedRow() ?? [];
       const eps = this.store.stickThreshold();
 
       if (!ready) return;
+
+      const context = [this.store.trainX(), fixed, scale, algorithm, degree, featureCount];
+      const animate = this.animatePredictionChanges() &&
+        context.every((value, index) => Object.is(value, this.projection[index]));
+      this.projection = context;
 
       this.updatePlane(
         s?.w ?? [],
@@ -166,45 +243,37 @@ export class Viewport3d implements OnDestroy {
         degree,
         featureCount,
         fixed,
-        eps
+        eps,
+        animate
       );
     });
 
     effect(() => {
       if (!this.active()) return;
-      const ready = this.ready(), learn = this.store.mode() === 'learn';
-      const row = this.store.selectedX(), y = this.store.selectedY(), prediction = this.shownPrediction();
-      const scale = this.store.dataScale(), phase = this.shownPhase(), snapshot = this.store.snapshot();
+      const ready = this.ready();
+      const row = this.displayedRow(), y = this.displayedY(), prediction = this.shownPrediction();
+      const scale = this.store.dataScale();
       const size = this.pointSize();
       if (!ready || !this.trueMarker || !this.predictedMarker || !this.residualLine) return;
-      const visible = learn && row.length > 0;
+      const visible = !!row && row.length > 0 && !this.modelClipped();
+      const finite = Number.isFinite(prediction) && Math.abs(prediction * scale) <= 1e30;
+      const x = (row?.[0] ?? 0) * scale, z = (row?.[1] ?? 0) * scale;
+      const last = this.trueMarker.position;
+      const animate = this.predictedMarker.visible && this.animatePredictionChanges()
+        && last.x === x && last.y === y * scale && last.z === z;
       this.trueMarker.visible = visible;
-      this.predictedMarker.visible = visible && !!snapshot && phase >= 1 && Number.isFinite(prediction);
-      this.residualLine.visible = visible && !!snapshot && phase >= 2 && Number.isFinite(prediction);
+      this.predictedMarker.visible = visible && finite;
+      this.residualLine.visible = visible && finite && this.showResiduals();
+      this.markerTarget = undefined;
+      if (!visible) return;
 
-      const x = row[0] * scale, z = (row[1] ?? 0) * scale;
       this.trueMarker.position.set(x, y * scale, z);
       this.trueMarker.scale.setScalar(1.4 * size);
-      this.predictedMarker.position.set(x, prediction * scale, z);
+      if (!finite) return;
       const points = this.residualLine.geometry.attributes['position'] as THREE.BufferAttribute;
-      points.setXYZ(0, x, y * scale, z); points.setXYZ(1, x, prediction * scale, z);
-      points.needsUpdate = true;
-      this.residualLine.geometry.computeBoundingSphere();
-      this.phaseStarted = performance.now();
-      const before = snapshot ? modelPredictions([row], snapshot.before.w, snapshot.before.b, this.store.algorithm(), this.store.degree())[0] * scale : prediction * scale;
-      this.markerMotion = this.lesson() && snapshot && !this.reducedMotion()
-        ? { from: phase === 1 ? y * scale : before, to: prediction * scale, started: this.phaseStarted,
-            duration: Math.min(850, this.store.phaseSeconds() * 650), x, z, truth: y * scale, phase } : undefined;
-      if (this.lossLines) {
-        this.lossLines.visible = this.lesson() && !!snapshot && phase === 3;
-        if (this.lossLines.visible) {
-          const trainX = this.store.trainX(), trainY = this.store.trainY();
-          const pred = modelPredictions(trainX, snapshot!.before.w, snapshot!.before.b, this.store.algorithm(), this.store.degree());
-          const vertices = trainX.flatMap((r, i) => [r[0] * scale, trainY[i] * scale, (r[1] ?? 0) * scale, r[0] * scale, pred[i] * scale, (r[1] ?? 0) * scale]);
-          this.lossLines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-          this.lossLines.geometry.computeBoundingSphere();
-        }
-      }
+      points.setXYZ(0, x, y * scale, z);
+      if (animate) this.markerTarget = prediction * scale;
+      else this.moveMarker(prediction * scale);
     });
 
   }
@@ -242,21 +311,32 @@ export class Viewport3d implements OnDestroy {
         color: 0xfacc15, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false,
       })));
       this.modelLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(
-        Array.from({ length: 41 }, () => new THREE.Vector3())), new THREE.LineBasicMaterial({ color: 0x38bdf8 }));
+        Array.from({ length: 41 }, () => new THREE.Vector3())), new THREE.LineBasicMaterial({ color: 0x67e8f9 }));
       this.scene.add(...this.bands, this.modelLine);
       // A precise x1 cross-section through the selected sample makes the changing fit legible.
       this.lessonTrace = new THREE.Line(new THREE.BufferGeometry().setFromPoints(
         Array.from({ length: 81 }, () => new THREE.Vector3())),
         new THREE.LineBasicMaterial({ color: 0x67e8f9, depthTest: false, transparent: true, opacity: .95 }));
       this.lessonTrace.renderOrder = 8;
-      this.scene.add(this.lessonTrace);
+      const glowGeometry = new LineGeometry().setPositions(new Float32Array(81 * 3));
+      (glowGeometry.getAttribute('instanceStart') as THREE.InterleavedBufferAttribute).data
+        .setUsage(THREE.DynamicDrawUsage);
+      this.traceGlow = new Line2(glowGeometry, new LineMaterial({
+        color: 0x37cfff, linewidth: 5, opacity: .32, transparent: true, depthTest: false, depthWrite: false,
+      }));
+      this.traceGlow.frustumCulled = false;
+      this.traceGlow.renderOrder = 7;
+      this.scene.add(this.lessonTrace, this.traceGlow);
       this.trueMarker = new THREE.Mesh(new THREE.SphereGeometry(.18, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, depthTest: false, depthWrite: false, transparent: true }));
       this.predictedMarker = new THREE.Mesh(new THREE.BoxGeometry(.17, .17, .17), new THREE.MeshBasicMaterial({ color: 0x67e8f9, depthTest: false, depthWrite: false, transparent: true }));
       this.residualLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, transparent: true }));
       for (const marker of [this.trueMarker, this.predictedMarker, this.residualLine]) marker.renderOrder = 10;
       this.scene.add(this.trueMarker, this.predictedMarker, this.residualLine);
-      this.lossLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffb75e, transparent: true, opacity: .35, depthTest: false }));
-      this.lossLines.visible = false; this.scene.add(this.lossLines);
+      this.residualSegments = new THREE.LineSegments(new THREE.BufferGeometry(),
+        new THREE.LineDashedMaterial({ color: 0xff91c6, dashSize: .11, gapSize: .075,
+          transparent: true, opacity: .46, depthWrite: false }));
+      this.residualSegments.visible = false;
+      this.scene.add(this.residualSegments);
       this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown);
       this.renderer.domElement.addEventListener('pointerup', this.onPointerUp);
       this.renderer.domElement.addEventListener('pointermove', this.onPointerMove);
@@ -275,27 +355,7 @@ export class Viewport3d implements OnDestroy {
         const started = performance.now();
         const delta = this.budget.take(timestamp);
         if (delta !== null) {
-          const motion = this.surfaceMotion;
-          if (motion) {
-            const t = Math.min(1, (timestamp - motion.started) / motion.duration), eased = 1 - (1 - t) ** 3;
-            this.applyHeights(motion.from.map((v, i) => v + (motion.to[i] - v) * eased), motion.offset);
-            this.applyTrace(motion.traceFrom.map((v, i) => v + (motion.traceTo[i] - v) * eased));
-            if (t >= 1) this.surfaceMotion = undefined;
-          }
-          const marker = this.markerMotion;
-          if (marker && this.predictedMarker && this.residualLine) {
-            const t = Math.min(1, (timestamp - marker.started) / marker.duration), eased = 1 - (1 - t) ** 3;
-            const value = marker.from + (marker.to - marker.from) * eased;
-            this.predictedMarker.position.set(marker.x, value, marker.z);
-            const positions = this.residualLine.geometry.attributes['position'] as THREE.BufferAttribute;
-            positions.setXYZ(1, marker.x, marker.phase === 2 ? marker.truth + (marker.to - marker.truth) * eased : value, marker.z);
-            positions.needsUpdate = true; this.residualLine.geometry.computeBoundingSphere();
-            if (t >= 1) this.markerMotion = undefined;
-          }
-          if (this.lesson() && this.trueMarker && !this.reducedMotion()) {
-            const elapsed = Math.max(0, timestamp - this.phaseStarted);
-            this.trueMarker.scale.setScalar(1.4 * this.pointSize() * (elapsed < 850 ? 1 + .18 * Math.sin(elapsed / 850 * Math.PI) : 1));
-          }
+          this.animateModel(delta);
           // Keep the same settling time when a frame is delayed.
           this.controls!.dampingFactor = 1 - Math.pow(1 - .14, delta / (1000 / 60));
           this.controls!.update();
@@ -360,6 +420,55 @@ export class Viewport3d implements OnDestroy {
     mesh.computeBoundingSphere(); // Raycasting must include newly enlarged instances.
   }
 
+  private updateResidualSegments(scale: number,
+    groups: readonly { rows: number[][]; actual: number[]; predicted: number[] }[], animate = false) {
+    const lines = this.residualSegments;
+    if (!lines) return;
+    const vertexCount = groups.reduce((total, group) => total + group.rows.length * 2, 0);
+    let geometry = lines.geometry;
+    const oldVertexCount = geometry.drawRange.count;
+    let position = geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
+    if (!position || position.count !== vertexCount) {
+      animate = false;
+      geometry.dispose();
+      geometry = new THREE.BufferGeometry();
+      lines.geometry = geometry;
+      position = new THREE.BufferAttribute(new Float32Array(vertexCount * 3), 3).setUsage(THREE.DynamicDrawUsage);
+      geometry.setAttribute('position', position);
+      geometry.setAttribute('lineDistance',
+        new THREE.BufferAttribute(new Float32Array(vertexCount), 1).setUsage(THREE.DynamicDrawUsage));
+    }
+    const distance = geometry.getAttribute('lineDistance') as THREE.BufferAttribute;
+    if (this.residualTargets.length !== vertexCount / 2) this.residualTargets = new Float32Array(vertexCount / 2);
+    this.residualsMoving = false;
+    let vertex = 0;
+    for (const { rows, actual, predicted } of groups) {
+      rows.forEach((row, index) => {
+        const x = row[0] * scale, z = (row[1] ?? 0) * scale;
+        const y = actual[index] * scale, prediction = predicted[index] * scale;
+        if (!(Math.max(Math.abs(x), Math.abs(y), Math.abs(z), Math.abs(prediction)) <= 1e30)) return;
+        const samePoint = animate && vertex < oldVertexCount
+          && position.getX(vertex) === Math.fround(x)
+          && position.getY(vertex) === Math.fround(y)
+          && position.getZ(vertex) === Math.fround(z);
+        this.residualTargets[vertex / 2] = prediction;
+        position.setXYZ(vertex, x, y, z);
+        distance.setX(vertex++, 0);
+        if (samePoint) this.residualsMoving ||= position.getY(vertex) !== Math.fround(prediction);
+        else {
+          position.setXYZ(vertex, x, prediction, z);
+          distance.setX(vertex, Math.abs(prediction - y));
+        }
+        vertex++;
+      });
+    }
+    geometry.setDrawRange(0, vertex);
+    position.needsUpdate = true;
+    distance.needsUpdate = true;
+    // Unused capacity may contain old points, so skip geometry bounds for this single batch.
+    lines.frustumCulled = false;
+  }
+
   private rebuildPoints(trX: number[][], trY: number[], teX: number[][], teY: number[], scale: number) {
     for (const m of this.pointMeshes) {
       this.scene.remove(m);
@@ -385,7 +494,8 @@ export class Viewport3d implements OnDestroy {
     degree: number,
     featureCount: number,
     fixed: number[],
-    eps: number
+    eps: number,
+    animate = false
   ) {
     if (!this.plane || scale <= 0) return;
 
@@ -398,7 +508,7 @@ export class Viewport3d implements OnDestroy {
     const rows = Array.from({ length: pos.count }, (_, i) => sliceRow(pos.getX(i) / scale, pos.getZ(i) / scale, featureCount, fixed));
     const heights = w.length ? modelPredictions(rows, w, b, algorithm, degree).map(v => v * scale) : rows.map(() => 0);
     const trace = this.lessonTrace?.geometry.attributes['position'] as THREE.BufferAttribute | undefined;
-    const traceRows = Array.from({ length: this.lesson() ? trace?.count ?? 0 : 0 }, (_, i) =>
+    const traceRows = Array.from({ length: trace?.count ?? 0 }, (_, i) =>
       sliceRow((-5 + 10 * i / ((trace?.count ?? 2) - 1)) / scale, fixed[1] ?? 0, featureCount, fixed));
     const traceHeights = w.length ? modelPredictions(traceRows, w, b, algorithm, degree).map(v => v * scale) : traceRows.map(() => 0);
     // The line varies x1; x2 and all remaining inputs stay at the selected sample's values.
@@ -408,12 +518,64 @@ export class Viewport3d implements OnDestroy {
     const invalid = [...heights, ...traceHeights].some(v => !Number.isFinite(v) || !Number.isFinite(offset) || Math.abs(v) + offset > 1e30);
     this.modelClipped.set(invalid);
     this.applyModelVisibility(featureCount, eps);
-    if (invalid) { this.surfaceMotion = undefined; return; }
-    if (this.lesson() && this.store.snapshot() && !this.reducedMotion()) {
-      this.surfaceMotion = { from: Array.from({ length: pos.count }, (_, i) => pos.getY(i)), to: heights,
-        started: performance.now(), duration: Math.min(850, this.store.phaseSeconds() * 650), offset,
-        traceFrom: trace ? Array.from({ length: trace.count }, (_, i) => trace.getY(i)) : [], traceTo: traceHeights };
-    } else { this.surfaceMotion = undefined; this.applyHeights(heights, offset); this.applyTrace(traceHeights); }
+    this.surfaceTarget = undefined;
+    if (invalid) return;
+    if (animate) this.surfaceTarget = { heights, trace: traceHeights, offset };
+    else {
+      this.applyHeights(heights, offset);
+      this.applyTrace(traceHeights);
+    }
+  }
+
+  private moveMarker(height: number) {
+    if (!this.predictedMarker || !this.residualLine || !this.trueMarker) return;
+    const { x, z } = this.trueMarker.position;
+    this.predictedMarker.position.set(x, height, z);
+    const positions = this.residualLine.geometry.getAttribute('position') as THREE.BufferAttribute;
+    positions.setXYZ(1, x, height, z);
+    positions.needsUpdate = true;
+    this.residualLine.geometry.computeBoundingSphere();
+  }
+
+  private animateModel(delta: number) {
+    if (!this.surfaceTarget && !this.residualsMoving && this.markerTarget === undefined) return;
+    const phase = this.shownPhase();
+    const smoothingMs = this.lesson() && phase >= 2 && phase <= 4 ? 190 : 85;
+    const blend = this.smoothMotion() ? 1 - Math.exp(-delta / smoothingMs) : 1;
+    let moving = false;
+    const approach = (from: number, to: number) => {
+      const next = from + (to - from) * blend;
+      if (Math.abs(to - next) <= Math.max(.001, Math.abs(to) * 1e-6)) return to;
+      moving = true;
+      return next;
+    };
+    const target = this.surfaceTarget;
+    if (target && this.plane) {
+      const surface = this.plane.geometry.getAttribute('position');
+      const trace = this.lessonTrace?.geometry.getAttribute('position');
+      this.applyHeights(target.heights.map((y, i) => approach(surface.getY(i), y)), target.offset);
+      this.applyTrace(target.trace.map((y, i) => approach(trace?.getY(i) ?? y, y)));
+      if (!moving) this.surfaceTarget = undefined;
+    }
+    if (this.residualsMoving && this.residualSegments?.visible) {
+      moving = false;
+      const geometry = this.residualSegments.geometry;
+      const position = geometry.getAttribute('position') as THREE.BufferAttribute;
+      const distance = geometry.getAttribute('lineDistance') as THREE.BufferAttribute;
+      for (let i = 1; i < geometry.drawRange.count; i += 2) {
+        const height = approach(position.getY(i), this.residualTargets[(i - 1) / 2]);
+        position.setY(i, height);
+        distance.setX(i, Math.abs(height - position.getY(i - 1)));
+      }
+      position.needsUpdate = true;
+      distance.needsUpdate = true;
+      this.residualsMoving = moving;
+    }
+    if (this.markerTarget !== undefined && this.predictedMarker) {
+      moving = false;
+      this.moveMarker(approach(this.predictedMarker.position.y, this.markerTarget));
+      if (!moving) this.markerTarget = undefined;
+    }
   }
 
   private applyTrace(heights: number[]) {
@@ -422,6 +584,15 @@ export class Viewport3d implements OnDestroy {
     heights.forEach((height, i) => positions.setY(i, height));
     positions.needsUpdate = true;
     this.lessonTrace.geometry.computeBoundingSphere();
+    if (this.traceGlow) {
+      const start = this.traceGlow.geometry.getAttribute('instanceStart') as THREE.InterleavedBufferAttribute;
+      const end = this.traceGlow.geometry.getAttribute('instanceEnd') as THREE.InterleavedBufferAttribute;
+      for (let i = 0; i < heights.length - 1; i++) {
+        start.setXYZ(i, positions.getX(i), heights[i], positions.getZ(i));
+        end.setXYZ(i, positions.getX(i + 1), heights[i + 1], positions.getZ(i + 1));
+      }
+      start.data.needsUpdate = true;
+    }
   }
 
   private applyHeights(heights: number[], offset: number) {
@@ -454,7 +625,8 @@ export class Viewport3d implements OnDestroy {
     const visible = modelVisibility(features, this.lesson(), this.shownPhase(), eps, this.modelClipped());
     if (this.plane) this.plane.visible = visible.plane;
     if (this.modelLine) this.modelLine.visible = visible.line;
-    if (this.lessonTrace) this.lessonTrace.visible = this.lesson() && features > 0 && !this.modelClipped();
+    if (this.lessonTrace) this.lessonTrace.visible = visible.plane;
+    if (this.traceGlow) this.traceGlow.visible = visible.plane || visible.line;
     this.bands.forEach(band => band.visible = visible.bands);
   }
 
@@ -475,7 +647,7 @@ export class Viewport3d implements OnDestroy {
     const start = this.pointerStart;
     if (start?.pointerId !== event.pointerId) return;
     this.pointerStart = undefined;
-    if (this.store.mode() !== 'learn' || !this.camera || !this.renderer || !this.pointMeshes[0] ||
+    if (!this.camera || !this.renderer || !this.pointMeshes[0] ||
       start.dragged || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return;
     const rect = this.renderer.domElement.getBoundingClientRect();
     const pointer = new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1);

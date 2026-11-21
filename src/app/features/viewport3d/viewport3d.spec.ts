@@ -169,7 +169,27 @@ describe('Viewport3d', () => {
     expect(view.bands.every((band: THREE.Mesh) => !band.visible)).toBe(true);
     for (const object of [view.plane, ...view.bands, view.modelLine]) { object.geometry.dispose(); object.material.dispose(); }
   });
-  it('draws the lesson regression trace through the selected multi-feature slice using the real model', () => {
+  it('draws one vertical error segment per point in both visible datasets', () => {
+    const view = component as any;
+    const lines = new THREE.LineSegments(new THREE.BufferGeometry());
+    view.residualSegments = lines;
+    const train = Array.from({ length: 20 }, (_, index) => [index, index + 1]);
+    const group = { rows: train, actual: train.map(() => 2), predicted: train.map(() => 1) };
+    const validation = { rows: [[25, -3]], actual: [2], predicted: [4] };
+    view.updateResidualSegments(2, [group, validation]);
+    expect(lines.geometry.drawRange.count).toBe(42);
+    const position = lines.geometry.getAttribute('position');
+    expect([position.getX(40), position.getY(40), position.getZ(40)]).toEqual([50, 4, -6]);
+    expect([position.getX(41), position.getY(41), position.getZ(41)]).toEqual([50, 8, -6]);
+    expect(lines.geometry.getAttribute('lineDistance').getX(41)).toBe(4);
+    view.updateResidualSegments(2, [group, { ...validation, predicted: [5] }]);
+    expect(lines.geometry.getAttribute('position')).toBe(position);
+    expect(position.getY(41)).toBe(10);
+    lines.geometry.dispose();
+    (lines.material as THREE.Material).dispose();
+  });
+
+  it('shows the real prediction trace and surface together in both views', () => {
     const view = component as any;
     fixture.componentRef.setInput('lesson', true);
     const geometry = new THREE.PlaneGeometry(10, 10, 40, 40); geometry.rotateX(-Math.PI / 2);
@@ -187,8 +207,11 @@ describe('Viewport3d', () => {
     expect(positions.getZ(40)).toBe(-2);
     expect(positions.getY(40)).toBe(12);
     fixture.componentRef.setInput('lesson', false);
-    view.applyModelVisibility(3, .1);
-    expect(view.lessonTrace.visible).toBe(false);
+    view.updatePlane([2, 3, 4], 1, 2, 'linear', 1, 3, [1, 2, 3], .1);
+    expect(view.plane.visible).toBe(true);
+    expect(view.lessonTrace.visible).toBe(true);
+    expect(positions.getZ(40)).toBe(4);
+    expect(positions.getY(40)).toBe(38);
     for (const object of [view.plane, view.lessonTrace]) { object.geometry.dispose(); object.material.dispose(); }
   });
 
@@ -200,6 +223,12 @@ describe('Viewport3d', () => {
     store.snapshot.set({before,after,algorithm:'linear',degree:1,lambda:0,lr:.01,trainCount:2,gradient:[1,1],biasGradient:1,penaltyBefore:0,penaltyAfter:0,done:false});
     fixture.componentRef.setInput('lesson',true);
     fixture.componentRef.setInput('reviewPhase',1);
+    expect(component.shownModel()).toBe(before);
+    fixture.componentRef.setInput('reviewPhase', 2);
+    expect(component.visualModel()).toEqual({ w: [1.45, 2.45], b: .45 });
+    expect(component.shownModel()).toBe(before);
+    fixture.componentRef.setInput('reviewPhase', 3);
+    expect(component.visualModel()).toEqual({ w: [1.85, 2.85], b: .85 });
     expect(component.shownModel()).toBe(before);
     fixture.componentRef.setInput('reviewPhase',4);
     expect(component.shownModel()).toBe(after);
